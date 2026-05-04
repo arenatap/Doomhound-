@@ -1,0 +1,178 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { ChevronDown, Copy, Check } from "lucide-react";
+import { BloodSplash } from "./blood-splash";
+
+export function HeroSection() {
+  const [copied, setCopied] = useState(false);
+  const eyeRef = useRef<HTMLDivElement>(null);
+  const [eyeStyle, setEyeStyle] = useState({ left: 0, top: 0 });
+
+  const contractAddress = "0x0000000000000000000000000000000000DOOM";
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!eyeRef.current) return;
+      const rect = eyeRef.current.getBoundingClientRect();
+      const eyeCenterX = rect.left + rect.width / 2;
+      const eyeCenterY = rect.top + rect.height / 2;
+      const angle = Math.atan2(e.clientY - eyeCenterY, e.clientX - eyeCenterX);
+      const distance = 3;
+      const x = Math.cos(angle) * distance;
+      const y = Math.sin(angle) * distance;
+      setEyeStyle({ left: x, top: y });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(contractAddress);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <section
+      id="hero"
+      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
+    >
+      {/* Background image with overlay */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/images/doomhound-hero.png')" }}
+      />
+      <div className="absolute inset-0 bg-black/70" />
+
+      {/* Flame animation at bottom */}
+      <div className="css-flame absolute bottom-0 left-0 right-0 z-10">
+        <div className="flame-layer" />
+        <div className="flame-layer" />
+        <div className="flame-layer" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
+        {/* Logo with eyes that follow mouse */}
+        <motion.div
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", duration: 1 }}
+          className="mb-8 relative inline-block"
+        >
+          <img
+            src="/images/doomhound-logo.png"
+            alt="$DOOMHOUND Logo"
+            className="w-32 h-32 md:w-48 md:h-48 mx-auto drop-shadow-[0_0_30px_rgba(220,38,38,0.5)]"
+          />
+          {/* Eyes overlay */}
+          <div
+            ref={eyeRef}
+            className="absolute top-[30%] left-1/2 -translate-x-1/2 w-[60%] h-[15%] flex justify-center gap-[15%] pointer-events-none"
+          >
+            <div
+              className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-red-500 shadow-[0_0_10px_rgba(220,38,38,0.8)]"
+              style={{
+                transform: `translate(${eyeStyle.left}px, ${eyeStyle.top}px)`,
+                transition: "transform 0.1s ease-out",
+              }}
+            />
+            <div
+              className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-red-500 shadow-[0_0_10px_rgba(220,38,38,0.8)]"
+              style={{
+                transform: `translate(${eyeStyle.left}px, ${eyeStyle.top}px)`,
+                transition: "transform 0.1s ease-out",
+              }}
+            />
+          </div>
+        </motion.div>
+
+        {/* Ticker */}
+        <motion.h1
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.8 }}
+          className="font-creepster text-6xl md:text-8xl lg:text-9xl text-red-500 animate-glow-red mb-4"
+        >
+          $DOOMHOUND
+        </motion.h1>
+
+        {/* Tagline */}
+        <motion.p
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+          className="font-creepster text-2xl md:text-4xl text-red-300 mb-2"
+        >
+          Can&apos;t Kill What&apos;s Already From Hell
+        </motion.p>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.8 }}
+          className="text-lg md:text-xl text-gray-300 mb-8"
+        >
+          The Arena&apos;s Most Feared Contender 🔥
+        </motion.p>
+
+        {/* Buttons */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 1, duration: 0.8 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center mb-8"
+        >
+          <BloodSplash>
+            <a
+              href="#"
+              className="inline-flex items-center justify-center px-8 py-4 text-lg font-bold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transition-all duration-300 animate-breathing-glow"
+            >
+              BUY $DOOMHOUND 🔥
+            </a>
+          </BloodSplash>
+          <BloodSplash>
+            <a
+              href="#"
+              className="inline-flex items-center justify-center px-8 py-4 text-lg font-bold bg-transparent border-2 border-red-600 hover:border-red-500 text-red-400 hover:text-red-300 rounded-lg hover:shadow-[0_0_20px_rgba(220,38,38,0.3)] transition-all duration-300"
+            >
+              VIEW CHART 📊
+            </a>
+          </BloodSplash>
+        </motion.div>
+
+        {/* Contract Address */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 1.2, duration: 0.8 }}
+          className="flex items-center justify-center gap-3 bg-[#1a1a1a]/80 backdrop-blur border border-[#2a2a2a] rounded-lg px-4 py-3 mx-auto max-w-md"
+        >
+          <code className="text-sm md:text-base text-gray-300 font-mono">
+            {contractAddress}
+          </code>
+          <button
+            onClick={handleCopy}
+            className="p-1 hover:text-red-400 transition-colors"
+            aria-label="Copy contract address"
+          >
+            {copied ? (
+              <Check className="w-4 h-4 text-green-500" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
+          </button>
+        </motion.div>
+      </div>
+
+      {/* Scroll indicator */}
+      <div className="absolute bottom-20 left-1/2 animate-bounce-down z-10">
+        <ChevronDown className="w-8 h-8 text-red-500/70" />
+      </div>
+    </section>
+  );
+}
