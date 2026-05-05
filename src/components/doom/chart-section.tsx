@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { ScrollReveal } from "./scroll-reveal";
 
 // ===== CONFIG =====
-const DOOMHOUND_SUBJECT_ID = ""; // <-- SET THIS AFTER LAUNCH (same as live-data-section)
+const DOOMHOUND_CONTRACT = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
 
 // ===== ANIMATED CHART PLACEHOLDER =====
 function AnimatedChartPlaceholder() {
@@ -113,7 +113,7 @@ function AnimatedChartPlaceholder() {
 }
 
 export function ChartSection() {
-  const isLaunched = DOOMHOUND_SUBJECT_ID !== "";
+  const isLaunched = DOOMHOUND_CONTRACT !== "";
 
   return (
     <section id="chart" className="relative py-16 sm:py-20 md:py-28 bg-[#0a0a0a] overflow-hidden">
@@ -137,7 +137,7 @@ export function ChartSection() {
               // Post-launch: Embed DEXScreener
               <div className="w-full" style={{ minHeight: "400px" }}>
                 <iframe
-                  src={`https://dexscreener.com/avalanche/${DOOMHOUND_SUBJECT_ID}?embed=1&theme=dark&trades=0`}
+                  src={`https://dexscreener.com/avalanche/${DOOMHOUND_CONTRACT}?embed=1&theme=dark&trades=0`}
                   className="w-full border-0"
                   style={{ height: "500px" }}
                   title="$DOOMHOUND Chart"
