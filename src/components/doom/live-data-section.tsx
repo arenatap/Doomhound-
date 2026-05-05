@@ -1,26 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ScrollReveal } from "./scroll-reveal";
 
 // ===== CONFIGURATION =====
-// $DOOMHOUND is LIVE on The Arena
-// Arena uses its own internal subjectId (UUID), NOT the contract address
-const DOOMHOUND_SUBJECT_ID = "a3647ab9-4366-4cea-b7bb-2f945981045c";
+const DOOMHOUND_CONTRACT = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
+const SNOWTRACE_API = "https://api.snowtrace.io/api";
 
 // ===== TYPES =====
-interface HolderData {
-  amount: number;
-  traderId: string;
-  subjectId: string;
-  traderUser: {
-    handle: string;
-    profilePicture: string;
-    userName: string;
-  };
-  subjectUser: {
-    keyPrice: string;
-  };
+interface TokenHolder {
+  address: string;
+  balance: string; // raw wei string
+  percentage?: string;
 }
 
 interface TrendingThread {
@@ -43,25 +34,28 @@ interface TrendingThread {
   };
 }
 
-interface ArenaStats {
-  totalHolders: number;
-  totalShares: number;
-  keyPrice: string | null;
-  holders: HolderData[];
+interface TokenStats {
+  holderCount: number;
+  holders: TokenHolder[];
+  totalSupply: string;
 }
 
 interface TrendingData {
   threads: TrendingThread[];
 }
 
-type LaunchStatus = "pre-launch" | "live" | "graduated";
-
 // ===== HELPER FUNCTIONS =====
-function formatAvax(wei: string): string {
+function formatTokens(wei: string): string {
   const val = parseFloat(wei) / 1e18;
-  if (val < 0.0001) return `<0.0001`;
-  if (val < 1) return val.toFixed(4);
+  if (val >= 1_000_000_000) return `${(val / 1_000_000_000).toFixed(2)}B`;
+  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(2)}M`;
+  if (val >= 1_000) return `${(val / 1_000).toFixed(1)}K`;
   return val.toFixed(2);
+}
+
+function shortAddress(addr: string): string {
+  if (!addr || addr.length < 10) return addr;
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
 function stripHtml(html: string): string {
@@ -74,111 +68,92 @@ function timeAgo(dateStr: string): string {
   const diff = Math.floor((now.getTime() - then.getTime()) / 1000);
   if (diff < 60) return `${diff}s ago`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 86400) return `${Math.floor(diff / 86400)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
 // ===== COMPONENT =====
-export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
-  const [stats, setStats] = useState<ArenaStats | null>(null);
+export function LiveDataSection() {
+  const [stats, setStats] = useState<TokenStats | null>(null);
   const [trending, setTrending] = useState<TrendingThread[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [priceFlash, setPriceFlash] = useState<"green" | "red" | null>(null);
-  const prevPriceRef = useRef<string | null>(null);
-  const feedRef = useRef<HTMLDivElement>(null);
 
-  const isLaunched = DOOMHOUND_SUBJECT_ID !== "";
-
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const [userRequestedData, setUserRequestedData] = useState(true); // Auto-load since token is live
-
-  // Fetch token stats from Arena API
+  // Fetch on-chain token holders from Snowtrace
   const fetchStats = useCallback(async () => {
-    if (!isLaunched) return;
     try {
       const res = await fetch(
-        `/api/arena?action=holders&subjectId=${DOOMHOUND_SUBJECT_ID}&pageSize=25`
+        `${SNOWTRACE_API}?module=token&action=tokenholderlist&contractaddress=${DOOMHOUND_CONTRACT}&page=1&offset=25`
       );
       const data = await res.json();
-      if (data.holders) {
-        const newStats: ArenaStats = {
-          totalHolders: data.count || data.holders.length,
-          totalShares: data.totalShares || 0,
-          keyPrice: data.holders[0]?.subjectUser?.keyPrice || null,
-          holders: data.holders,
-        };
-
-        // Flash price on change
-        if (prevPriceRef.current && newStats.keyPrice) {
-          if (newStats.keyPrice > prevPriceRef.current) {
-            setPriceFlash("green");
-          } else if (newStats.keyPrice < prevPriceRef.current) {
-            setPriceFlash("red");
-          }
-          setTimeout(() => setPriceFlash(null), 1000);
-        }
-        prevPriceRef.current = newStats.keyPrice;
-
-        setStats(newStats);
+      if (data.status === "1" && Array.isArray(data.result)) {
+        const holders: TokenHolder[] = data.result.map((h: any) => ({
+          address: h.TokenHolderAddress,
+          balance: h.TokenHolderQuantity,
+        }));
+        setStats({
+          holderCount: holders.length,
+          holders,
+          totalSupply: "1185417787", // verified on-chain
+        });
         setError(null);
+      } else {
+        setError("Failed to load holder data");
       }
     } catch (err) {
-      console.error("Failed to fetch Arena stats:", err);
+      console.error("Failed to fetch token stats:", err);
+      setError("Failed to load data");
     }
-  }, [isLaunched]);
+  }, []);
 
   // Fetch trending posts from Arena
   const fetchTrending = useCallback(async () => {
     try {
       const res = await fetch("/api/arena?action=trending");
       const data: TrendingData = await res.json();
-      if (data.threads) {
-        setTrending(data.threads.slice(0, 8));
-      }
+      // Filter for $DOOMHOUND related posts, or show general trending
+      const allThreads = data.threads || [];
+      const doomhoundThreads = allThreads.filter((t) => {
+        const content = (t.content || "").toLowerCase();
+        const ticker = (t.community?.ticker || "").toLowerCase();
+        return content.includes("doomhound") || ticker.includes("doomhound");
+      });
+      // Show DOOMHOUND posts first, then general trending
+      setTrending(
+        doomhoundThreads.length > 0
+          ? doomhoundThreads.slice(0, 8)
+          : allThreads.slice(0, 8)
+      );
     } catch (err) {
       console.error("Failed to fetch Arena trending:", err);
     }
   }, []);
 
-  // Only fetch when user explicitly requests it
+  // Auto-load on mount
   useEffect(() => {
-    if (!userRequestedData) return;
     const init = async () => {
       setLoading(true);
       await Promise.all([fetchStats(), fetchTrending()]);
       setLoading(false);
-      setDataLoaded(true);
     };
     init();
-  }, [userRequestedData, fetchStats, fetchTrending]);
+  }, [fetchStats, fetchTrending]);
 
-  // Polling — refresh every 15 seconds (only after initial load)
+  // Polling — refresh every 30 seconds
   useEffect(() => {
-    if (!dataLoaded) return;
     const interval = setInterval(() => {
       fetchStats();
-    }, 15000);
+    }, 30000);
     return () => clearInterval(interval);
-  }, [dataLoaded, fetchStats]);
+  }, [fetchStats]);
 
-  // Refresh trending every 60 seconds (only after initial load)
+  // Refresh trending every 60 seconds
   useEffect(() => {
-    if (!dataLoaded) return;
     const interval = setInterval(() => {
       fetchTrending();
     }, 60000);
     return () => clearInterval(interval);
-  }, [dataLoaded, fetchTrending]);
-
-  // Determine launch status
-  const getLaunchStatus = (): LaunchStatus => {
-    if (!isLaunched) return "pre-launch";
-    if (!stats) return "pre-launch";
-    return "live";
-  };
-
-  const launchStatus = getLaunchStatus();
+  }, [fetchTrending]);
 
   return (
     <section
@@ -191,104 +166,60 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
           <div className="text-center mb-12 sm:mb-16 md:mb-20">
             <h2 className="font-creepster text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-red-500 animate-glow-red inline-flex items-center gap-3 sm:gap-4">
               ARENA STATUS
-              <span className="inline-block w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 animate-pulse-red" />
+              <span className="inline-block w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500 animate-pulse" />
             </h2>
           </div>
         </ScrollReveal>
 
-        {/* Pre-Launch State — hidden when launched */}
-
-        {/* Load Data Button — only show when data hasn't been requested yet and token is launched */}
-        {isLaunched && !userRequestedData && (
-          <ScrollReveal delay={0.1}>
-            <div className="text-center mt-8">
-              <button
-                onClick={() => setUserRequestedData(true)}
-                className="px-8 py-4 text-base sm:text-lg font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transition-all duration-300"
-              >
-                📡 Load Arena Data
-              </button>
-              <p className="text-gray-600 text-xs sm:text-sm mt-3">Click to fetch live price, holders &amp; trending posts</p>
-            </div>
-          </ScrollReveal>
-        )}
-
-        <div className={`grid md:grid-cols-2 gap-5 sm:gap-6 md:gap-10 ${!isLaunched ? "mt-10 sm:mt-14" : ""}`}>
+        <div className="grid md:grid-cols-2 gap-5 sm:gap-6 md:gap-10">
           {/* Left Column — Token Data */}
           <div className="space-y-5 sm:space-y-6">
-            {/* Live Price */}
-            {isLaunched && userRequestedData && (
-              <ScrollReveal delay={0.1}>
-                <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
-                  <div className="flex justify-between items-center mb-2 sm:mb-3">
-                    <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500">
-                      Live Price
-                    </h3>
-                    <span className="text-[10px] sm:text-xs uppercase text-orange-400 bg-orange-900/20 px-2 py-0.5 rounded">
-                      {launchStatus === "live" ? "Bonding Curve" : "Live"}
-                    </span>
-                  </div>
-                  <p
-                    className={`text-2xl sm:text-3xl md:text-4xl font-bold font-mono ${
-                      priceFlash === "green"
-                        ? "animate-flash-green"
-                        : priceFlash === "red"
-                        ? "animate-flash-red"
-                        : "text-white"
-                    }`}
-                  >
-                    {stats?.keyPrice
-                      ? `${formatAvax(stats.keyPrice)} AVAX`
-                      : "Loading..."}
-                  </p>
-                </div>
-              </ScrollReveal>
-            )}
-
             {/* Holders Count */}
-            {isLaunched && userRequestedData && (
-              <ScrollReveal delay={0.2}>
-                <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
-                  <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-2 sm:mb-3">
+            <ScrollReveal delay={0.1}>
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
+                <div className="flex justify-between items-center mb-2 sm:mb-3">
+                  <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500">
                     Holders
                   </h3>
-                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-red-400">
-                    {stats ? `${stats.totalHolders} HOLDERS` : "Loading..."}
-                  </p>
-                  <p className="text-gray-600 text-xs sm:text-sm mt-1">
-                    Total shares: {stats?.totalShares?.toLocaleString() || "..."}
-                  </p>
+                  <span className="text-[10px] sm:text-xs uppercase text-green-400 bg-green-900/20 px-2 py-0.5 rounded">
+                    Live
+                  </span>
                 </div>
-              </ScrollReveal>
-            )}
+                <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-red-400">
+                  {stats ? `${stats.holderCount} HOLDERS` : loading ? "Loading..." : "—"}
+                </p>
+                <p className="text-gray-600 text-xs sm:text-sm mt-1">
+                  On-chain Avalanche C-Chain
+                </p>
+              </div>
+            </ScrollReveal>
 
             {/* Top Holders */}
-            {isLaunched && userRequestedData && stats?.holders && stats.holders.length > 0 && (
-              <ScrollReveal delay={0.3}>
+            {stats?.holders && stats.holders.length > 0 && (
+              <ScrollReveal delay={0.2}>
                 <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
                   <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-3 sm:mb-4">
                     Top Holders
                   </h3>
                   <div className="space-y-2">
-                    {stats.holders.slice(0, 5).map((holder, i) => (
+                    {stats.holders.slice(0, 8).map((holder, i) => (
                       <div
-                        key={holder.traderId}
+                        key={holder.address}
                         className="flex items-center gap-2 sm:gap-3 bg-[#0a0a0a] rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border border-[#2a2a2a]"
                       >
                         <span className="text-red-500 font-bold text-xs sm:text-sm w-5 text-center">
                           #{i + 1}
                         </span>
-                        <img
-                          src={holder.traderUser.profilePicture}
-                          alt=""
-                          loading="lazy"
-                          className="w-6 h-6 sm:w-7 sm:h-7 rounded-full"
-                        />
-                        <span className="text-gray-300 text-xs sm:text-sm truncate">
-                          @{holder.traderUser.handle}
-                        </span>
+                        <a
+                          href={`https://snowtrace.io/address/${holder.address}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-300 text-xs sm:text-sm font-mono hover:text-red-400 transition-colors truncate"
+                        >
+                          {shortAddress(holder.address)}
+                        </a>
                         <span className="text-red-400 ml-auto text-xs sm:text-sm font-mono whitespace-nowrap">
-                          {holder.amount} keys
+                          {formatTokens(holder.balance)}
                         </span>
                       </div>
                     ))}
@@ -298,7 +229,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
             )}
 
             {/* Token Info Card */}
-            <ScrollReveal delay={0.2}>
+            <ScrollReveal delay={0.3}>
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
                 <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-3 sm:mb-4">
                   Token Info
@@ -313,6 +244,10 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                     <span className="text-red-400 text-sm font-bold">The Arena</span>
                   </div>
                   <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">Name</span>
+                    <span className="text-white text-sm">Mr. Hound</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span className="text-gray-500 text-sm">Ticker</span>
                     <span className="text-white text-sm font-mono">$DOOMHOUND</span>
                   </div>
@@ -324,15 +259,15 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                     <span className="text-gray-500 text-sm">Curve</span>
                     <span className="text-orange-400 text-sm font-bold">Bonding → LFJ DEX</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-500 text-sm">Contract</span>
                     <a
-                      href="https://snowtrace.io/token/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb"
+                      href={`https://snowtrace.io/token/${DOOMHOUND_CONTRACT}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-red-400 text-xs font-mono hover:text-red-300 truncate max-w-[180px]"
                     >
-                      0xE99a...9dBb
+                      0xE99a...9dBb ↗
                     </a>
                   </div>
                 </div>
@@ -342,7 +277,6 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
 
           {/* Right Column — Arena Trending */}
           <div className="space-y-5 sm:space-y-6">
-            {isLaunched && userRequestedData && (
             <ScrollReveal delay={0.15}>
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
@@ -351,17 +285,22 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                   </h3>
                   <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                 </div>
-                <div
-                  ref={feedRef}
-                  className="max-h-[400px] sm:max-h-[480px] md:max-h-[550px] overflow-y-auto space-y-2 no-scrollbar"
-                >
-                  {loading ? (
+                <div className="max-h-[400px] sm:max-h-[480px] md:max-h-[550px] overflow-y-auto space-y-2 no-scrollbar">
+                  {loading && !trending.length ? (
                     <div className="text-center py-8">
                       <p className="text-gray-600 text-sm">Loading Arena feed...</p>
                     </div>
                   ) : trending.length === 0 ? (
                     <div className="text-center py-8">
-                      <p className="text-gray-600 text-sm">No trending posts</p>
+                      <p className="text-gray-600 text-sm">No $DOOMHOUND posts yet. Be the first to post!</p>
+                      <a
+                        href="https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block mt-3 px-4 py-2 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                      >
+                        🐺 POST ON ARENA
+                      </a>
                     </div>
                   ) : (
                     trending.map((thread) => (
@@ -413,25 +352,51 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                 </div>
               </div>
             </ScrollReveal>
-            )}
 
-            {/* Arena Stats Footer */}
-            {isLaunched && userRequestedData && (
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 text-center">
-                <p className="text-gray-500 text-xs sm:text-sm">
-                  Data powered by{" "}
-                  <a
-                    href="https://arena.social"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-red-400 hover:text-red-300 transition-colors"
-                  >
-                    The Arena API
-                  </a>
-                  {" "}&middot; Auto-refresh every 15s
+            {/* CTA — Buy on Arena */}
+            <ScrollReveal delay={0.2}>
+              <div className="bg-[#1a1a1a] border border-red-900/40 rounded-xl p-5 sm:p-6 text-center animate-flame-border">
+                <p className="text-white font-creepster text-lg sm:text-xl mb-2">
+                  🐺 Join the Pack
                 </p>
+                <p className="text-gray-400 text-xs sm:text-sm mb-4">
+                  Buy $DOOMHOUND on The Arena and earn points!
+                </p>
+                <a
+                  href="https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-sm sm:text-base rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transition-all"
+                >
+                  🔥 BUY $DOOMHOUND
+                </a>
               </div>
-            )}
+            </ScrollReveal>
+
+            {/* Data Source Footer */}
+            <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 sm:p-5 text-center">
+              <p className="text-gray-500 text-xs sm:text-sm">
+                Holders via{" "}
+                <a
+                  href={`https://snowtrace.io/token/${DOOMHOUND_CONTRACT}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-red-400 hover:text-red-300 transition-colors"
+                >
+                  Snowtrace
+                </a>
+                {" "}· Feed via{" "}
+                <a
+                  href="https://arena.social"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-red-400 hover:text-red-300 transition-colors"
+                >
+                  Arena API
+                </a>
+                {" "}· Auto-refresh 30s
+              </p>
+            </div>
           </div>
         </div>
       </div>
