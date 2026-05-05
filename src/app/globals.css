@@ -363,16 +363,15 @@ body {
   border-color: #dc2626;
 }
 
-/* CSS flame element — full width, centered */
+/* CSS flame element — full width, centered via absolute positioning */
 .css-flame {
-  position: relative;
-  width: 100vw;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
+  position: absolute;
+  width: 100%;
+  left: 0;
+  right: 0;
   height: 60px;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .css-flame .flame-layer {

@@ -30,7 +30,7 @@ export function HeroSection() {
       <div className="absolute inset-0 bg-black/65" />
 
       {/* Flame animation at bottom */}
-      <div className="css-flame absolute bottom-0 left-0 right-0 z-10">
+      <div className="css-flame bottom-0 z-10">
         <div className="flame-layer" />
         <div className="flame-layer" />
         <div className="flame-layer" />

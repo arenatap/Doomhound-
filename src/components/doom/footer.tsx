@@ -11,7 +11,7 @@ export function Footer() {
             className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 mx-auto mb-3 sm:mb-4 opacity-60 rounded-full"
           />
           <p className="font-creepster text-lg sm:text-xl md:text-2xl text-red-500">
-            $DOOMHOUND © 2025 — The Devil&apos;s Good Boy
+            $DOOMHOUND © 2026 — The Devil&apos;s Good Boy
           </p>
         </div>
         <p className="text-gray-600 text-xs sm:text-sm md:text-base max-w-lg mx-auto">
