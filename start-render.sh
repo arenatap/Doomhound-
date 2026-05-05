@@ -1,15 +1,12 @@
 #!/bin/bash
-# $DOOMHOUND — Render Start Script
-# Runs Prisma DB push at startup (disk is mounted at runtime, not build time)
-# Then starts the Next.js standalone server
-
+# $DOOMHOUND — Render Start Script (Supabase/PostgreSQL)
 set -e
 
 echo "🐺 $DOOMHOUND starting on Render..."
 
-# Push DB schema (creates tables if needed — disk is available at runtime)
-echo "📦 Syncing database schema..."
-npx prisma db push --accept-data-loss 2>&1 || echo "⚠️ DB push warning (may already exist)"
+# Apply pending migrations (creates tables on Supabase)
+echo "📦 Running database migrations..."
+npx prisma migrate deploy 2>&1 || echo "⚠️ Migration warning (may already be applied)"
 
 # Copy Prisma schema to standalone output so it's accessible at runtime
 echo "📋 Copying Prisma schema..."

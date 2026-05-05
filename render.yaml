@@ -13,8 +13,10 @@ services:
         value: 10000
       - key: HOSTNAME
         value: 0.0.0.0
+      # Supabase PostgreSQL connection string — SET IN RENDER DASHBOARD
       - key: DATABASE_URL
-        value: file:/opt/render/project/data/doomhound.db
+        sync: false
+      # Arena API key — SET IN RENDER DASHBOARD
       - key: ARENA_API_KEY
         sync: false
       - key: DOOMHOUND_CONTRACT
@@ -23,7 +25,3 @@ services:
         sync: false
       - key: AVAX_RPC_URL
         value: https://api.avax.network/ext/bc/C/rpc
-    disk:
-      name: doomhound-data
-      mountPath: /opt/render/project/data
-      sizeGB: 1
