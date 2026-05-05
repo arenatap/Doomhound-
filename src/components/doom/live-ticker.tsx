@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useState, useCallback } from "react";
 
-// ===== TICKER DATA =====
+// ===== TICKER DATA (fallback when Arena API not connected) =====
 const LIVE_MESSAGES = [
   "🐺 $DOOMHOUND IS LIVE ON THE ARENA — Buy NOW!",
   "🔥 The Hound has been UNLEASHED — Can't Kill What's Already From Hell",
@@ -16,21 +16,7 @@ const LIVE_MESSAGES = [
   "💀 The devil's good boy is here — 1B supply, 0/0 tax",
 ];
 
-const SIMULATED_BUYS = [
-  "🐋 Whale bought 5M $DOOM — 2.3 AVAX",
-  "🐕 0x7f2...3a bought 1.2M $DOOM — 0.8 AVAX",
-  "🔥 New holder! Holders climbing!",
-  "🐋 0xa1e...9f bought 10M $DOOM — 4.1 AVAX",
-  "🐕 New pack member! The pack grows stronger",
-  "🐋 0xb3c...7d bought 3.5M $DOOM — 1.5 AVAX",
-  "🔥 Volume spiking on The Arena!",
-  "🐕 0x9d4...2e bought 800K $DOOM — 0.3 AVAX",
-  "🐋 Mega buy! 20M $DOOM — 8.2 AVAX",
-  "🔥 Holder count surging — get in NOW",
-];
-
 // ===== MARQUEE KEYFRAMES =====
-// We inject a CSS keyframe for the scroll animation
 const MARQUEE_CSS = `
 @keyframes doom-ticker-scroll {
   0% { transform: translateX(0); }
@@ -44,13 +30,115 @@ const MARQUEE_CSS = `
 }
 `;
 
-export function LiveTicker() {
-  // $DOOMHOUND is LIVE — always show live messages
-  const messages = useMemo(() => {
-    return [...SIMULATED_BUYS, ...LIVE_MESSAGES.slice(0, 5)];
-  }, []);
+// ===== TYPES =====
+interface ArenaLiveUpdate {
+  type: "holder" | "price" | "follower" | "hype";
+  message: string;
+  emoji: string;
+}
 
-  // Duplicate messages for seamless loop
+export function LiveTicker() {
+  const [liveUpdates, setLiveUpdates] = useState<ArenaLiveUpdate[]>([]);
+  const [arenaConnected, setArenaConnected] = useState(false);
+  const [lastPrice, setLastPrice] = useState<number | null>(null);
+  const [lastHolders, setLastHolders] = useState<number | null>(null);
+  const [lastFollowers, setLastFollowers] = useState<number | null>(null);
+
+  // Fetch Arena live data periodically
+  const fetchArenaData = useCallback(async () => {
+    try {
+      const res = await fetch("/api/arena?action=live");
+      const data = await res.json();
+
+      if (!data.connected) {
+        setArenaConnected(false);
+        return;
+      }
+
+      setArenaConnected(true);
+      const updates: ArenaLiveUpdate[] = [];
+
+      // Check for price changes
+      if (data.stats?.currentPrice !== undefined) {
+        const newPrice = data.stats.currentPrice;
+        if (lastPrice !== null && newPrice !== lastPrice) {
+          const direction = newPrice > lastPrice ? "📈" : "📉";
+          const change = ((newPrice - lastPrice) / lastPrice * 100).toFixed(1);
+          updates.push({
+            type: "price",
+            message: `$DOOMHOUND Key ${direction} ${change}% — Now ${newPrice.toFixed(4)} AVAX`,
+            emoji: direction,
+          });
+        }
+        setLastPrice(newPrice);
+      }
+
+      // Check for new holders
+      if (data.stats?.holderCount !== undefined) {
+        const newHolders = data.stats.holderCount;
+        if (lastHolders !== null && newHolders > lastHolders) {
+          const diff = newHolders - lastHolders;
+          updates.push({
+            type: "holder",
+            message: `🐺 ${diff} new key holder${diff > 1 ? "s" : ""}! Total: ${newHolders} holders`,
+            emoji: "🐺",
+          });
+        }
+        setLastHolders(newHolders);
+      }
+
+      // Check for new followers
+      if (data.profile?.followerCount !== undefined) {
+        const newFollowers = data.profile.followerCount;
+        if (lastFollowers !== null && newFollowers > lastFollowers) {
+          const diff = newFollowers - lastFollowers;
+          updates.push({
+            type: "follower",
+            message: `🔥 ${diff} new follower${diff > 1 ? "s" : ""} on Arena! Total: ${newFollowers}`,
+            emoji: "🔥",
+          });
+        }
+        setLastFollowers(newFollowers);
+      }
+
+      // Add top holder info
+      if (data.topHolders && data.topHolders.length > 0) {
+        const topHolder = data.topHolders[0];
+        if (topHolder.handle) {
+          updates.push({
+            type: "holder",
+            message: `🐋 @${topHolder.handle} holds ${topHolder.shareCount || "?"} $DOOMHOUND keys`,
+            emoji: "🐋",
+          });
+        }
+      }
+
+      if (updates.length > 0) {
+        setLiveUpdates(updates);
+      }
+    } catch (err) {
+      console.error("Ticker: Arena fetch failed:", err);
+      setArenaConnected(false);
+    }
+  }, [lastPrice, lastHolders, lastFollowers]);
+
+  useEffect(() => {
+    fetchArenaData(); // Initial fetch
+    const interval = setInterval(fetchArenaData, 30000); // Every 30s
+    return () => clearInterval(interval);
+  }, [fetchArenaData]);
+
+  // Build messages: live updates from Arena + fallback hype messages
+  const messages = useMemo(() => {
+    if (arenaConnected && liveUpdates.length > 0) {
+      // Mix live Arena updates with some hype messages
+      const liveMsgs = liveUpdates.map((u) => `${u.emoji} ${u.message}`);
+      return [...liveMsgs, ...LIVE_MESSAGES.slice(0, 5)];
+    }
+    return LIVE_MESSAGES;
+  }, [arenaConnected, liveUpdates]);
+
+  // Duplicate for seamless loop
   const doubled = useMemo(() => [...messages, ...messages], [messages]);
 
   return (
@@ -78,7 +166,9 @@ export function LiveTicker() {
                   ? "text-orange-400"
                   : msg.includes("🔥")
                   ? "text-red-400"
-                  : msg.includes("🐕")
+                  : msg.includes("📈") || msg.includes("📉")
+                  ? "text-yellow-400"
+                  : msg.includes("🐺")
                   ? "text-red-300"
                   : "text-orange-300"
               }`}

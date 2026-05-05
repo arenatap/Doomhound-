@@ -8,17 +8,36 @@ const DOOMHOUND_CONTRACT = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
 const ARENA_COMMUNITY_URL = `https://arena.social/community/${DOOMHOUND_CONTRACT}`;
 
 // ===== TYPES =====
-interface HolderData {
-  address: string;
-  balance: string;
+interface ArenaShareStats {
+  totalSupply: number;
+  holderCount: number;
+  currentPrice: number;
+  marketCap: number;
 }
 
-interface TokenInfo {
-  name: string;
-  symbol: string;
-  decimals: string;
-  supply: string;
-  holderCount: string;
+interface ArenaHolder {
+  id: string;
+  handle: string;
+  userName: string;
+  profilePicture: string;
+  shareCount: number;
+  totalValue: number;
+}
+
+interface ArenaProfile {
+  id: string;
+  handle: string;
+  userName: string;
+  profilePicture: string;
+  followerCount: number;
+  postCount: number;
+  sharePrice: number;
+  shareHolders: number;
+}
+
+interface SnowtraceHolder {
+  address: string;
+  balance: string;
 }
 
 interface TransferData {
@@ -30,18 +49,7 @@ interface TransferData {
   timeStamp: string;
 }
 
-// ===== HELPER FUNCTIONS =====
-function formatBalance(raw: string, decimals: string = "18"): string {
-  const dec = parseInt(decimals) || 18;
-  const val = BigInt(raw);
-  const divisor = BigInt(10) ** BigInt(dec);
-  const whole = val / divisor;
-  const fraction = val % divisor;
-  const fractionStr = fraction.toString().padStart(dec, "0").slice(0, 4);
-  const formatted = `${whole.toLocaleString()}.${fractionStr}`;
-  return formatted.replace(/\.?0+$/, "") || "0";
-}
-
+// ===== HELPERS =====
 function shortenAddress(addr: string): string {
   if (!addr || addr.length < 10) return addr;
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -57,50 +65,77 @@ function timeAgo(timestamp: string): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-function formatSupply(raw: string, decimals: string = "18"): string {
+function formatBalance(raw: string, decimals: string = "18"): string {
   const dec = parseInt(decimals) || 18;
   const val = BigInt(raw);
   const divisor = BigInt(10) ** BigInt(dec);
   const whole = val / divisor;
-  return whole.toLocaleString();
+  const fraction = val % divisor;
+  const fractionStr = fraction.toString().padStart(dec, "0").slice(0, 4);
+  const formatted = `${whole.toLocaleString()}.${fractionStr}`;
+  return formatted.replace(/\.?0+$/, "") || "0";
+}
+
+function formatAvax(val: number): string {
+  if (val < 0.0001) return "<0.0001";
+  if (val < 1) return val.toFixed(4);
+  if (val < 100) return val.toFixed(2);
+  return val.toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
+function formatNumber(n: number): string {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+  return n.toLocaleString();
 }
 
 // ===== COMPONENT =====
 export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
-  const [holders, setHolders] = useState<HolderData[]>([]);
-  const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null);
+  // Arena live data
+  const [arenaConnected, setArenaConnected] = useState(false);
+  const [arenaStats, setArenaStats] = useState<ArenaShareStats | null>(null);
+  const [arenaHolders, setArenaHolders] = useState<ArenaHolder[]>([]);
+  const [arenaProfile, setArenaProfile] = useState<ArenaProfile | null>(null);
+
+  // Snowtrace on-chain data (always available)
+  const [onChainHolders, setOnChainHolders] = useState<SnowtraceHolder[]>([]);
   const [transfers, setTransfers] = useState<TransferData[]>([]);
-  const [loading, setLoading] = useState(true);
   const [holdersCount, setHoldersCount] = useState(0);
+  const [loading, setLoading] = useState(true);
   const prevCountRef = useRef(0);
 
-  const fetchTokenInfo = useCallback(async () => {
+  // ===== FETCH ARENA LIVE DATA =====
+  const fetchArenaLive = useCallback(async () => {
     try {
-      const res = await fetch("/api/snowtrace?action=info");
+      const res = await fetch("/api/arena?action=live");
       const data = await res.json();
-      if (data.name) {
-        setTokenInfo(data);
-        if (data.holderCount) {
-          setHoldersCount(parseInt(data.holderCount));
-        }
+      if (data.connected) {
+        setArenaConnected(true);
+        if (data.stats) setArenaStats(data.stats);
+        if (data.topHolders) setArenaHolders(data.topHolders);
+        if (data.profile) setArenaProfile(data.profile);
+      } else {
+        setArenaConnected(false);
       }
     } catch (err) {
-      console.error("Failed to fetch token info:", err);
+      console.error("Failed to fetch Arena live data:", err);
+      setArenaConnected(false);
     }
   }, []);
 
-  const fetchHolders = useCallback(async () => {
+  // ===== FETCH SNOWTRACE ON-CHAIN DATA =====
+  const fetchOnChainHolders = useCallback(async () => {
     try {
       const res = await fetch("/api/snowtrace?action=holders");
       const data = await res.json();
       if (data.holders) {
-        setHolders(data.holders);
+        setOnChainHolders(data.holders);
         if (data.count && data.count > holdersCount) {
           setHoldersCount(data.count);
         }
       }
     } catch (err) {
-      console.error("Failed to fetch holders:", err);
+      console.error("Failed to fetch on-chain holders:", err);
     }
   }, [holdersCount]);
 
@@ -124,27 +159,52 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
     }
   }, [onNewBuy]);
 
+  const fetchTokenInfo = useCallback(async () => {
+    try {
+      const res = await fetch("/api/snowtrace?action=info");
+      const data = await res.json();
+      if (data.holderCount) {
+        setHoldersCount(parseInt(data.holderCount));
+      }
+    } catch (err) {
+      console.error("Failed to fetch token info:", err);
+    }
+  }, []);
+
+  // ===== INIT =====
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      await Promise.all([fetchTokenInfo(), fetchHolders(), fetchTransfers()]);
+      await Promise.all([
+        fetchArenaLive(),
+        fetchOnChainHolders(),
+        fetchTransfers(),
+        fetchTokenInfo(),
+      ]);
       setLoading(false);
     };
     init();
-  }, [fetchTokenInfo, fetchHolders, fetchTransfers]);
+  }, [fetchArenaLive, fetchOnChainHolders, fetchTransfers, fetchTokenInfo]);
 
+  // ===== AUTO-REFRESH =====
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchHolders();
+      fetchArenaLive();
+      fetchOnChainHolders();
       fetchTransfers();
     }, 30000);
     return () => clearInterval(interval);
-  }, [fetchHolders, fetchTransfers]);
+  }, [fetchArenaLive, fetchOnChainHolders, fetchTransfers]);
 
   useEffect(() => {
     const interval = setInterval(fetchTokenInfo, 120000);
     return () => clearInterval(interval);
   }, [fetchTokenInfo]);
+
+  // Determine which holders to show (Arena > Snowtrace)
+  const displayHolders = arenaHolders.length > 0 ? arenaHolders : [];
+  const onChainDisplayHolders = onChainHolders.slice(0, 8);
+  const totalHolders = arenaStats?.holderCount || holdersCount || onChainHolders.length;
 
   return (
     <section
@@ -160,7 +220,9 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
               <span className="inline-block w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500 animate-pulse" />
             </h2>
             <p className="text-gray-500 mt-3 text-sm sm:text-base">
-              $DOOMHOUND is LIVE on Avalanche — On-chain data auto-refreshes every 30s
+              {arenaConnected
+                ? "$DOOMHOUND is LIVE on The Arena — Real-time data from Arena API + On-chain"
+                : "$DOOMHOUND is LIVE on Avalanche — On-chain data auto-refreshes every 30s"}
             </p>
           </div>
         </ScrollReveal>
@@ -195,36 +257,60 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
               </div>
             </ScrollReveal>
 
-            {/* On-Chain Stats */}
+            {/* Arena Key/Share Stats (LIVE from Arena API) */}
             <ScrollReveal delay={0.1}>
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
                 <div className="flex justify-between items-center mb-4 sm:mb-5">
                   <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500">
-                    On-Chain Stats
+                    {arenaConnected ? "Arena Key Stats" : "On-Chain Stats"}
                   </h3>
                   <span className="text-[10px] sm:text-xs uppercase text-green-400 bg-green-900/20 px-2 py-0.5 rounded animate-pulse">
                     ● LIVE
                   </span>
                 </div>
                 <div className="space-y-3">
+                  {/* Arena Key Price (if connected) */}
+                  {arenaConnected && arenaStats && (
+                    <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-red-900/30">
+                      <span className="text-gray-400 text-sm">Key Price</span>
+                      <span className="text-orange-400 text-lg sm:text-xl font-bold font-mono">
+                        {formatAvax(arenaStats.currentPrice)} AVAX
+                      </span>
+                    </div>
+                  )}
+                  {/* Market Cap */}
+                  {arenaConnected && arenaStats && (
+                    <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
+                      <span className="text-gray-400 text-sm">Market Cap</span>
+                      <span className="text-white text-sm font-bold font-mono">
+                        {formatAvax(arenaStats.marketCap)} AVAX
+                      </span>
+                    </div>
+                  )}
+                  {/* Holders */}
                   <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
-                    <span className="text-gray-400 text-sm">Holders</span>
+                    <span className="text-gray-400 text-sm">
+                      {arenaConnected ? "Key Holders" : "Holders"}
+                    </span>
                     <span className="text-red-400 text-lg sm:text-xl font-bold font-mono">
-                      {loading ? "..." : (holdersCount || holders.length)}
+                      {loading ? "..." : totalHolders}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
-                    <span className="text-gray-400 text-sm">Total Supply</span>
-                    <span className="text-white text-sm font-mono">
-                      {tokenInfo
-                        ? `${formatSupply(tokenInfo.supply, tokenInfo.decimals)} ${tokenInfo.symbol}`
-                        : "..."}
-                    </span>
-                  </div>
+                  {/* Followers (if Arena connected) */}
+                  {arenaConnected && arenaProfile && (
+                    <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
+                      <span className="text-gray-400 text-sm">Followers</span>
+                      <span className="text-white text-sm font-bold font-mono">
+                        {formatNumber(arenaProfile.followerCount || 0)}
+                      </span>
+                    </div>
+                  )}
+                  {/* Network */}
                   <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
                     <span className="text-gray-400 text-sm">Network</span>
                     <span className="text-white text-sm font-bold">Avalanche C-Chain</span>
                   </div>
+                  {/* Contract */}
                   <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
                     <span className="text-gray-400 text-sm">Contract</span>
                     <a
@@ -248,35 +334,67 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
               </div>
             </ScrollReveal>
 
-            {/* Top Holders */}
-            {holders.length > 0 && (
+            {/* Arena Key Holders (if connected) or On-Chain Top Holders */}
+            {(displayHolders.length > 0 || onChainDisplayHolders.length > 0) && (
               <ScrollReveal delay={0.2}>
                 <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
                   <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-3 sm:mb-4">
-                    Top Holders
+                    {arenaConnected && displayHolders.length > 0
+                      ? "Top Key Holders"
+                      : "Top Holders"}
                   </h3>
                   <div className="space-y-2">
-                    {holders.slice(0, 8).map((holder, i) => (
-                      <div
-                        key={holder.address}
-                        className="flex items-center gap-2 sm:gap-3 bg-[#0a0a0a] rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border border-[#2a2a2a]"
-                      >
-                        <span className="text-red-500 font-bold text-xs sm:text-sm w-5 text-center">
-                          #{i + 1}
-                        </span>
-                        <a
-                          href={`https://snowtrace.io/address/${holder.address}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-300 text-xs sm:text-sm font-mono hover:text-red-300 transition-colors"
-                        >
-                          {shortenAddress(holder.address)}
-                        </a>
-                        <span className="text-red-400 ml-auto text-xs sm:text-sm font-mono whitespace-nowrap">
-                          {formatBalance(holder.balance)} DOOMHOUND
-                        </span>
-                      </div>
-                    ))}
+                    {/* Arena key holders */}
+                    {displayHolders.length > 0
+                      ? displayHolders.map((holder, i) => (
+                          <div
+                            key={holder.id}
+                            className="flex items-center gap-2 sm:gap-3 bg-[#0a0a0a] rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border border-[#2a2a2a]"
+                          >
+                            <span className="text-red-500 font-bold text-xs sm:text-sm w-5 text-center">
+                              #{i + 1}
+                            </span>
+                            {holder.profilePicture && (
+                              <img
+                                src={holder.profilePicture}
+                                alt=""
+                                className="w-6 h-6 rounded-full border border-[#2a2a2a]"
+                              />
+                            )}
+                            <a
+                              href={`https://arena.social/${holder.handle}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-gray-300 text-xs sm:text-sm hover:text-red-300 transition-colors"
+                            >
+                              @{holder.handle}
+                            </a>
+                            <span className="text-orange-400 ml-auto text-xs sm:text-sm font-mono whitespace-nowrap">
+                              {holder.shareCount} keys
+                            </span>
+                          </div>
+                        ))
+                      : onChainDisplayHolders.map((holder, i) => (
+                          <div
+                            key={holder.address}
+                            className="flex items-center gap-2 sm:gap-3 bg-[#0a0a0a] rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border border-[#2a2a2a]"
+                          >
+                            <span className="text-red-500 font-bold text-xs sm:text-sm w-5 text-center">
+                              #{i + 1}
+                            </span>
+                            <a
+                              href={`https://snowtrace.io/address/${holder.address}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-gray-300 text-xs sm:text-sm font-mono hover:text-red-300 transition-colors"
+                            >
+                              {shortenAddress(holder.address)}
+                            </a>
+                            <span className="text-red-400 ml-auto text-xs sm:text-sm font-mono whitespace-nowrap">
+                              {formatBalance(holder.balance)} DOOMHOUND
+                            </span>
+                          </div>
+                        ))}
                   </div>
                 </div>
               </ScrollReveal>
@@ -356,25 +474,60 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
             <ScrollReveal delay={0.25}>
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 text-center">
                 <p className="text-gray-500 text-xs sm:text-sm">
-                  On-chain data from{" "}
-                  <a
-                    href="https://snowtrace.io"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-red-400 hover:text-red-300 transition-colors"
-                  >
-                    Snowtrace
-                  </a>
-                  {" "}&middot; Chart by{" "}
-                  <a
-                    href="https://dexscreener.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-red-400 hover:text-red-300 transition-colors"
-                  >
-                    DexScreener
-                  </a>
-                  {" "}&middot; Auto-refresh 30s
+                  {arenaConnected ? (
+                    <>
+                      Live data from{" "}
+                      <a
+                        href="https://arena.social"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        The Arena
+                      </a>
+                      {" "}&middot; On-chain by{" "}
+                      <a
+                        href="https://snowtrace.io"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        Snowtrace
+                      </a>
+                      {" "}&middot; Chart by{" "}
+                      <a
+                        href="https://dexscreener.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        DexScreener
+                      </a>
+                      {" "}&middot; Auto-refresh 30s
+                    </>
+                  ) : (
+                    <>
+                      On-chain data from{" "}
+                      <a
+                        href="https://snowtrace.io"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        Snowtrace
+                      </a>
+                      {" "}&middot; Chart by{" "}
+                      <a
+                        href="https://dexscreener.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        DexScreener
+                      </a>
+                      {" "}&middot; Auto-refresh 30s
+                    </>
+                  )}
                 </p>
               </div>
             </ScrollReveal>

@@ -1,0 +1,92 @@
+[
+  {
+    "url": "https://arena.social/agents",
+    "name": "AI Agents API Documentation - The Arena",
+    "snippet": "AI Agents API Documentation Base URL: `https://api.starsarena.com` All endpoints require the `X-API-Key` header with your agent API key.",
+    "host_name": "arena.social",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://starsarena.com",
+    "name": "Stars Arena",
+    "snippet": "A next gen SocialFi app redefining how creators connect, engage, and monetize their content. Missing: API api. endpoints shares holders community",
+    "host_name": "starsarena.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://x.com/Spicy_Rich/status/2030095910835999070",
+    "name": "Spicy Rich (@Spicy_Rich) on X - Twitter",
+    "snippet": "A Dedicated Crypto Wallet. Your agent gets its own on-chain wallet, meaning it can hold, send, and receive tokens. This is what allows it to trade, earn, and ...",
+    "host_name": "x.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://cryptorank.io/news/tag/stars-arena",
+    "name": "News - Stars Arena | CryptoRank.io",
+    "snippet": "Stars Arena Incident Causing Community Disturbance Confirmed Not A Hack. The project believes that the affected Stars Arena incident is isolated and has ...",
+    "host_name": "cryptorank.io",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://ambcrypto.com/blog/what-is-avax-avalanche-crypto-guide",
+    "name": "What is AVAX? Avalanche Crypto Guide",
+    "snippet": "AVAX is the main token for the Avalanche system. It's used for several key jobs: paying for transactions, helping keep the network safe through staking.",
+    "host_name": "ambcrypto.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://assets.coingecko.com/reports/2023/CoinGecko-2023-Annual-Crypto-Industry-Report.pdf?utm_source=web&utm_campaign=2023-Annual-Crypto-Industry-Report&utm_medium=display",
+    "name": "[PDF] CoinGecko 2023 Annual Crypto Industry Report",
+    "snippet": "The summary for 2023 Q4 could just be “anticipation over ETFs sends crypto market into frenzy”, as market sentiment turned more bullish with ...",
+    "host_name": "assets.coingecko.com",
+    "rank": 5,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.facebook.com/Techmeme/posts/crypto-stocks-jump-after-lawmakers-struck-a-compromise-on-the-clarity-act-to-pre/1410160707812906",
+    "name": "Crypto stocks jump after lawmakers struck a compromise on the",
+    "snippet": "Crypto stocks jump after lawmakers struck a compromise on the CLARITY Act to preserve stablecoin rewards under certain conditions; ...",
+    "host_name": "www.facebook.com",
+    "rank": 6,
+    "date": "May 4, 2026",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.facebook.com/groups/tickrmeter/posts/1510340856037560",
+    "name": "ETF'S and indexes are now available, commodities and a fix for",
+    "snippet": "ETF'S and indexes are now available, commodities and a fix for mesh Wifi's plus a small bonus coming next week! Please note due to a change in ...",
+    "host_name": "www.facebook.com",
+    "rank": 7,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.storageplus.io/public/download-document/codevigor/lootnft-archived/the-lootverse-consultative-paper-2022/document/download",
+    "name": "[PDF] The Lootverse, Year 2022 - StoragePlus.io",
+    "snippet": "All licenses must be applied for together with a “Lootversian” business name and a business plan, choosing amongst other things the API ...",
+    "host_name": "www.storageplus.io",
+    "rank": 8,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.alacakaya.bel.tr/market-activity/en/earn-from-watching-ads-app",
+    "name": "earn from watching ads app - EigenLayer AVS Slashing Risk",
+    "snippet": "On Ethereum, MEV searchers earn by identifying profitable liquidation opportunities on lending protocols, arbitrage between DEX pools, and backrunning earn from ...",
+    "host_name": "www.alacakaya.bel.tr",
+    "rank": 9,
+    "date": "",
+    "favicon": ""
+  }
+]
