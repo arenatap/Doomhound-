@@ -11,6 +11,7 @@ import { MemeGeneratorSection } from "@/components/doom/meme-generator-section";
 import { CopyPastaSection } from "@/components/doom/copy-pasta-section";
 import { RoadmapSection } from "@/components/doom/roadmap-section";
 import { CommunitySection } from "@/components/doom/community-section";
+import { ArenaProfileSection } from "@/components/doom/arena-profile-section";
 import { Footer } from "@/components/doom/footer";
 import { KonamiCode } from "@/components/doom/konami-code";
 import { AbyssEasterEgg } from "@/components/doom/abyss-easter-egg";
@@ -64,6 +65,7 @@ export default function HomePage() {
       <MemeGeneratorSection />
       <CopyPastaSection />
       <RoadmapSection />
+      <ArenaProfileSection />
       <CommunitySection />
       <Footer />
 
