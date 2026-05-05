@@ -91,7 +91,9 @@ export function HeroSection() {
         >
           <BloodSplash className="w-full sm:w-auto">
             <a
-              href="#"
+              href="https://arena.social/home"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center w-full sm:w-auto px-8 sm:px-10 md:px-12 py-4 md:py-5 text-base sm:text-lg md:text-xl font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transition-all duration-300 animate-breathing-glow"
             >
               BUY $DOOMHOUND
@@ -99,7 +101,7 @@ export function HeroSection() {
           </BloodSplash>
           <BloodSplash className="w-full sm:w-auto">
             <a
-              href="#"
+              href="#live-data"
               className="inline-flex items-center justify-center w-full sm:w-auto px-8 sm:px-10 md:px-12 py-4 md:py-5 text-base sm:text-lg md:text-xl font-bold bg-transparent border-2 border-red-600/80 hover:border-red-500 text-red-400 hover:text-red-300 rounded-xl hover:shadow-[0_0_20px_rgba(220,38,38,0.3)] transition-all duration-300"
             >
               VIEW CHART

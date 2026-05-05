@@ -14,6 +14,13 @@ interface ActivityLog {
   createdAt: string;
 }
 
+interface Achievement {
+  id: string;
+  name: string;
+  emoji: string;
+  awardedAt: string;
+}
+
 interface PackMember {
   id: string;
   handle: string;
@@ -30,7 +37,26 @@ interface PackMember {
   balanceCheckedAt: string | null;
   referredBy: string | null;
   createdAt: string;
+  streakCount: number;
+  lastStreakAt: string | null;
+  achievements: string; // JSON array string
   activities: ActivityLog[];
+}
+
+// ===== ACHIEVEMENT DEFINITIONS =====
+const ACHIEVEMENT_DEFS = [
+  { id: "first_blood", name: "First Blood", emoji: "🩸", description: "First check-in" },
+  { id: "pack_starter", name: "Pack Starter", emoji: "⛓️", description: "Referred 1 member" },
+  { id: "7_day_streak", name: "7-Day Streak", emoji: "🔥", description: "7 consecutive daily check-ins" },
+  { id: "howler", name: "Howler", emoji: "📢", description: "10+ Arena posts verified" },
+  { id: "whale_spotter", name: "Whale Spotter", emoji: "🐋", description: "Holds 1M+ $DOOMHOUND" },
+  { id: "trending_demon", name: "Trending Demon", emoji: "📈", description: "Had a trending post" },
+  { id: "og_hound", name: "OG Hound", emoji: "👑", description: "Registered in first 24h" },
+  { id: "meme_lord", name: "Meme Lord", emoji: "🎨", description: "5+ memes forged" },
+];
+
+function parseAchievements(json: string): Achievement[] {
+  try { return JSON.parse(json); } catch { return []; }
 }
 
 // ===== POINTS CONFIG (must match server) =====
@@ -461,6 +487,54 @@ export function ArenaGameSection() {
                         })}
                       </div>
                     )}
+                  </div>
+
+                  {/* Streak Counter */}
+                  <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg p-3 sm:p-4 mb-5 sm:mb-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base sm:text-lg">🔥</span>
+                        <span className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider">Daily Streak</span>
+                      </div>
+                      <span className="text-orange-400 font-bold text-lg sm:text-xl font-mono">{member.streakCount}</span>
+                    </div>
+                    {member.streakCount >= 7 && (
+                      <p className="text-red-400 text-[9px] sm:text-[10px] mt-1.5 font-bold">🔥 7-Day Streak Achievement unlocked!</p>
+                    )}
+                    {member.streakCount > 0 && member.streakCount < 7 && (
+                      <p className="text-gray-600 text-[9px] sm:text-[10px] mt-1.5">{7 - member.streakCount} more day{7 - member.streakCount !== 1 ? "s" : ""} to 7-Day Streak badge</p>
+                    )}
+                  </div>
+
+                  {/* Achievement Badges */}
+                  <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg p-3 sm:p-4 mb-5 sm:mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider">Achievements</span>
+                      <span className="text-gray-600 text-[9px] sm:text-[10px] font-mono">
+                        {parseAchievements(member.achievements).length}/{ACHIEVEMENT_DEFS.length}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                      {ACHIEVEMENT_DEFS.map((def) => {
+                        const earned = parseAchievements(member.achievements).some((a) => a.id === def.id);
+                        return (
+                          <div
+                            key={def.id}
+                            className={`flex flex-col items-center gap-0.5 p-1.5 sm:p-2 rounded-lg border transition-all ${
+                              earned
+                                ? "bg-red-900/20 border-red-600/40 shadow-[0_0_8px_rgba(220,38,38,0.15)]"
+                                : "bg-[#1a1a1a] border-[#2a2a2a] opacity-40"
+                            }`}
+                            title={earned ? `${def.name}: ${def.description}` : `${def.name} (locked)`}
+                          >
+                            <span className={`text-base sm:text-lg ${earned ? "" : "grayscale"}`}>{def.emoji}</span>
+                            <span className={`text-[7px] sm:text-[8px] text-center leading-tight ${
+                              earned ? "text-red-300" : "text-gray-600"
+                            }`}>{def.name}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {/* Points Progress */}

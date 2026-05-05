@@ -31,6 +31,28 @@ const BALANCE_TIERS = [
   { minBalance: 100_000, bonus: 25, label: "Pup Holder" },
 ];
 
+// ===== ACHIEVEMENT DEFINITIONS =====
+interface AchievementDef {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+}
+
+const ACHIEVEMENT_DEFS: AchievementDef[] = [
+  { id: "first_blood", name: "First Blood", emoji: "🩸", description: "First check-in" },
+  { id: "pack_starter", name: "Pack Starter", emoji: "⛓️", description: "Referred 1 member" },
+  { id: "7_day_streak", name: "7-Day Streak", emoji: "🔥", description: "7 consecutive daily check-ins" },
+  { id: "howler", name: "Howler", emoji: "📢", description: "10+ Arena posts verified" },
+  { id: "whale_spotter", name: "Whale Spotter", emoji: "🐋", description: "Holds 1M+ $DOOMHOUND" },
+  { id: "trending_demon", name: "Trending Demon", emoji: "📈", description: "Had a trending post" },
+  { id: "og_hound", name: "OG Hound", emoji: "👑", description: "Registered in first 24h" },
+  { id: "meme_lord", name: "Meme Lord", emoji: "🎨", description: "5+ memes forged" },
+];
+
+// Placeholder launch date for "OG Hound" achievement
+const SITE_LAUNCH_DATE = new Date("2026-05-10T00:00:00Z");
+
 function getRank(points: number): string {
   for (const tier of RANK_TIERS) {
     if (points >= tier.minPoints) return tier.title;
@@ -58,6 +80,112 @@ async function arenaFetch(endpoint: string) {
   });
   if (!res.ok) throw new Error(`Arena API error: ${res.status}`);
   return res.json();
+}
+
+// ===== ACHIEVEMENT HELPERS =====
+interface Achievement {
+  id: string;
+  name: string;
+  emoji: string;
+  awardedAt: string;
+}
+
+function parseAchievements(json: string): Achievement[] {
+  try {
+    return JSON.parse(json);
+  } catch {
+    return [];
+  }
+}
+
+function stringifyAchievements(achievements: Achievement[]): string {
+  return JSON.stringify(achievements);
+}
+
+function hasAchievement(achievements: Achievement[], id: string): boolean {
+  return achievements.some((a) => a.id === id);
+}
+
+function awardAchievement(achievements: Achievement[], def: AchievementDef): Achievement[] {
+  if (hasAchievement(achievements, def.id)) return achievements;
+  return [
+    ...achievements,
+    { id: def.id, name: def.name, emoji: def.emoji, awardedAt: new Date().toISOString() },
+  ];
+}
+
+// ===== CHECK AND AWARD ACHIEVEMENTS =====
+async function checkAndAwardAchievements(handle: string): Promise<{ newAchievements: string[] }> {
+  const member = await db.packMember.findUnique({
+    where: { handle },
+    include: { activities: { orderBy: { createdAt: "desc" } } },
+  });
+  if (!member) return { newAchievements: [] };
+
+  let achievements = parseAchievements(member.achievements);
+  const beforeIds = new Set(achievements.map((a) => a.id));
+
+  // First Blood — First check-in
+  const hasCheckin = member.activities.some((a) => a.type === "daily_checkin");
+  if (hasCheckin) {
+    achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "first_blood")!);
+  }
+
+  // Pack Starter — Referred 1 member
+  const hasReferral = member.activities.some((a) => a.type === "referral");
+  if (hasReferral) {
+    achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "pack_starter")!);
+  }
+
+  // 7-Day Streak
+  if (member.streakCount >= 7) {
+    achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "7_day_streak")!);
+  }
+
+  // Howler — 10+ Arena posts verified (total arena_post activities)
+  const arenaPostCount = member.activities.filter((a) => a.type === "arena_post").length;
+  // Each arena_post activity can represent multiple posts, so we sum from descriptions or use threadCount
+  // Simpler: count activities of type arena_post
+  if (arenaPostCount >= 10) {
+    achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "howler")!);
+  }
+
+  // Whale Spotter — Holds 1M+ $DOOMHOUND
+  if (member.doomhoundBalance >= 1_000_000) {
+    achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "whale_spotter")!);
+  }
+
+  // Trending Demon — Had a trending post
+  const hasTrending = member.activities.some((a) => a.type === "trending_mention");
+  if (hasTrending) {
+    achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "trending_demon")!);
+  }
+
+  // OG Hound — Registered in first 24h of site launch
+  const launchPlus24h = new Date(SITE_LAUNCH_DATE.getTime() + 24 * 60 * 60 * 1000);
+  if (new Date(member.createdAt) <= launchPlus24h) {
+    achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "og_hound")!);
+  }
+
+  // Meme Lord — 5+ memes forged
+  const memeCount = member.activities.filter((a) => a.type === "meme_generated").length;
+  if (memeCount >= 5) {
+    achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "meme_lord")!);
+  }
+
+  // Find newly awarded
+  const afterIds = new Set(achievements.map((a) => a.id));
+  const newIds = [...afterIds].filter((id) => !beforeIds.has(id));
+
+  // Save if changed
+  if (newIds.length > 0) {
+    await db.packMember.update({
+      where: { handle },
+      data: { achievements: stringifyAchievements(achievements) },
+    });
+  }
+
+  return { newAchievements: newIds };
 }
 
 // ===== HELPERS =====
@@ -238,6 +366,9 @@ export async function POST(request: NextRequest) {
           }
         }
 
+        // Check & award achievements (OG Hound check, etc.)
+        const { newAchievements } = await checkAndAwardAchievements(cleanHandle);
+
         const fullMember = await db.packMember.findUnique({
           where: { handle: cleanHandle },
           include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
@@ -248,6 +379,7 @@ export async function POST(request: NextRequest) {
           alreadyRegistered: false,
           balanceBonus,
           balanceTierLabel,
+          newAchievements,
         });
       }
 
@@ -268,21 +400,50 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Already checked in today", member });
           }
         }
-        await addActivity(cleanHandle, "daily_checkin", "Daily summon completed", POINTS_CONFIG.daily_checkin.value);
+
+        // Calculate streak
+        let newStreakCount = 1;
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        if (member.lastStreakAt) {
+          const lastStreak = new Date(member.lastStreakAt);
+          // If last streak was yesterday, continue streak
+          if (
+            lastStreak.getFullYear() === yesterday.getFullYear() &&
+            lastStreak.getMonth() === yesterday.getMonth() &&
+            lastStreak.getDate() === yesterday.getDate()
+          ) {
+            newStreakCount = member.streakCount + 1;
+          }
+          // If last streak was today (shouldn't happen due to check above, but handle)
+          const lastCheckIn = new Date(member.lastCheckIn || member.lastStreakAt);
+          const now = new Date();
+          if (
+            lastCheckIn.getFullYear() === now.getFullYear() &&
+            lastCheckIn.getMonth() === now.getMonth() &&
+            lastCheckIn.getDate() === now.getDate()
+          ) {
+            newStreakCount = member.streakCount; // Keep existing streak
+          }
+        }
+
+        await addActivity(cleanHandle, "daily_checkin", `Daily summon completed (streak: ${newStreakCount})`, POINTS_CONFIG.daily_checkin.value);
         await db.packMember.update({
           where: { handle: cleanHandle },
-          data: { lastCheckIn: new Date() },
+          data: { lastCheckIn: new Date(), streakCount: newStreakCount, lastStreakAt: new Date() },
         });
+
+        // Check achievements (First Blood, 7-Day Streak)
+        const { newAchievements } = await checkAndAwardAchievements(cleanHandle);
+
         const updated = await db.packMember.findUnique({
           where: { handle: cleanHandle },
           include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
         });
-        return NextResponse.json({ member: updated });
+        return NextResponse.json({ member: updated, newAchievements });
       }
 
       // ===== VERIFY ARENA ACTIVITY =====
-      // This is the key action: fetches current Arena profile stats,
-      // compares with stored values, and awards points for differences
       case "verify_arena": {
         const member = await db.packMember.findUnique({ where: { handle: cleanHandle } });
         if (!member) {
@@ -355,7 +516,6 @@ export async function POST(request: NextRequest) {
           const threadHandle = (thread.userHandle || "").toLowerCase();
           const communityTicker = thread.community?.ticker?.toLowerCase();
 
-          // Check if this user posted in trending AND mentions $DOOMHOUND or is in DOOMHOUND community
           const isDoomhoundPost =
             content.includes("doomhound") ||
             content.includes("$doomhound") ||
@@ -368,7 +528,7 @@ export async function POST(request: NextRequest) {
               description: `Your $DOOMHOUND post is trending on Arena! 🔥`,
               points: POINTS_CONFIG.trending_mention.value,
             });
-            break; // Only award once per verify
+            break;
           }
         }
 
@@ -389,6 +549,9 @@ export async function POST(request: NextRequest) {
           },
         });
 
+        // Check achievements (Howler, Trending Demon)
+        const { newAchievements } = await checkAndAwardAchievements(cleanHandle);
+
         const updated = await db.packMember.findUnique({
           where: { handle: cleanHandle },
           include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
@@ -403,6 +566,7 @@ export async function POST(request: NextRequest) {
           totalNewPoints,
           currentThreadCount,
           currentFollowerCount,
+          newAchievements,
         });
       }
 
@@ -471,6 +635,9 @@ export async function POST(request: NextRequest) {
           },
         });
 
+        // Check achievements (Whale Spotter)
+        const { newAchievements } = await checkAndAwardAchievements(cleanHandle);
+
         const updated = await db.packMember.findUnique({
           where: { handle: cleanHandle },
           include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
@@ -482,6 +649,7 @@ export async function POST(request: NextRequest) {
           balanceFormatted: formatBalance(balanceResult.balance),
           tier: balanceTierLabel,
           bonusChange: newBonus - oldBonus,
+          newAchievements,
         });
       }
 
@@ -501,11 +669,15 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "Cooldown: 10 minutes between claims", member });
         }
         await addActivity(cleanHandle, "meme_generated", "Forged a $DOOMHOUND meme!", POINTS_CONFIG.meme_generated.value);
+
+        // Check achievements (Meme Lord)
+        const { newAchievements } = await checkAndAwardAchievements(cleanHandle);
+
         const updated = await db.packMember.findUnique({
           where: { handle: cleanHandle },
           include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
         });
-        return NextResponse.json({ member: updated });
+        return NextResponse.json({ member: updated, newAchievements });
       }
 
       default:

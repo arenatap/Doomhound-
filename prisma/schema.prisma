@@ -27,6 +27,11 @@ model PackMember {
   doomhoundBalance Float     @default(0)
   balanceCheckedAt DateTime?
 
+  // Streak & Achievements
+  streakCount      Int       @default(0)
+  lastStreakAt     DateTime?
+  achievements     String    @default("[]")   // JSON array: [{"id":"first_blood","name":"First Blood","emoji":"🩸","awardedAt":"..."}]
+
   // Referral
   referredBy       String?
 
