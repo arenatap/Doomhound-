@@ -6,11 +6,14 @@ import { ScrollReveal } from "./scroll-reveal";
 import { BloodSplash } from "./blood-splash";
 import { useToast } from "@/hooks/use-toast";
 
+// Every shill text gets this link appended — NEVER copy without it
+const SHILL_LINK = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb?ref=Toff083249361";
+
 const shillTexts = [
-  "$DOOMHOUND is the Arena's most feared contender. Can't kill what's already from hell. 0 tax, LP burned, contract renounced. This hound doesn't rug — it DEVOURS rugs. Join the pack [LINK]",
-  "They said the Arena was dangerous. Then $DOOMHOUND showed up and proved them RIGHT. 1B supply, 0/0 tax, community owned. The hellhound of Avalanche is here. Get in or get eaten. [LINK]",
-  "While you're sleeping on $DOOMHOUND, the pack is growing. Fair launch, no presale, no team tokens. Just pure degen energy from the depths of the blockchain. The Doomhound protects its own. [LINK]",
-  "$DOOMHOUND — The only token in the Arena that WANTS the chart to go down, because that's where hell is. Fair launch. 0 tax. Community owned. The devil's good boy is here. [LINK]",
+  "$DOOMHOUND is the Arena's most feared contender. Can't kill what's already from hell. 0 tax, LP burned, contract renounced. This hound doesn't rug — it DEVOURS rugs. Join the pack 🔥",
+  "They said the Arena was dangerous. Then $DOOMHOUND showed up and proved them RIGHT. 1B supply, 0/0 tax, community owned. The hellhound of Avalanche is here. Get in or get eaten. 🐺",
+  "While you're sleeping on $DOOMHOUND, the pack is growing. Fair launch, no presale, no team tokens. Just pure degen energy from the depths of the blockchain. The Doomhound protects its own. 💀",
+  "$DOOMHOUND — The only token in the Arena that WANTS the chart to go down, because that's where hell is. Fair launch. 0 tax. Community owned. The devil's good boy is here. 🔥",
 ];
 
 export function CopyPastaSection() {
@@ -18,7 +21,9 @@ export function CopyPastaSection() {
   const { toast } = useToast();
 
   const handleCopy = (text: string, idx: number) => {
-    navigator.clipboard.writeText(text);
+    // ALWAYS append the link — no copy without it, that's wasted marketing
+    const fullText = `${text}\n\n${SHILL_LINK}`;
+    navigator.clipboard.writeText(fullText);
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 2000);
     toast({
@@ -43,8 +48,12 @@ export function CopyPastaSection() {
           {shillTexts.map((text, i) => (
             <ScrollReveal key={i} delay={i * 0.1}>
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8 hover:border-red-900/40 transition-all duration-300 group">
-                <p className="text-gray-300 text-sm sm:text-base md:text-lg mb-4 sm:mb-5 leading-relaxed">
+                <p className="text-gray-300 text-sm sm:text-base md:text-lg mb-3 sm:mb-4 leading-relaxed">
                   {text}
+                </p>
+                {/* Show the link that will be copied */}
+                <p className="text-red-400/70 text-xs sm:text-sm font-mono mb-4 sm:mb-5 break-all">
+                  {SHILL_LINK}
                 </p>
                 <BloodSplash>
                   <button
@@ -57,7 +66,7 @@ export function CopyPastaSection() {
                       </>
                     ) : (
                       <>
-                        <Copy className="w-4 h-4" /> COPY
+                        <Copy className="w-4 h-4" /> COPY WITH LINK
                       </>
                     )}
                   </button>
