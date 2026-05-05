@@ -476,24 +476,15 @@ export async function POST(request: NextRequest) {
         const currentThreadCount = profile.threadCount || 0;
         const currentFollowerCount = profile.followerCount || 0;
 
+        // We track thread count for display but do NOT award points for generic posts
+        // Points for posts require submitting a specific Arena post URL via Meme Forge
         const newThreads = Math.max(0, currentThreadCount - member.lastThreadCount);
         const newFollowers = Math.max(0, currentFollowerCount - member.lastFollowerCount);
 
         let totalNewPoints = 0;
         const verifiedActivities: { type: string; description: string; points: number }[] = [];
 
-        // Award points for new threads (posts)
-        if (newThreads > 0) {
-          const pts = newThreads * POINTS_CONFIG.arena_post.value;
-          totalNewPoints += pts;
-          verifiedActivities.push({
-            type: "arena_post",
-            description: `${newThreads} new post${newThreads > 1 ? "s" : ""} on Arena detected!`,
-            points: pts,
-          });
-        }
-
-        // Award points for new followers
+        // Award points ONLY for new followers (verified via API)
         if (newFollowers > 0) {
           const pts = newFollowers * POINTS_CONFIG.arena_follower.value;
           totalNewPoints += pts;
@@ -504,7 +495,7 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        // 2. Scan trending feed for mentions of this user or $DOOMHOUND
+        // Scan trending feed for mentions of this user's $DOOMHOUND posts
         const trendingData = await arenaFetch(
           "/agents/threads/feed/trendingPosts?pageSize=50"
         );
@@ -549,7 +540,7 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        // Check achievements (Howler, Trending Demon)
+        // Check achievements (Trending Demon)
         const { newAchievements } = await checkAndAwardAchievements(cleanHandle);
 
         const updated = await db.packMember.findUnique({
@@ -653,8 +644,26 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // ===== CLAIM MEME =====
+      // ===== CLAIM MEME (requires Arena post URL) =====
       case "claim_meme": {
+        const postUrl = body.postUrl as string | undefined;
+        if (!postUrl || !postUrl.trim()) {
+          return NextResponse.json({ error: "Arena post URL required! Paste the link to your $DOOMHOUND post on Arena." }, { status: 400 });
+        }
+
+        // Validate URL — must be from arena.social
+        const trimmedUrl = postUrl.trim();
+        if (!trimmedUrl.includes("arena.social")) {
+          return NextResponse.json({ error: "Invalid URL. Must be a link from arena.social" }, { status: 400 });
+        }
+
+        // Extract thread ID from various Arena URL patterns:
+        // arena.social/thread/12345
+        // arena.social/username/status/12345
+        // arena.social/username/12345
+        const threadIdMatch = trimmedUrl.match(/arena\.social\/(?:thread\/|(?:[^/]+\/)?(?:status\/)?)(\d+)/i);
+        const threadId = threadIdMatch ? threadIdMatch[1] : null;
+
         const member = await db.packMember.findUnique({
           where: { handle: cleanHandle },
           include: { activities: { orderBy: { createdAt: "desc" } } },
@@ -662,13 +671,118 @@ export async function POST(request: NextRequest) {
         if (!member) {
           return NextResponse.json({ error: "Not registered" }, { status: 404 });
         }
+
+        // Check cooldown (10 min between claims)
         const lastMeme = member.activities.find(
           (a) => a.type === "meme_generated" && Date.now() - new Date(a.createdAt).getTime() < 600000
         );
         if (lastMeme) {
           return NextResponse.json({ error: "Cooldown: 10 minutes between claims", member });
         }
-        await addActivity(cleanHandle, "meme_generated", "Forged a $DOOMHOUND meme!", POINTS_CONFIG.meme_generated.value);
+
+        // Check for duplicate claim (same thread ID already claimed)
+        if (threadId) {
+          const existingClaim = await db.activityLog.findFirst({
+            where: {
+              memberHandle: cleanHandle,
+              type: "meme_generated",
+              description: { contains: `[arena:${threadId}]` },
+            },
+          });
+          if (existingClaim) {
+            return NextResponse.json({ error: "This post has already been claimed for points!" }, { status: 400 });
+          }
+        }
+
+        // ===== VERIFY THE POST ON ARENA =====
+        let verified = false;
+        let verificationDetail = "";
+
+        if (threadId) {
+          try {
+            // Try to fetch the thread from Arena API
+            const threadData = await arenaFetch(`/agents/threads/${threadId}`);
+            const thread = threadData.thread || threadData;
+
+            if (thread) {
+              // Verify ownership — the thread must be from this user
+              const threadHandle = (
+                thread.userHandle ||
+                thread.user?.handle ||
+                thread.handle ||
+                ""
+              ).toLowerCase();
+
+              if (threadHandle === cleanHandle) {
+                // Verify content mentions $DOOMHOUND
+                const content = stripHtml(thread.content || "").toLowerCase();
+                const communityTicker = thread.community?.ticker?.toLowerCase();
+
+                const isDoomhoundRelated =
+                  content.includes("doomhound") ||
+                  content.includes("$doomhound") ||
+                  content.includes("doom") ||
+                  communityTicker === "doomhound";
+
+                if (isDoomhoundRelated) {
+                  verified = true;
+                  verificationDetail = "Content verified on Arena";
+                } else {
+                  return NextResponse.json({
+                    error: "This post doesn't mention $DOOMHOUND. Post about $DOOMHOUND on Arena and submit that link!",
+                  }, { status: 400 });
+                }
+              } else {
+                return NextResponse.json({
+                  error: "This post doesn't belong to your Arena account. Submit your own $DOOMHOUND post!",
+                }, { status: 400 });
+              }
+            }
+          } catch (err: any) {
+            // Thread API might not support direct lookup, fall back to threadCount check
+            console.log("Thread API lookup failed, falling back to threadCount verification:", err?.message || err);
+          }
+        }
+
+        // Fallback verification: check if threadCount has increased
+        if (!verified) {
+          try {
+            const arenaData = await arenaFetch(
+              `/agents/user/handle?handle=${encodeURIComponent(cleanHandle)}`
+            );
+            if (arenaData.user) {
+              const currentThreadCount = arenaData.user.threadCount || 0;
+              if (currentThreadCount > member.lastThreadCount) {
+                verified = true;
+                verificationDetail = "New post activity detected on Arena";
+                // Update the tracked thread count
+                await db.packMember.update({
+                  where: { handle: cleanHandle },
+                  data: { lastThreadCount: currentThreadCount },
+                });
+              } else {
+                return NextResponse.json({
+                  error: "No new post detected on your Arena profile. Make sure you posted on Arena first!",
+                }, { status: 400 });
+              }
+            }
+          } catch (err) {
+            console.error("Arena profile fetch failed:", err);
+          }
+        }
+
+        if (!verified) {
+          return NextResponse.json({
+            error: "Could not verify your post on Arena. Make sure you posted about $DOOMHOUND and the URL is correct.",
+          }, { status: 400 });
+        }
+
+        // Award points!
+        const desc = threadId
+          ? `$DOOMHOUND Arena post verified! (${verificationDetail}) [arena:${threadId}]`
+          : `$DOOMHOUND Arena post verified! (${verificationDetail})`;
+
+        await addActivity(cleanHandle, "meme_generated", desc, POINTS_CONFIG.meme_generated.value);
 
         // Check achievements (Meme Lord)
         const { newAchievements } = await checkAndAwardAchievements(cleanHandle);
@@ -677,7 +791,7 @@ export async function POST(request: NextRequest) {
           where: { handle: cleanHandle },
           include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
         });
-        return NextResponse.json({ member: updated, newAchievements });
+        return NextResponse.json({ member: updated, newAchievements, verificationDetail });
       }
 
       default:

@@ -11,7 +11,6 @@ const NAV_LINKS = [
   { id: "live-data", label: "Arena", emoji: "📡" },
   { id: "chart", label: "Chart", emoji: "📈" },
   { id: "arena-game", label: "The Pack", emoji: "🏆" },
-  { id: "how-to-buy", label: "Buy", emoji: "💰" },
   { id: "meme-generator", label: "Memes", emoji: "🎨" },
   { id: "war-room", label: "War Room", emoji: "⚔️" },
   { id: "roadmap", label: "Roadmap", emoji: "🔥" },

@@ -9,7 +9,6 @@ import { TokenomicsSection } from "@/components/doom/tokenomics-section";
 import { LiveDataSection } from "@/components/doom/live-data-section";
 import { ChartSection } from "@/components/doom/chart-section";
 import { ArenaGameSection } from "@/components/doom/arena-game-section";
-import { HowToBuySection } from "@/components/doom/how-to-buy-section";
 import { MemeWallSection } from "@/components/doom/meme-wall-section";
 import { MemeGeneratorSection } from "@/components/doom/meme-generator-section";
 import { WarRoomSection } from "@/components/doom/war-room-section";
@@ -71,7 +70,6 @@ export default function HomePage() {
       <LiveDataSection onNewBuy={handleNewBuy} />
       <ChartSection />
       <ArenaGameSection />
-      <HowToBuySection />
       <MemeWallSection />
       <MemeGeneratorSection />
       <WarRoomSection />

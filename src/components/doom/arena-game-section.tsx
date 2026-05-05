@@ -63,10 +63,10 @@ function parseAchievements(json: string): Achievement[] {
 const POINTS: Record<string, { value: number; label: string; icon: string }> = {
   register: { value: 100, label: "Joined The Pack", icon: "🐺" },
   daily_checkin: { value: 15, label: "Daily Summon", icon: "🔥" },
-  arena_post: { value: 5, label: "Arena Post", icon: "📝" },
+  arena_post: { value: 5, label: "Arena Post", icon: "📝" }, // Legacy, no longer auto-awarded
   arena_follower: { value: 2, label: "New Follower", icon: "👥" },
   trending_mention: { value: 100, label: "Trending Howl", icon: "🔥" },
-  meme_generated: { value: 30, label: "Meme Forge", icon: "🎨" },
+  meme_generated: { value: 30, label: "Arena Post Verified", icon: "🎨" },
   referral: { value: 75, label: "Pack Recruit", icon: "⛓️" },
   doomhound_holder: { value: 0, label: "HODL Bonus", icon: "💰" },
 };
@@ -172,6 +172,8 @@ export function ArenaGameSection() {
     totalNewPoints: number;
   } | null>(null);
   const [checkingBalance, setCheckingBalance] = useState(false);
+  const [memePostUrl, setMemePostUrl] = useState("");
+  const [memeVerifying, setMemeVerifying] = useState(false);
 
   // Load session on mount
   useEffect(() => {
@@ -302,19 +304,30 @@ export function ArenaGameSection() {
     finally { setCheckingBalance(false); }
   }, [member, loadLeaderboard]);
 
-  // ===== CLAIM MEME =====
+  // ===== CLAIM MEME (with Arena post URL verification) =====
   const claimMeme = useCallback(async () => {
     if (!member) return;
+    if (!memePostUrl.trim()) {
+      setError("Paste your Arena post URL first!");
+      return;
+    }
+    setMemeVerifying(true);
+    setError(null);
     try {
       const res = await fetch("/api/pack", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "claim_meme", handle: member.handle }),
+        body: JSON.stringify({ action: "claim_meme", handle: member.handle, postUrl: memePostUrl.trim() }),
       });
       const data = await res.json();
-      if (data.member) { setMember(data.member); loadLeaderboard(); }
-      else if (data.error) setError(data.error);
-    } catch { setError("Claim failed"); }
-  }, [member, loadLeaderboard]);
+      if (data.member) {
+        setMember(data.member);
+        loadLeaderboard();
+        setMemePostUrl("");
+      }
+      if (data.error) setError(data.error);
+    } catch { setError("Verification failed"); }
+    finally { setMemeVerifying(false); }
+  }, [member, loadLeaderboard, memePostUrl]);
 
   // ===== LOGOUT =====
   const logout = useCallback(() => {
@@ -343,8 +356,8 @@ export function ArenaGameSection() {
             THE PACK
           </h2>
           <p className="text-center text-gray-400 text-sm sm:text-base md:text-lg mb-8 sm:mb-12 max-w-xl mx-auto">
-            Register your Arena identity. Post, engage, hold $DOOMHOUND.
-            Activity verified via The Arena API. No self-reporting — we check!
+            Register your Arena identity. Post about $DOOMHOUND, engage, hold.
+            All activity verified via The Arena API — submit your post links for points!
           </p>
         </ScrollReveal>
 
@@ -431,7 +444,7 @@ export function ArenaGameSection() {
                           </p>
                           {verifyResult.newThreads > 0 && (
                             <p className="text-gray-400 text-[10px] sm:text-xs">
-                              📝 {verifyResult.newThreads} new post{verifyResult.newThreads > 1 ? "s" : ""} detected (+{verifyResult.newThreads * POINTS.arena_post.value} pts)
+                              📝 {verifyResult.newThreads} new post{verifyResult.newThreads > 1 ? "s" : ""} detected — submit the link below for +30 pts each!
                             </p>
                           )}
                           {verifyResult.newFollowers > 0 && (
@@ -447,7 +460,9 @@ export function ArenaGameSection() {
                         </div>
                       ) : (
                         <p className="text-gray-400 text-xs sm:text-sm">
-                          No new Arena activity detected since last check. Keep posting about $DOOMHOUND!
+                          {verifyResult.newThreads > 0
+                            ? `${verifyResult.newThreads} new post(s) detected! Submit the post URL below for +30 pts.`
+                            : "No new Arena activity detected. Post about $DOOMHOUND and submit the link!"}
                         </p>
                       )}
                     </motion.div>
@@ -579,12 +594,13 @@ export function ArenaGameSection() {
                       <h4 className="text-orange-400 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2">How Points Work</h4>
                       <p className="text-gray-400 text-[10px] sm:text-xs mb-2">
                         We verify your Arena activity via API — no self-reporting!
-                        Click <strong className="text-white">VERIFY</strong> above to check for new posts &amp; followers.
+                        Use <strong className="text-white">VERIFY</strong> for followers &amp; trending,
+                        or submit your post URL below for <strong className="text-white">Arena Post</strong> points.
                       </p>
                       <div className="grid grid-cols-2 gap-2">
                         <div className="bg-[#0a0a0a] rounded-lg px-2.5 py-2 border border-[#2a2a2a]">
-                          <span className="text-[9px] sm:text-[10px]">📝 New post on Arena</span>
-                          <span className="text-green-500 text-[9px] sm:text-[10px] ml-1">+5 pts</span>
+                          <span className="text-[9px] sm:text-[10px]">🎨 Arena post verified</span>
+                          <span className="text-green-500 text-[9px] sm:text-[10px] ml-1">+30 pts</span>
                         </div>
                         <div className="bg-[#0a0a0a] rounded-lg px-2.5 py-2 border border-[#2a2a2a]">
                           <span className="text-[9px] sm:text-[10px]">👥 New follower</span>
@@ -618,21 +634,41 @@ export function ArenaGameSection() {
                       </BloodSplash>
                     </div>
 
-                    {/* Meme Forge */}
-                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
-                      <span className="text-2xl sm:text-3xl">🎨</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white text-sm sm:text-base font-bold">Meme Forge</p>
-                        <p className="text-gray-500 text-xs sm:text-sm">+{POINTS.meme_generated.value} pts · 10min cooldown</p>
+                    {/* Meme Forge — Submit Arena Post */}
+                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 sm:p-5">
+                      <div className="flex items-center gap-3 sm:gap-4 mb-3">
+                        <span className="text-2xl sm:text-3xl">🎨</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-sm sm:text-base font-bold">Arena Post</p>
+                          <p className="text-gray-500 text-xs sm:text-sm">+{POINTS.meme_generated.value} pts · Post about $DOOMHOUND on Arena, then submit the link</p>
+                        </div>
                       </div>
-                      <BloodSplash>
-                        <button onClick={claimMeme} disabled={!!lastMemeClaim}
-                          className={`px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-                            !lastMemeClaim ? "bg-red-600 hover:bg-red-700 text-white shadow-[0_0_10px_rgba(220,38,38,0.3)]" : "bg-[#2a2a2a] text-gray-600 cursor-not-allowed"
-                          }`}>
-                          {!lastMemeClaim ? "CLAIM" : "✓ 10M"}
-                        </button>
-                      </BloodSplash>
+                      <div className="flex gap-2">
+                        <input
+                          type="url"
+                          value={memePostUrl}
+                          onChange={(e) => setMemePostUrl(e.target.value)}
+                          placeholder="https://arena.social/thread/..."
+                          disabled={!!lastMemeClaim || memeVerifying}
+                          className="flex-1 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-300 placeholder:text-gray-600 font-mono focus:border-red-600/50 focus:outline-none disabled:opacity-50"
+                        />
+                        <BloodSplash>
+                          <button
+                            onClick={claimMeme}
+                            disabled={!!lastMemeClaim || memeVerifying || !memePostUrl.trim()}
+                            className={`px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+                              !lastMemeClaim && !memeVerifying && memePostUrl.trim()
+                                ? "bg-red-600 hover:bg-red-700 text-white shadow-[0_0_10px_rgba(220,38,38,0.3)]"
+                                : "bg-[#2a2a2a] text-gray-600 cursor-not-allowed"
+                            }`}
+                          >
+                            {memeVerifying ? "⏳ CHECK..." : lastMemeClaim ? "✓ 10M" : "VERIFY"}
+                          </button>
+                        </BloodSplash>
+                      </div>
+                      <p className="text-gray-600 text-[9px] sm:text-[10px] mt-1.5">
+                        Post about $DOOMHOUND on <a href="https://arena.social/home" target="_blank" rel="noopener noreferrer" className="text-red-400/60 hover:text-red-400">The Arena</a>, copy the post URL, and paste it here. We verify it via API.
+                      </p>
                     </div>
 
                     {/* Referral */}
