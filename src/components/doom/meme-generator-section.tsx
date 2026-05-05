@@ -106,6 +106,7 @@ export function MemeGeneratorSection() {
                       <img
                         src={t.src}
                         alt={t.label}
+                        loading="lazy"
                         className="w-full h-full object-cover"
                       />
                     </div>

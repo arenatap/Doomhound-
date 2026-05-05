@@ -356,7 +356,7 @@ export function ArenaGameSection() {
                 <div className="p-5 sm:p-6 md:p-8">
                   <div className="flex items-center gap-4 sm:gap-5 mb-5 sm:mb-6">
                     <div className="relative">
-                      <img src={member.profilePic} alt=""
+                      <img src={member.profilePic} alt="" loading="lazy"
                         className="w-14 h-14 sm:w-18 sm:h-18 md:w-22 md:h-22 rounded-full border-2 border-red-600/60 shadow-[0_0_15px_rgba(220,38,38,0.3)]" />
                       <span className="absolute -bottom-1 -right-1 text-sm sm:text-base">{rank?.emoji}</span>
                     </div>
@@ -696,7 +696,7 @@ export function ArenaGameSection() {
                                 }`}>
                                   {i === 0 ? "👑" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`}
                                 </span>
-                                <img src={user.profilePic} alt="" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-[#2a2a2a]" />
+                                <img src={user.profilePic} alt="" loading="lazy" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-[#2a2a2a]" />
                                 <div className="min-w-0 flex-1">
                                   <p className={`text-sm sm:text-base font-bold truncate ${isMe ? "text-red-400" : "text-white"}`}>
                                     {user.userName}
@@ -744,58 +744,21 @@ export function ArenaGameSection() {
               <AnimatePresence mode="wait">
                 {!showRegister ? (
                   <motion.div key="cta" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center">
-                    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 mb-5 sm:mb-6">
-                      <h3 className="font-creepster text-xl sm:text-2xl text-red-500 mb-4 sm:mb-5">Rank Tiers</h3>
-                      <div className="space-y-3">
-                        {RANK_TIERS.map((tier) => (
-                          <div key={tier.title} className="flex items-center gap-3 bg-[#0a0a0a] rounded-lg px-4 py-2.5 border border-[#2a2a2a]">
-                            <span className="text-lg sm:text-xl">{tier.emoji}</span>
-                            <span className={`text-sm sm:text-base font-bold ${tier.color}`}>{tier.title}</span>
-                            <span className="text-gray-600 text-xs sm:text-sm ml-auto font-mono">{tier.minPoints}+ pts</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <h3 className="font-creepster text-xl sm:text-2xl text-red-500 mb-4 mt-6 sm:mb-5">How To Earn</h3>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3 bg-[#0a0a0a] rounded-lg px-4 py-2 border border-[#2a2a2a]">
-                          <span className="text-base">📝</span>
-                          <span className="text-xs sm:text-sm text-gray-300">Post on Arena</span>
-                          <span className="text-green-500 text-[10px] sm:text-xs ml-auto font-mono">+5 pts/post</span>
-                        </div>
-                        <div className="flex items-center gap-3 bg-[#0a0a0a] rounded-lg px-4 py-2 border border-[#2a2a2a]">
-                          <span className="text-base">👥</span>
-                          <span className="text-xs sm:text-sm text-gray-300">Gain followers</span>
-                          <span className="text-green-500 text-[10px] sm:text-xs ml-auto font-mono">+2 pts/follower</span>
-                        </div>
-                        <div className="flex items-center gap-3 bg-[#0a0a0a] rounded-lg px-4 py-2 border border-[#2a2a2a]">
-                          <span className="text-base">🔥</span>
-                          <span className="text-xs sm:text-sm text-gray-300">$DOOMHOUND trending post</span>
-                          <span className="text-green-500 text-[10px] sm:text-xs ml-auto font-mono">+100 pts</span>
-                        </div>
-                        <div className="flex items-center gap-3 bg-[#0a0a0a] rounded-lg px-4 py-2 border border-[#2a2a2a]">
-                          <span className="text-base">🔥</span>
-                          <span className="text-xs sm:text-sm text-gray-300">Daily summon</span>
-                          <span className="text-green-500 text-[10px] sm:text-xs ml-auto font-mono">+15 pts/day</span>
-                        </div>
-                        <div className="flex items-center gap-3 bg-[#0a0a0a] rounded-lg px-4 py-2 border border-[#2a2a2a]">
-                          <span className="text-base">💰</span>
-                          <span className="text-xs sm:text-sm text-gray-300">Hold $DOOMHOUND</span>
-                          <span className="text-green-500 text-[10px] sm:text-xs ml-auto font-mono">+25-500 pts</span>
-                        </div>
-                      </div>
-
-                      <p className="text-gray-600 text-[10px] sm:text-xs mt-4 italic">
-                        All activity verified via The Arena API — no self-reporting!
+                    <div className="bg-[#1a1a1a] border border-red-900/40 rounded-xl p-8 sm:p-10 md:p-12 animate-flame-border">
+                      <div className="text-5xl sm:text-6xl mb-4">🐺</div>
+                      <h3 className="font-creepster text-3xl sm:text-4xl md:text-5xl text-red-500 mb-3 sm:mb-4">
+                        Join The Pack
+                      </h3>
+                      <p className="text-gray-400 text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-sm mx-auto">
+                        Register your Arena handle. Earn points, climb ranks, get rewards.
                       </p>
+                      <BloodSplash className="w-full">
+                        <button onClick={() => setShowRegister(true)}
+                          className="w-full px-6 py-4 sm:py-5 text-base sm:text-lg md:text-xl font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transition-all duration-300">
+                          🐺 JOIN THE PACK
+                        </button>
+                      </BloodSplash>
                     </div>
-
-                    <BloodSplash className="w-full">
-                      <button onClick={() => setShowRegister(true)}
-                        className="w-full px-6 py-4 sm:py-5 text-base sm:text-lg md:text-xl font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transition-all duration-300">
-                        🐺 JOIN THE PACK
-                      </button>
-                    </BloodSplash>
                   </motion.div>
                 ) : (
                   <motion.div key="register" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>

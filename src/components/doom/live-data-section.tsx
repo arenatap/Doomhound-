@@ -83,13 +83,16 @@ function timeAgo(dateStr: string): string {
 export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
   const [stats, setStats] = useState<ArenaStats | null>(null);
   const [trending, setTrending] = useState<TrendingThread[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [priceFlash, setPriceFlash] = useState<"green" | "red" | null>(null);
   const prevPriceRef = useRef<string | null>(null);
   const feedRef = useRef<HTMLDivElement>(null);
 
   const isLaunched = DOOMHOUND_SUBJECT_ID !== "";
+
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const [userRequestedData, setUserRequestedData] = useState(false);
 
   // Fetch token stats from Arena API
   const fetchStats = useCallback(async () => {
@@ -139,31 +142,35 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
     }
   }, []);
 
-  // Initial fetch
+  // Only fetch when user explicitly requests it
   useEffect(() => {
+    if (!userRequestedData) return;
     const init = async () => {
       setLoading(true);
       await Promise.all([fetchStats(), fetchTrending()]);
       setLoading(false);
+      setDataLoaded(true);
     };
     init();
-  }, [fetchStats, fetchTrending]);
+  }, [userRequestedData, fetchStats, fetchTrending]);
 
-  // Polling — refresh every 15 seconds
+  // Polling — refresh every 15 seconds (only after initial load)
   useEffect(() => {
+    if (!dataLoaded) return;
     const interval = setInterval(() => {
       fetchStats();
     }, 15000);
     return () => clearInterval(interval);
-  }, [fetchStats]);
+  }, [dataLoaded, fetchStats]);
 
-  // Refresh trending every 60 seconds
+  // Refresh trending every 60 seconds (only after initial load)
   useEffect(() => {
+    if (!dataLoaded) return;
     const interval = setInterval(() => {
       fetchTrending();
     }, 60000);
     return () => clearInterval(interval);
-  }, [fetchTrending]);
+  }, [dataLoaded, fetchTrending]);
 
   // Determine launch status
   const getLaunchStatus = (): LaunchStatus => {
@@ -210,11 +217,26 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
           </ScrollReveal>
         )}
 
+        {/* Load Data Button — only show when data hasn't been requested yet and token is launched */}
+        {isLaunched && !userRequestedData && (
+          <ScrollReveal delay={0.1}>
+            <div className="text-center mt-8">
+              <button
+                onClick={() => setUserRequestedData(true)}
+                className="px-8 py-4 text-base sm:text-lg font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transition-all duration-300"
+              >
+                📡 Load Arena Data
+              </button>
+              <p className="text-gray-600 text-xs sm:text-sm mt-3">Click to fetch live price, holders &amp; trending posts</p>
+            </div>
+          </ScrollReveal>
+        )}
+
         <div className={`grid md:grid-cols-2 gap-5 sm:gap-6 md:gap-10 ${!isLaunched ? "mt-10 sm:mt-14" : ""}`}>
           {/* Left Column — Token Data */}
           <div className="space-y-5 sm:space-y-6">
             {/* Live Price */}
-            {isLaunched && (
+            {isLaunched && userRequestedData && (
               <ScrollReveal delay={0.1}>
                 <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
                   <div className="flex justify-between items-center mb-2 sm:mb-3">
@@ -243,7 +265,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
             )}
 
             {/* Holders Count */}
-            {isLaunched && (
+            {isLaunched && userRequestedData && (
               <ScrollReveal delay={0.2}>
                 <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
                   <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-2 sm:mb-3">
@@ -260,7 +282,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
             )}
 
             {/* Top Holders */}
-            {isLaunched && stats?.holders && stats.holders.length > 0 && (
+            {isLaunched && userRequestedData && stats?.holders && stats.holders.length > 0 && (
               <ScrollReveal delay={0.3}>
                 <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
                   <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-3 sm:mb-4">
@@ -278,6 +300,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                         <img
                           src={holder.traderUser.profilePicture}
                           alt=""
+                          loading="lazy"
                           className="w-6 h-6 sm:w-7 sm:h-7 rounded-full"
                         />
                         <span className="text-gray-300 text-xs sm:text-sm truncate">
@@ -329,6 +352,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
 
           {/* Right Column — Arena Trending */}
           <div className="space-y-5 sm:space-y-6">
+            {isLaunched && userRequestedData && (
             <ScrollReveal delay={0.15}>
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
@@ -359,6 +383,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                           <img
                             src={thread.userPicture}
                             alt=""
+                            loading="lazy"
                             className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex-shrink-0 mt-0.5"
                           />
                           <div className="min-w-0 flex-1">
@@ -398,9 +423,10 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                 </div>
               </div>
             </ScrollReveal>
+            )}
 
             {/* Arena Stats Footer */}
-            <ScrollReveal delay={0.25}>
+            {isLaunched && userRequestedData && (
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 text-center">
                 <p className="text-gray-500 text-xs sm:text-sm">
                   Data powered by{" "}
@@ -415,7 +441,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                   {" "}&middot; Auto-refresh every 15s
                 </p>
               </div>
-            </ScrollReveal>
+            )}
           </div>
         </div>
       </div>

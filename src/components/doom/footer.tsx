@@ -8,6 +8,7 @@ export function Footer() {
           <img
             src="/images/doomhound-logo.png"
             alt="$DOOMHOUND"
+            loading="lazy"
             className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 mx-auto mb-3 sm:mb-4 opacity-60 rounded-full"
           />
           <p className="font-creepster text-lg sm:text-xl md:text-2xl text-red-500">

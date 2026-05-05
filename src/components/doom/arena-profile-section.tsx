@@ -160,6 +160,7 @@ export function ArenaProfileSection() {
                   <img
                     src={profile.bannerUrl}
                     alt=""
+                    loading="lazy"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#1a1a1a]" />
@@ -174,6 +175,7 @@ export function ArenaProfileSection() {
                     <img
                       src={profile.profilePicture}
                       alt={profile.userName}
+                      loading="lazy"
                       className="w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full border-4 border-[#1a1a1a] shadow-[0_0_20px_rgba(220,38,38,0.3)]"
                     />
                     <span className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-red-600 rounded-full border-2 border-[#1a1a1a] flex items-center justify-center text-[8px] sm:text-[10px]">

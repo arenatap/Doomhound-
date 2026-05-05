@@ -41,6 +41,7 @@ export function MemeWallSection() {
                   <img
                     src={meme.src}
                     alt={meme.alt}
+                    loading="lazy"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                 </div>
@@ -81,6 +82,7 @@ export function MemeWallSection() {
               <img
                 src={memes[selectedMeme].src}
                 alt={memes[selectedMeme].alt}
+                loading="lazy"
                 className="w-full rounded-xl border-2 border-red-600/30 shadow-[0_0_40px_rgba(220,38,38,0.3)]"
               />
               <p className="text-center text-gray-400 mt-4 text-sm sm:text-base">
