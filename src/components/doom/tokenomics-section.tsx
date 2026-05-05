@@ -7,7 +7,7 @@ const data = [{ name: "Community", value: 100 }];
 const COLORS = ["#dc2626"];
 
 const stats = [
-  { label: "Total Supply", value: "1B $DOOMHOUND" },
+  { label: "Total Supply", value: "3.4B $DOOMHOUND" },
   { label: "Tax", value: "0/0" },
   { label: "LP", value: "Burned" },
   { label: "Contract", value: "Renounced" },

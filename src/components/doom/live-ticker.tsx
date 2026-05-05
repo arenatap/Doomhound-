@@ -13,7 +13,7 @@ const LIVE_MESSAGES = [
   "💀 $DOOMHOUND doesn't rug — it DEVOURS rugs",
   "🐺 Join the pack on arena.social — Holders climbing fast",
   "🔥 LIVE on Avalanche C-Chain — Fair launch, community owned",
-  "💀 The devil's good boy is here — 1B supply, 0/0 tax",
+  "💀 The devil's good boy is here — 3.4B supply, 0/0 tax",
 ];
 
 // ===== MARQUEE KEYFRAMES =====

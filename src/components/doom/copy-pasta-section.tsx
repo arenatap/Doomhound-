@@ -11,7 +11,7 @@ const SHILL_LINK = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6
 
 const shillTexts = [
   "$DOOMHOUND is the Arena's most feared contender. Can't kill what's already from hell. 0 tax, LP burned, contract renounced. This hound doesn't rug — it DEVOURS rugs. Join the pack 🔥",
-  "They said the Arena was dangerous. Then $DOOMHOUND showed up and proved them RIGHT. 1B supply, 0/0 tax, community owned. The hellhound of Avalanche is here. Get in or get eaten. 🐺",
+  "They said the Arena was dangerous. Then $DOOMHOUND showed up and proved them RIGHT. 3.4B supply, 0/0 tax, community owned. The hellhound of Avalanche is here. Get in or get eaten. 🐺",
   "While you're sleeping on $DOOMHOUND, the pack is growing. Fair launch, no presale, no team tokens. Just pure degen energy from the depths of the blockchain. The Doomhound protects its own. 💀",
   "$DOOMHOUND — The only token in the Arena that WANTS the chart to go down, because that's where hell is. Fair launch. 0 tax. Community owned. The devil's good boy is here. 🔥",
 ];
