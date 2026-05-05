@@ -74,33 +74,33 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
   return (
     <section
       id="live-data"
-      className="relative py-16 sm:py-20 md:py-32 bg-[#0a0a0a] overflow-hidden"
+      className="relative py-20 sm:py-28 md:py-36 bg-[#0a0a0a] overflow-hidden"
     >
-      <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-8">
+      <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-10 md:px-16">
         <ScrollReveal>
-          <div className="text-center mb-10 sm:mb-16">
-            <h2 className="font-creepster text-4xl sm:text-5xl md:text-7xl text-red-500 animate-glow-red inline-flex items-center gap-3">
+          <div className="text-center mb-12 sm:mb-16 md:mb-20">
+            <h2 className="font-creepster text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-red-500 animate-glow-red inline-flex items-center gap-3 sm:gap-4">
               ARENA STATUS
               <span className="inline-block w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500 animate-pulse-red" />
             </h2>
           </div>
         </ScrollReveal>
 
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
+        <div className="grid md:grid-cols-2 gap-5 sm:gap-6 md:gap-10">
           {/* Left column */}
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-5 sm:space-y-6">
             {/* Bonding Curve */}
             <ScrollReveal delay={0.1}>
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-xs sm:text-sm uppercase tracking-wider text-gray-500">
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
+                <div className="flex justify-between items-center mb-3 sm:mb-4">
+                  <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500">
                     Bonding Curve
                   </h3>
-                  <span className="text-red-400 font-bold text-sm sm:text-base">
+                  <span className="text-red-400 font-bold text-sm sm:text-base md:text-lg">
                     {bondingProgress.toFixed(1)}%
                   </span>
                 </div>
-                <div className="w-full h-3 sm:h-4 bg-[#0a0a0a] rounded-full overflow-hidden border border-[#2a2a2a]">
+                <div className="w-full h-3 sm:h-4 md:h-5 bg-[#0a0a0a] rounded-full overflow-hidden border border-[#2a2a2a]">
                   <div
                     className="h-full progress-fire rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${bondingProgress}%` }}
@@ -111,12 +111,12 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
 
             {/* Price */}
             <ScrollReveal delay={0.2}>
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6">
-                <h3 className="text-xs sm:text-sm uppercase tracking-wider text-gray-500 mb-2">
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
+                <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-2 sm:mb-3">
                   Live Price
                 </h3>
                 <p
-                  className={`text-2xl sm:text-3xl font-bold font-mono ${
+                  className={`text-2xl sm:text-3xl md:text-4xl font-bold font-mono ${
                     priceFlash === "green"
                       ? "animate-flash-green"
                       : priceFlash === "red"
@@ -131,11 +131,11 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
 
             {/* Holders */}
             <ScrollReveal delay={0.3}>
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6">
-                <h3 className="text-xs sm:text-sm uppercase tracking-wider text-gray-500 mb-2">
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
+                <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-2 sm:mb-3">
                   Holders
                 </h3>
-                <p className="text-2xl sm:text-3xl font-bold text-red-400">
+                <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-red-400">
                   {holders} HOLDERS
                 </p>
               </div>
@@ -143,21 +143,21 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
           </div>
 
           {/* Right column */}
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-5 sm:space-y-6">
             {/* Buy Feed */}
             <ScrollReveal delay={0.15}>
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6">
-                <h3 className="text-xs sm:text-sm uppercase tracking-wider text-gray-500 mb-3 sm:mb-4">
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
+                <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-3 sm:mb-4">
                   Recent Buys
                 </h3>
                 <div
                   ref={feedRef}
-                  className="max-h-44 sm:max-h-48 overflow-y-auto space-y-2 no-scrollbar"
+                  className="max-h-44 sm:max-h-52 md:max-h-60 overflow-y-auto space-y-2 no-scrollbar"
                 >
                   {buyFeed.map((entry) => (
                     <div
                       key={entry.id}
-                      className="flex items-center gap-2 text-xs sm:text-sm bg-[#0a0a0a] rounded-lg px-3 py-2 border border-[#2a2a2a]"
+                      className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm md:text-base bg-[#0a0a0a] rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border border-[#2a2a2a]"
                     >
                       <span className="text-green-500 text-[10px] sm:text-xs font-bold">BUY</span>
                       <span className="text-gray-400 font-mono truncate">
@@ -174,22 +174,22 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
 
             {/* Arena Leaderboard */}
             <ScrollReveal delay={0.25}>
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6">
-                <h3 className="text-xs sm:text-sm uppercase tracking-wider text-gray-500 mb-3 sm:mb-4">
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
+                <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-3 sm:mb-4">
                   Arena Leaderboard
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-2 sm:space-y-3">
                   {leaderboardTokens.map((token) => (
                     <div
                       key={token.rank}
-                      className={`flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-sm ${
+                      className={`flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3 sm:py-3.5 rounded-lg border text-sm sm:text-base ${
                         token.name === "$DOOMHOUND"
                           ? "bg-red-900/20 border-red-600/40 shadow-[0_0_10px_rgba(220,38,38,0.2)]"
                           : "bg-[#0a0a0a] border-[#2a2a2a]"
                       }`}
                     >
                       <span
-                        className={`font-bold w-6 text-center text-sm ${
+                        className={`font-bold w-7 sm:w-8 text-center ${
                           token.name === "$DOOMHOUND"
                             ? "text-red-500"
                             : "text-gray-500"
@@ -206,7 +206,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                       >
                         {token.name}
                       </span>
-                      <span className="ml-auto text-green-500 text-xs sm:text-sm font-mono">
+                      <span className="ml-auto text-green-500 text-xs sm:text-sm md:text-base font-mono">
                         {token.change}
                       </span>
                     </div>
