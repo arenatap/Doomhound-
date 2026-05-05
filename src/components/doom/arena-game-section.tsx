@@ -681,9 +681,9 @@ export function ArenaGameSection() {
                         </div>
                       </div>
                       <div className="mt-3 flex gap-2">
-                        <input readOnly value={`https://doomhound.meme/?ref=${member.handle}`}
+                        <input readOnly value={`https://doomhound.onrender.com/?ref=${member.handle}`}
                           className="flex-1 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-400 font-mono truncate" />
-                        <button onClick={() => navigator.clipboard.writeText(`https://doomhound.meme/?ref=${member.handle}`)}
+                        <button onClick={() => navigator.clipboard.writeText(`https://doomhound.onrender.com/?ref=${member.handle}`)}
                           className="px-3 py-2 bg-[#2a2a2a] hover:bg-red-900/30 text-gray-400 hover:text-red-400 rounded-lg text-xs sm:text-sm transition-colors">
                           COPY
                         </button>
