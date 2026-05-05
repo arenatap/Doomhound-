@@ -661,7 +661,10 @@ export async function POST(request: NextRequest) {
         // arena.social/thread/12345
         // arena.social/username/status/12345
         // arena.social/username/12345
-        const threadIdMatch = trimmedUrl.match(/arena\.social\/(?:thread\/|(?:[^/]+\/)?(?:status\/)?)(\d+)/i);
+        // arena.social/username/status/cbaee301-207e-4695-8846-884cd9575391 (UUID format)
+        const threadIdMatch = trimmedUrl.match(
+          /arena\.social\/(?:thread\/|(?:[^/]+\/)?(?:status\/)?)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\d+)/i
+        );
         const threadId = threadIdMatch ? threadIdMatch[1] : null;
 
         const member = await db.packMember.findUnique({

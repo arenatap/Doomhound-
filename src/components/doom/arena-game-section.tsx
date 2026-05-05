@@ -648,7 +648,7 @@ export function ArenaGameSection() {
                           type="url"
                           value={memePostUrl}
                           onChange={(e) => setMemePostUrl(e.target.value)}
-                          placeholder="https://arena.social/thread/..."
+                          placeholder="https://arena.social/user/status/..."
                           disabled={!!lastMemeClaim || memeVerifying}
                           className="flex-1 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-300 placeholder:text-gray-600 font-mono focus:border-red-600/50 focus:outline-none disabled:opacity-50"
                         />
