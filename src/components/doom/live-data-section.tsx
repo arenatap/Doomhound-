@@ -4,10 +4,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { ScrollReveal } from "./scroll-reveal";
 
 // ===== CONFIGURATION =====
-// After launching $DOOMHOUND on The Arena, set this to the token's Arena subjectId
-// You can find it by searching for your token on Arena or from the URL
-// e.g. https://arena.social/DOOMHOUND -> the subjectId from the API
-const DOOMHOUND_SUBJECT_ID = ""; // <-- SET THIS AFTER LAUNCH
+// $DOOMHOUND is LIVE on The Arena
+const DOOMHOUND_SUBJECT_ID = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
 
 // ===== TYPES =====
 interface HolderData {
@@ -92,7 +90,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
   const isLaunched = DOOMHOUND_SUBJECT_ID !== "";
 
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [userRequestedData, setUserRequestedData] = useState(false);
+  const [userRequestedData, setUserRequestedData] = useState(true); // Auto-load since token is live
 
   // Fetch token stats from Arena API
   const fetchStats = useCallback(async () => {
@@ -197,25 +195,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
           </div>
         </ScrollReveal>
 
-        {/* Pre-Launch State */}
-        {!isLaunched && (
-          <ScrollReveal delay={0.1}>
-            <div className="bg-[#1a1a1a] border border-red-900/40 rounded-xl p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto animate-flame-border">
-              <div className="text-6xl sm:text-7xl md:text-8xl mb-4 sm:mb-6">🔥</div>
-              <h3 className="font-creepster text-3xl sm:text-4xl md:text-5xl text-red-500 mb-3 sm:mb-4">
-                COMING SOON
-              </h3>
-              <p className="text-gray-400 text-base sm:text-lg md:text-xl mb-4 sm:mb-6">
-                $DOOMHOUND is about to be unleashed on The Arena.
-                The hound from hell is preparing to enter the battlefield.
-              </p>
-              <div className="flex items-center justify-center gap-2 text-gray-500 text-sm sm:text-base">
-                <span className="inline-block w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-                Awaiting deployment on Avalanche...
-              </div>
-            </div>
-          </ScrollReveal>
-        )}
+        {/* Pre-Launch State — hidden when launched */}
 
         {/* Load Data Button — only show when data hasn't been requested yet and token is launched */}
         {isLaunched && !userRequestedData && (
@@ -316,38 +296,47 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
               </ScrollReveal>
             )}
 
-            {/* Token Info Card (when not launched yet) */}
-            {!isLaunched && (
-              <ScrollReveal delay={0.2}>
-                <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
-                  <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-3 sm:mb-4">
-                    Token Info
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-500 text-sm">Network</span>
-                      <span className="text-white text-sm font-bold">Avalanche C-Chain</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500 text-sm">Platform</span>
-                      <span className="text-red-400 text-sm font-bold">The Arena</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500 text-sm">Ticker</span>
-                      <span className="text-white text-sm font-mono">$DOOMHOUND</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500 text-sm">Supply</span>
-                      <span className="text-white text-sm font-mono">1,000,000,000</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500 text-sm">Curve</span>
-                      <span className="text-orange-400 text-sm font-bold">Bonding → LFJ DEX</span>
-                    </div>
+            {/* Token Info Card */}
+            <ScrollReveal delay={0.2}>
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
+                <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-3 sm:mb-4">
+                  Token Info
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">Network</span>
+                    <span className="text-white text-sm font-bold">Avalanche C-Chain</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">Platform</span>
+                    <span className="text-red-400 text-sm font-bold">The Arena</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">Ticker</span>
+                    <span className="text-white text-sm font-mono">$DOOMHOUND</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">Supply</span>
+                    <span className="text-white text-sm font-mono">1,185,417,787</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">Curve</span>
+                    <span className="text-orange-400 text-sm font-bold">Bonding → LFJ DEX</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 text-sm">Contract</span>
+                    <a
+                      href="https://snowtrace.io/token/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-red-400 text-xs font-mono hover:text-red-300 truncate max-w-[180px]"
+                    >
+                      0xE99a...9dBb
+                    </a>
                   </div>
                 </div>
-              </ScrollReveal>
-            )}
+              </div>
+            </ScrollReveal>
           </div>
 
           {/* Right Column — Arena Trending */}
