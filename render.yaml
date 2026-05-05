@@ -4,8 +4,8 @@ services:
     runtime: node
     plan: free
     region: frankfurt
-    buildCommand: npm install && npx prisma generate && npm run build
-    startCommand: bash start-render.sh
+    buildCommand: npm install && npx prisma generate && npx prisma db push --accept-data-loss && npm run build
+    startCommand: node .next/standalone/server.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -13,10 +13,8 @@ services:
         value: 10000
       - key: HOSTNAME
         value: 0.0.0.0
-      # Supabase PostgreSQL connection string — SET IN RENDER DASHBOARD
       - key: DATABASE_URL
         sync: false
-      # Arena API key — SET IN RENDER DASHBOARD
       - key: ARENA_API_KEY
         sync: false
       - key: DOOMHOUND_CONTRACT
