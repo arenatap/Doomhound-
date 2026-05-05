@@ -3,28 +3,30 @@
 import { useMemo } from "react";
 
 // ===== TICKER DATA =====
-const PRE_LAUNCH_MESSAGES = [
-  "🔥 $DOOMHOUND launching soon on The Arena",
-  "🐺 Join the pack — register now!",
-  "💀 Rugs fear the Hound",
-  "🔥 $DOOMHOUND — Can't Kill What's Already From Hell",
-  "🐺 The Arena's Most Feared Contender is coming",
-  "💀 Don't fade the Hound. The pack is growing",
-  "🔥 Pre-launch hype is REAL — get in early",
-  "🐺 Every hound starts as a pup. Rise through the ranks",
+const LIVE_MESSAGES = [
+  "🐺 $DOOMHOUND IS LIVE ON THE ARENA — Buy NOW!",
+  "🔥 The Hound has been UNLEASHED — Can't Kill What's Already From Hell",
+  "💀 Rugs fear the Hound — 0 tax, LP burned, contract renounced",
+  "🐋 Whale spotted buying $DOOMHOUND — The pack is growing",
+  "🐺 The Arena's Most Feared Contender is HERE",
+  "🔥 New holders flooding in — Don't fade the Hound",
+  "💀 $DOOMHOUND doesn't rug — it DEVOURS rugs",
+  "🐺 Join the pack on arena.social — Holders climbing fast",
+  "🔥 LIVE on Avalanche C-Chain — Fair launch, community owned",
+  "💀 The devil's good boy is here — 1B supply, 0/0 tax",
 ];
 
 const SIMULATED_BUYS = [
   "🐋 Whale bought 5M $DOOM — 2.3 AVAX",
   "🐕 0x7f2...3a bought 1.2M $DOOM — 0.8 AVAX",
-  "🔥 New holder! 42 holders total",
+  "🔥 New holder! Holders climbing!",
   "🐋 0xa1e...9f bought 10M $DOOM — 4.1 AVAX",
-  "🐕 New pack member! 69 holders and counting",
+  "🐕 New pack member! The pack grows stronger",
   "🐋 0xb3c...7d bought 3.5M $DOOM — 1.5 AVAX",
-  "🔥 Volume spiking! 150K AVAX in 1h",
+  "🔥 Volume spiking on The Arena!",
   "🐕 0x9d4...2e bought 800K $DOOM — 0.3 AVAX",
   "🐋 Mega buy! 20M $DOOM — 8.2 AVAX",
-  "🔥 Holder count: 100+ and growing fast",
+  "🔥 Holder count surging — get in NOW",
 ];
 
 // ===== MARQUEE KEYFRAMES =====
@@ -43,15 +45,10 @@ const MARQUEE_CSS = `
 `;
 
 export function LiveTicker() {
-  const isLaunched = !!(process.env.NEXT_PUBLIC_DOOMHOUND_SUBJECT_ID);
-
+  // $DOOMHOUND is LIVE — always show live messages
   const messages = useMemo(() => {
-    if (isLaunched) {
-      // Mix simulated buys with some hype messages
-      return [...SIMULATED_BUYS, ...PRE_LAUNCH_MESSAGES.slice(0, 3)];
-    }
-    return PRE_LAUNCH_MESSAGES;
-  }, [isLaunched]);
+    return [...SIMULATED_BUYS, ...LIVE_MESSAGES.slice(0, 5)];
+  }, []);
 
   // Duplicate messages for seamless loop
   const doubled = useMemo(() => [...messages, ...messages], [messages]);
