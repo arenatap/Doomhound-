@@ -21,6 +21,7 @@ import { KonamiCode } from "@/components/doom/konami-code";
 import { AbyssEasterEgg } from "@/components/doom/abyss-easter-egg";
 import { SoundToggle } from "@/components/doom/sound-toggle";
 import { FloatingBuy } from "@/components/doom/floating-buy";
+import { Navbar } from "@/components/doom/navbar";
 import { useSoundEffects } from "@/components/doom/use-sound-effects";
 import { useGlobalBloodSplash } from "@/components/doom/use-global-blood-splash";
 
@@ -61,6 +62,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-[#f5f5f5] relative overflow-x-hidden" ref={containerRef}>
+      <Navbar />
       <HeroSection />
       <LiveTicker />
       <CountdownTimer />
@@ -76,6 +78,8 @@ export default function HomePage() {
       <CopyPastaSection />
       <RoadmapSection />
       <CommunitySection />
+      {/* Bottom padding for mobile floating buy bar */}
+      <div className="h-16 sm:hidden" />
       <Footer />
 
       {/* Global overlays */}
