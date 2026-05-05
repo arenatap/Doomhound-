@@ -5,7 +5,7 @@ import { ScrollReveal } from "./scroll-reveal";
 import { BloodSplash } from "./blood-splash";
 
 const templates = [
-  { src: "/images/doomhound-meme1.png", label: "Throne" },
+  { src: "/images/doomhound-meme1.png", label: "Doomhound" },
   { src: "/images/doomhound-meme2.png", label: "Rug Pull" },
   { src: "/images/doomhound-meme3.png", label: "Lambo" },
   { src: "/images/doomhound-meme4.png", label: "Scientist" },

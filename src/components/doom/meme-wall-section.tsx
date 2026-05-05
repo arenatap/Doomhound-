@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 import { ScrollReveal } from "./scroll-reveal";
 
 const memes = [
-  { src: "/images/doomhound-meme1.png", alt: "Hound on throne", label: "King of the Arena" },
+  { src: "/images/doomhound-meme1.png", alt: "Doomhound", label: "The Doomhound" },
   { src: "/images/doomhound-meme2.png", alt: "Hound destroying a rug", label: "Rug Destroyer" },
   { src: "/images/doomhound-meme3.png", alt: "Hound in sports car", label: "Lambo When" },
   { src: "/images/doomhound-meme4.png", alt: "Hound as scientist", label: "Mad Scientist" },

@@ -363,10 +363,14 @@ body {
   border-color: #dc2626;
 }
 
-/* CSS flame element */
+/* CSS flame element — full width, centered */
 .css-flame {
   position: relative;
-  width: 100%;
+  width: 100vw;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
   height: 60px;
   overflow: hidden;
 }
@@ -374,27 +378,25 @@ body {
 .css-flame .flame-layer {
   position: absolute;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  width: 100%;
   border-radius: 50% 50% 20% 20%;
   animation: flame-flicker 1.5s ease-in-out infinite;
 }
 
 .css-flame .flame-layer:nth-child(1) {
-  width: 80%;
   height: 100%;
-  background: radial-gradient(ellipse at bottom, #f97316 0%, #dc2626 40%, transparent 70%);
+  background: radial-gradient(ellipse 50% 100% at 50% 100%, #f97316 0%, #dc2626 40%, transparent 70%);
 }
 .css-flame .flame-layer:nth-child(2) {
-  width: 60%;
   height: 80%;
-  background: radial-gradient(ellipse at bottom, #fbbf24 0%, #f97316 30%, transparent 60%);
+  background: radial-gradient(ellipse 40% 100% at 50% 100%, #fbbf24 0%, #f97316 30%, transparent 60%);
   animation-delay: 0.3s;
 }
 .css-flame .flame-layer:nth-child(3) {
-  width: 40%;
   height: 60%;
-  background: radial-gradient(ellipse at bottom, #fef08a 0%, #fbbf24 20%, transparent 50%);
+  background: radial-gradient(ellipse 30% 100% at 50% 100%, #fef08a 0%, #fbbf24 20%, transparent 50%);
   animation-delay: 0.6s;
 }
 
