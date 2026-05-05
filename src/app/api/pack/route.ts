@@ -5,10 +5,12 @@ import { db } from "@/lib/db";
 const POINTS_CONFIG: Record<string, { value: number; label: string }> = {
   register: { value: 100, label: "Joined The Pack" },
   daily_checkin: { value: 15, label: "Daily Summon" },
-  arena_post: { value: 50, label: "Arena Howl" },
+  arena_post: { value: 5, label: "Arena Post" },           // Per new thread detected
+  arena_follower: { value: 2, label: "New Follower" },      // Per new follower gained
+  trending_mention: { value: 100, label: "Trending Howl" }, // Post in trending mentioning $DOOMHOUND
   meme_generated: { value: 30, label: "Meme Forge" },
   referral: { value: 75, label: "Pack Recruit" },
-  doomhound_holder: { value: 0, label: "HODL Bonus" }, // value calculated dynamically
+  doomhound_holder: { value: 0, label: "HODL Bonus" },     // Dynamic
 };
 
 // ===== RANK SYSTEM =====
@@ -20,7 +22,7 @@ const RANK_TIERS = [
   { title: "Lost Soul", minPoints: 0 },
 ];
 
-// $DOOMHOUND balance tiers (bonus points for holding)
+// ===== $DOOMHOUND BALANCE TIERS =====
 const BALANCE_TIERS = [
   { minBalance: 50_000_000, bonus: 500, label: "Whale of Hell" },
   { minBalance: 10_000_000, bonus: 250, label: "Demon Hoarder" },
@@ -63,7 +65,6 @@ async function addActivity(handle: string, type: string, description: string, po
   await db.activityLog.create({
     data: { memberHandle: handle, type, description, points },
   });
-  // Update member points and rank
   const member = await db.packMember.findUnique({ where: { handle } });
   if (member) {
     const newPoints = member.points + points;
@@ -75,6 +76,22 @@ async function addActivity(handle: string, type: string, description: string, po
   }
 }
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, "").trim();
+}
+
+function formatBalance(balance: number): string {
+  if (balance >= 1_000_000) return `${(balance / 1_000_000).toFixed(1)}M`;
+  if (balance >= 1_000) return `${(balance / 1_000).toFixed(1)}K`;
+  return balance.toFixed(0);
+}
+
+function formatNumber(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return n.toLocaleString();
+}
+
 // ===== GET: Leaderboard + Profile =====
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -82,7 +99,6 @@ export async function GET(request: NextRequest) {
 
   try {
     switch (action) {
-      // Get leaderboard (top 50)
       case "leaderboard": {
         const members = await db.packMember.findMany({
           orderBy: { points: "desc" },
@@ -97,7 +113,6 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ leaderboard: members });
       }
 
-      // Get own profile
       case "profile": {
         const handle = searchParams.get("handle");
         if (!handle) {
@@ -130,7 +145,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// ===== POST: Register, Check-in, Claim =====
+// ===== POST: All mutations =====
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { action, handle } = body;
@@ -145,10 +160,8 @@ export async function POST(request: NextRequest) {
     switch (action) {
       // ===== REGISTER =====
       case "register": {
-        // Check if already registered
         const existing = await db.packMember.findUnique({ where: { handle: cleanHandle } });
         if (existing) {
-          // Return existing profile
           const member = await db.packMember.findUnique({
             where: { handle: cleanHandle },
             include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
@@ -156,22 +169,23 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ member, alreadyRegistered: true });
         }
 
-        // Verify handle exists on Arena
+        // Verify handle on Arena
         const arenaData = await arenaFetch(
           `/agents/user/handle?handle=${encodeURIComponent(cleanHandle)}`
         );
 
         if (!arenaData.user) {
           return NextResponse.json(
-            { error: "Handle not found on The Arena. Register first at starsarena.com" },
+            { error: "Handle not found on The Arena. Sign up first at arena.social" },
             { status: 404 }
           );
         }
 
         const profile = arenaData.user;
         const walletAddress = profile.address || null;
+        const threadCount = profile.threadCount || 0;
+        const followerCount = profile.followerCount || 0;
 
-        // Create member
         const member = await db.packMember.create({
           data: {
             handle: cleanHandle,
@@ -180,10 +194,12 @@ export async function POST(request: NextRequest) {
             walletAddress,
             points: POINTS_CONFIG.register.value,
             rank: getRank(POINTS_CONFIG.register.value),
+            lastThreadCount: threadCount,
+            lastFollowerCount: followerCount,
+            lastVerifiedAt: new Date(),
           },
         });
 
-        // Log registration activity
         await db.activityLog.create({
           data: {
             memberHandle: cleanHandle,
@@ -193,7 +209,7 @@ export async function POST(request: NextRequest) {
           },
         });
 
-        // Check $DOOMHOUND balance if wallet exists and contract is set
+        // Check $DOOMHOUND balance if wallet + contract available
         let balanceBonus = 0;
         let balanceTierLabel = null;
         if (walletAddress && process.env.DOOMHOUND_CONTRACT) {
@@ -203,28 +219,13 @@ export async function POST(request: NextRequest) {
             if (tier) {
               balanceBonus = tier.bonus;
               balanceTierLabel = tier.label;
-              await db.packMember.update({
-                where: { handle: cleanHandle },
-                data: {
-                  doomhoundBalance: balanceResult.balance,
-                  balanceCheckedAt: new Date(),
-                  points: member.points + tier.bonus,
-                  rank: getRank(member.points + tier.bonus),
-                },
-              });
-              await db.activityLog.create({
-                data: {
-                  memberHandle: cleanHandle,
-                  type: "doomhound_holder",
-                  description: `${tier.label}: Holds ${formatBalance(balanceResult.balance)} $DOOMHOUND`,
-                  points: tier.bonus,
-                },
-              });
+              await addActivity(cleanHandle, "doomhound_holder",
+                `${tier.label}: Holds ${formatBalance(balanceResult.balance)} $DOOMHOUND`, tier.bonus);
             }
           }
         }
 
-        // Check referral
+        // Referral
         const ref = body.referral as string | undefined;
         if (ref && ref !== cleanHandle) {
           const referrer = await db.packMember.findUnique({ where: { handle: ref } });
@@ -256,8 +257,6 @@ export async function POST(request: NextRequest) {
         if (!member) {
           return NextResponse.json({ error: "Not registered" }, { status: 404 });
         }
-
-        // Check if already checked in today
         if (member.lastCheckIn) {
           const last = new Date(member.lastCheckIn);
           const now = new Date();
@@ -269,75 +268,142 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Already checked in today", member });
           }
         }
-
         await addActivity(cleanHandle, "daily_checkin", "Daily summon completed", POINTS_CONFIG.daily_checkin.value);
         await db.packMember.update({
           where: { handle: cleanHandle },
           data: { lastCheckIn: new Date() },
         });
-
         const updated = await db.packMember.findUnique({
           where: { handle: cleanHandle },
           include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
         });
-
         return NextResponse.json({ member: updated });
       }
 
-      // ===== CLAIM ARENA POST =====
-      case "claim_post": {
-        const member = await db.packMember.findUnique({
-          where: { handle: cleanHandle },
-          include: { activities: { orderBy: { createdAt: "desc" } } },
-        });
+      // ===== VERIFY ARENA ACTIVITY =====
+      // This is the key action: fetches current Arena profile stats,
+      // compares with stored values, and awards points for differences
+      case "verify_arena": {
+        const member = await db.packMember.findUnique({ where: { handle: cleanHandle } });
         if (!member) {
           return NextResponse.json({ error: "Not registered" }, { status: 404 });
         }
 
-        // 1 hour cooldown
-        const lastPost = member.activities.find(
-          (a) => a.type === "arena_post" && Date.now() - new Date(a.createdAt).getTime() < 3600000
-        );
-        if (lastPost) {
-          return NextResponse.json({ error: "Cooldown: 1 hour between claims", member });
+        // 1 hour cooldown on verification
+        if (member.lastVerifiedAt) {
+          const timeSinceVerify = Date.now() - new Date(member.lastVerifiedAt).getTime();
+          if (timeSinceVerify < 3600000) {
+            const minsLeft = Math.ceil((3600000 - timeSinceVerify) / 60000);
+            return NextResponse.json({
+              error: `Wait ${minsLeft}m before next verification`,
+              member,
+              cooldown: true,
+            });
+          }
         }
 
-        await addActivity(cleanHandle, "arena_post", "Howled about $DOOMHOUND on Arena!", POINTS_CONFIG.arena_post.value);
+        // Fetch current Arena profile
+        const arenaData = await arenaFetch(
+          `/agents/user/handle?handle=${encodeURIComponent(cleanHandle)}`
+        );
+
+        if (!arenaData.user) {
+          return NextResponse.json({ error: "Arena profile not found", member });
+        }
+
+        const profile = arenaData.user;
+        const currentThreadCount = profile.threadCount || 0;
+        const currentFollowerCount = profile.followerCount || 0;
+
+        const newThreads = Math.max(0, currentThreadCount - member.lastThreadCount);
+        const newFollowers = Math.max(0, currentFollowerCount - member.lastFollowerCount);
+
+        let totalNewPoints = 0;
+        const verifiedActivities: { type: string; description: string; points: number }[] = [];
+
+        // Award points for new threads (posts)
+        if (newThreads > 0) {
+          const pts = newThreads * POINTS_CONFIG.arena_post.value;
+          totalNewPoints += pts;
+          verifiedActivities.push({
+            type: "arena_post",
+            description: `${newThreads} new post${newThreads > 1 ? "s" : ""} on Arena detected!`,
+            points: pts,
+          });
+        }
+
+        // Award points for new followers
+        if (newFollowers > 0) {
+          const pts = newFollowers * POINTS_CONFIG.arena_follower.value;
+          totalNewPoints += pts;
+          verifiedActivities.push({
+            type: "arena_follower",
+            description: `${newFollowers} new follower${newFollowers > 1 ? "s" : ""} on Arena!`,
+            points: pts,
+          });
+        }
+
+        // 2. Scan trending feed for mentions of this user or $DOOMHOUND
+        const trendingData = await arenaFetch(
+          "/agents/threads/feed/trendingPosts?pageSize=50"
+        );
+        const threads = trendingData.threads || [];
+        let trendingBonus = 0;
+
+        for (const thread of threads) {
+          const content = stripHtml(thread.content || "").toLowerCase();
+          const threadHandle = (thread.userHandle || "").toLowerCase();
+          const communityTicker = thread.community?.ticker?.toLowerCase();
+
+          // Check if this user posted in trending AND mentions $DOOMHOUND or is in DOOMHOUND community
+          const isDoomhoundPost =
+            content.includes("doomhound") ||
+            content.includes("$doomhound") ||
+            communityTicker === "doomhound";
+
+          if (threadHandle === cleanHandle && isDoomhoundPost) {
+            trendingBonus += POINTS_CONFIG.trending_mention.value;
+            verifiedActivities.push({
+              type: "trending_mention",
+              description: `Your $DOOMHOUND post is trending on Arena! 🔥`,
+              points: POINTS_CONFIG.trending_mention.value,
+            });
+            break; // Only award once per verify
+          }
+        }
+
+        totalNewPoints += trendingBonus;
+
+        // Save all verified activities
+        for (const act of verifiedActivities) {
+          await addActivity(cleanHandle, act.type, act.description, act.points);
+        }
+
+        // Update member's Arena tracking data
+        await db.packMember.update({
+          where: { handle: cleanHandle },
+          data: {
+            lastThreadCount: currentThreadCount,
+            lastFollowerCount: currentFollowerCount,
+            lastVerifiedAt: new Date(),
+          },
+        });
 
         const updated = await db.packMember.findUnique({
           where: { handle: cleanHandle },
           include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
         });
 
-        return NextResponse.json({ member: updated });
-      }
-
-      // ===== CLAIM MEME FORGE =====
-      case "claim_meme": {
-        const member = await db.packMember.findUnique({
-          where: { handle: cleanHandle },
-          include: { activities: { orderBy: { createdAt: "desc" } } },
+        return NextResponse.json({
+          member: updated,
+          verified: true,
+          newThreads,
+          newFollowers,
+          trendingBonus,
+          totalNewPoints,
+          currentThreadCount,
+          currentFollowerCount,
         });
-        if (!member) {
-          return NextResponse.json({ error: "Not registered" }, { status: 404 });
-        }
-
-        // 10 minute cooldown
-        const lastMeme = member.activities.find(
-          (a) => a.type === "meme_generated" && Date.now() - new Date(a.createdAt).getTime() < 600000
-        );
-        if (lastMeme) {
-          return NextResponse.json({ error: "Cooldown: 10 minutes between claims", member });
-        }
-
-        await addActivity(cleanHandle, "meme_generated", "Forged a $DOOMHOUND meme!", POINTS_CONFIG.meme_generated.value);
-
-        const updated = await db.packMember.findUnique({
-          where: { handle: cleanHandle },
-          include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
-        });
-
-        return NextResponse.json({ member: updated });
       }
 
       // ===== CHECK $DOOMHOUND BALANCE =====
@@ -346,14 +412,12 @@ export async function POST(request: NextRequest) {
         if (!member) {
           return NextResponse.json({ error: "Not registered" }, { status: 404 });
         }
-
         if (!member.walletAddress) {
           return NextResponse.json({ error: "No wallet address linked to your Arena profile", member });
         }
-
         if (!process.env.DOOMHOUND_CONTRACT) {
           return NextResponse.json({
-            error: "Token not launched yet",
+            error: "Token not launched yet — balance check available after launch!",
             member,
             preLaunch: true,
           });
@@ -370,15 +434,12 @@ export async function POST(request: NextRequest) {
         for (const act of oldBalanceActivities) {
           oldBonus += act.points;
         }
-
-        // Remove old balance activities
         if (oldBalanceActivities.length > 0) {
           await db.activityLog.deleteMany({
             where: { memberHandle: cleanHandle, type: "doomhound_holder" },
           });
         }
 
-        // Add new balance bonus if applicable
         let newBonus = 0;
         let balanceTierLabel = null;
         if (tier) {
@@ -394,7 +455,7 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        // Recalculate total points
+        // Recalculate total points from all activities
         const allActivities = await db.activityLog.findMany({
           where: { memberHandle: cleanHandle },
         });
@@ -424,6 +485,29 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      // ===== CLAIM MEME =====
+      case "claim_meme": {
+        const member = await db.packMember.findUnique({
+          where: { handle: cleanHandle },
+          include: { activities: { orderBy: { createdAt: "desc" } } },
+        });
+        if (!member) {
+          return NextResponse.json({ error: "Not registered" }, { status: 404 });
+        }
+        const lastMeme = member.activities.find(
+          (a) => a.type === "meme_generated" && Date.now() - new Date(a.createdAt).getTime() < 600000
+        );
+        if (lastMeme) {
+          return NextResponse.json({ error: "Cooldown: 10 minutes between claims", member });
+        }
+        await addActivity(cleanHandle, "meme_generated", "Forged a $DOOMHOUND meme!", POINTS_CONFIG.meme_generated.value);
+        const updated = await db.packMember.findUnique({
+          where: { handle: cleanHandle },
+          include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
+        });
+        return NextResponse.json({ member: updated });
+      }
+
       default:
         return NextResponse.json({ error: "Unknown action" }, { status: 400 });
     }
@@ -439,9 +523,6 @@ async function checkDoomhoundBalance(walletAddress: string): Promise<{ balance: 
   if (!contract) return { balance: 0 };
 
   try {
-    // ERC-20 balanceOf(address) call via eth_call
-    // balanceOf selector: 0x70a08231
-    // Pad address to 32 bytes
     const paddedAddress = walletAddress.toLowerCase().replace("0x", "").padStart(64, "0");
     const data = `0x70a08231${paddedAddress}`;
 
@@ -463,7 +544,6 @@ async function checkDoomhoundBalance(walletAddress: string): Promise<{ balance: 
       return { balance: 0 };
     }
 
-    // Parse hex balance - assuming 18 decimals (standard ERC-20)
     const rawBalance = BigInt(result.result || "0x0");
     const balance = Number(rawBalance) / 1e18;
     return { balance };
@@ -471,10 +551,4 @@ async function checkDoomhoundBalance(walletAddress: string): Promise<{ balance: 
     console.error("Balance check error:", error);
     return { balance: 0 };
   }
-}
-
-function formatBalance(balance: number): string {
-  if (balance >= 1_000_000) return `${(balance / 1_000_000).toFixed(1)}M`;
-  if (balance >= 1_000) return `${(balance / 1_000).toFixed(1)}K`;
-  return balance.toFixed(0);
 }

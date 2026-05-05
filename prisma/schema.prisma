@@ -9,35 +9,45 @@ datasource db {
 
 // ===== DOOMHOUND PACK MEMBERS =====
 model PackMember {
-  id            String   @id @default(cuid())
-  handle        String   @unique    // Arena handle (without @)
-  userName      String              // Display name from Arena
-  profilePic    String              // Profile picture URL
-  walletAddress String?             // Wallet address from Arena profile
-  points        Int      @default(0)
-  rank          String   @default("Lost Soul")  // Rank title
-  lastCheckIn   DateTime?           // Last daily check-in
-  doomhoundBalance Float @default(0) // $DOOMHOUND token balance
-  balanceCheckedAt DateTime?         // When balance was last verified
-  referredBy    String?              // Arena handle of referrer
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id               String    @id @default(cuid())
+  handle           String    @unique    // Arena handle (without @)
+  userName         String               // Display name from Arena
+  profilePic       String               // Profile picture URL
+  walletAddress    String?              // Wallet address from Arena profile
+  points           Int       @default(0)
+  rank             String    @default("Lost Soul")
+  lastCheckIn      DateTime?            // Last daily check-in
 
-  activities    ActivityLog[]
+  // Arena activity tracking (for API-verified points)
+  lastThreadCount  Int       @default(0)  // Arena threadCount at last verify
+  lastFollowerCount Int      @default(0)  // Arena followerCount at last verify
+  lastVerifiedAt   DateTime?              // Last time we verified via Arena API
+
+  // $DOOMHOUND balance
+  doomhoundBalance Float     @default(0)
+  balanceCheckedAt DateTime?
+
+  // Referral
+  referredBy       String?
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  activities       ActivityLog[]
 
   @@index([handle])
   @@index([points])
 }
 
 model ActivityLog {
-  id          String   @id @default(cuid())
+  id           String   @id @default(cuid())
   memberHandle String             // Arena handle (FK)
-  type        String              // register, daily_checkin, arena_post, meme_generated, referral, doomhound_holder
-  description String
-  points      Int
-  createdAt   DateTime @default(now())
+  type         String              // register, daily_checkin, arena_post, arena_follower, trending_mention, meme_generated, referral, doomhound_holder
+  description  String
+  points       Int
+  createdAt    DateTime @default(now())
 
-  member      PackMember @relation(fields: [memberHandle], references: [handle], onDelete: Cascade)
+  member       PackMember @relation(fields: [memberHandle], references: [handle], onDelete: Cascade)
 
   @@index([memberHandle])
   @@index([createdAt])

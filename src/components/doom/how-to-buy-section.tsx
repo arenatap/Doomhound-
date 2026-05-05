@@ -17,7 +17,7 @@ const steps = [
   {
     num: 3,
     title: "Go to The Arena",
-    desc: "Visit arena.avax and connect your wallet",
+    desc: "Visit arena.social and connect your wallet",
   },
   {
     num: 4,

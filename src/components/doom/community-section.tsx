@@ -20,7 +20,7 @@ export function CommunitySection() {
         <ScrollReveal delay={0.1}>
           <BloodSplash>
             <a
-              href="#"
+              href="https://arena.social/home"
               className="block bg-[#1a1a1a] border border-[#2a2a2a] hover:border-red-500/50 rounded-xl p-8 sm:p-12 md:p-16 text-center transition-all duration-300 animate-red-glow-pulse group hover:shadow-[0_0_25px_rgba(220,38,38,0.3)] max-w-md mx-auto"
               target="_blank"
               rel="noopener noreferrer"
@@ -31,7 +31,7 @@ export function CommunitySection() {
               <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4 group-hover:text-red-400 transition-colors">
                 The Arena
               </h3>
-              <p className="text-gray-500 text-base sm:text-lg md:text-xl">arena.avax</p>
+              <p className="text-gray-500 text-base sm:text-lg md:text-xl">arena.social</p>
               <p className="text-gray-600 text-xs sm:text-sm md:text-base mt-3 sm:mt-4">
                 Find $DOOMHOUND on the battlefield
               </p>
