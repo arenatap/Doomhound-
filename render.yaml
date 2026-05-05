@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: doomhound
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install && npx prisma generate && npx prisma db push --accept-data-loss && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/opt/render/project/data/doomhound.db
+      - key: ARENA_API_KEY
+        sync: false
+      - key: DOOMHOUND_CONTRACT
+        sync: false
+      - key: DOOMHOUND_SUBJECT_ID
+        sync: false
+      - key: AVAX_RPC_URL
+        value: https://api.avax.network/ext/bc/C/rpc
+    disk:
+      name: doomhound-data
+      mountPath: /opt/render/project/data
+      sizeGB: 1
