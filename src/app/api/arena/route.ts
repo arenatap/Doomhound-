@@ -52,11 +52,10 @@ export async function GET(request: NextRequest) {
           });
         }
 
-        // Fetch community data (includes stats) + owner profile + owner holders
-        const [communityResult, ownerResult, holdersResult] = await Promise.allSettled([
+        // Fetch community data (includes stats) + owner profile
+        const [communityResult, ownerResult] = await Promise.allSettled([
           arenaFetch(`/agents/communities/search?searchString=doomhound&page=1&pageSize=10`),
           arenaFetch(`/agents/user/id?userId=${DOOMHOUND_OWNER_ID}`),
-          arenaFetch(`/agents/shares/holders?userId=${DOOMHOUND_OWNER_ID}&page=1&pageSize=10`),
         ]);
 
         // Extract community data
@@ -72,18 +71,6 @@ export async function GET(request: NextRequest) {
         let ownerProfile: any = null;
         if (ownerResult.status === "fulfilled") {
           ownerProfile = ownerResult.value?.user || null;
-        }
-
-        // Extract holders
-        let topHolders: any[] = [];
-        if (holdersResult.status === "fulfilled") {
-          const raw = holdersResult.value?.holders || [];
-          topHolders = raw.slice(0, 10).map((h: any) => ({
-            handle: h.traderUser?.handle || "unknown",
-            userName: h.traderUser?.userName || "",
-            profilePicture: h.traderUser?.profilePicture || h.traderUser?.twitterPicture || "",
-            shareCount: h.amount || 0,
-          }));
         }
 
         // Build stats from community data
@@ -119,7 +106,6 @@ export async function GET(request: NextRequest) {
               }
             : null,
           stats: formattedStats,
-          topHolders,
           ownerProfile: ownerProfile
             ? {
                 handle: ownerProfile.handle,

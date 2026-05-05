@@ -42,23 +42,51 @@ export async function GET(request: NextRequest) {
       }
 
       case "info": {
+        // Snowtrace uses "tokeninfo" not "getToken"
         const data = await snowtraceGet({
           module: "token",
-          action: "getToken",
+          action: "tokeninfo",
           contractaddress: DOOMHOUND_CONTRACT,
         });
 
-        if (data.status === "1" && data.message === "OK") {
+        if (data.status === "1" && data.message === "OK" && Array.isArray(data.result) && data.result.length > 0) {
+          const token = data.result[0];
           return NextResponse.json({
-            name: data.result?.tokenName,
-            symbol: data.result?.symbol,
-            decimals: data.result?.divisor,
-            supply: data.result?.totalSupply,
-            holderCount: data.result?.holderCount,
+            name: token.tokenName,
+            symbol: token.symbol,
+            decimals: token.divisor,
+            supply: token.totalSupply,
+            // holderCount not provided by tokeninfo, get from holders list count
           });
         }
 
         return NextResponse.json({ error: "Token not found" }, { status: 404 });
+      }
+
+      // Get total holder count (from tokenholderlist with large offset)
+      case "holdercount": {
+        const data = await snowtraceGet({
+          module: "token",
+          action: "tokenholderlist",
+          contractaddress: DOOMHOUND_CONTRACT,
+          page: "1",
+          offset: "1", // minimal data, we just want the count
+        });
+
+        // Snowtrace doesn't return total count directly, so we fetch a larger set
+        const fullData = await snowtraceGet({
+          module: "token",
+          action: "tokenholderlist",
+          contractaddress: DOOMHOUND_CONTRACT,
+          page: "1",
+          offset: "100",
+        });
+
+        const holderCount = (fullData.status === "1" && Array.isArray(fullData.result))
+          ? fullData.result.length
+          : (data.status === "1" && Array.isArray(data.result) ? data.result.length : 0);
+
+        return NextResponse.json({ holderCount });
       }
 
       case "transfers": {
@@ -88,7 +116,7 @@ export async function GET(request: NextRequest) {
 
       default:
         return NextResponse.json(
-          { error: "Unknown action", availableActions: ["holders", "info", "transfers"] },
+          { error: "Unknown action", availableActions: ["holders", "info", "holdercount", "transfers"] },
           { status: 400 }
         );
     }

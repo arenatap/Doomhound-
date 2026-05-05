@@ -137,13 +137,12 @@ function getBalanceTier(balance: number) {
 }
 function canCheckIn(lastCheckIn: string | null): boolean {
   if (!lastCheckIn) return true;
-  const last = new Date(lastCheckIn);
-  const now = new Date();
-  return (
-    last.getFullYear() !== now.getFullYear() ||
-    last.getMonth() !== now.getMonth() ||
-    last.getDate() !== now.getDate()
-  );
+  // Use timezone-aware date comparison matching server logic (Europe/Rome)
+  const getUserDate = (d: Date) =>
+    d.toLocaleDateString("en-CA", { timeZone: "Europe/Rome" }); // YYYY-MM-DD
+  const lastStr = getUserDate(new Date(lastCheckIn));
+  const todayStr = getUserDate(new Date());
+  return lastStr !== todayStr;
 }
 function canVerify(lastVerifiedAt: string | null): boolean {
   if (!lastVerifiedAt) return true;
@@ -256,10 +255,15 @@ export function ArenaGameSection() {
         body: JSON.stringify({ action: "checkin", handle: member.handle, timezone }),
       });
       const data = await res.json();
-      if (data.member) { setMember(data.member); loadLeaderboard(); }
-      else if (data.error) setError(data.error);
+      if (data.member) {
+        setMember(data.member);
+        loadLeaderboard();
+      }
+      if (data.error) {
+        setError(data.error);
+      }
     } catch { setError("Check-in failed"); }
-  }, [member, loadLeaderboard]);
+  }, [member, loadLeaderboard, loadProfile]);
 
   // ===== VERIFY ARENA ACTIVITY (THE KEY ACTION!) =====
   const verifyArena = useCallback(async () => {

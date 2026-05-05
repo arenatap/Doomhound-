@@ -31,13 +31,6 @@ interface ArenaStats {
   sellVolume: string;
 }
 
-interface ArenaHolder {
-  handle: string;
-  userName: string;
-  profilePicture: string;
-  shareCount: number;
-}
-
 interface ArenaOwner {
   handle: string;
   userName: string;
@@ -73,7 +66,7 @@ function timeAgo(timestamp: string): string {
   const diff = now - then;
   if (diff < 60) return `${diff}s ago`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 86400) return `${Math.floor(diff / 86400)}d ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
@@ -102,19 +95,42 @@ function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
+function formatTokenAmount(raw: string): string {
+  const val = BigInt(raw);
+  const divisor = BigInt(10) ** BigInt(18);
+  const whole = Number(val / divisor);
+  if (whole >= 1_000_000_000) return `${(whole / 1_000_000_000).toFixed(2)}B`;
+  if (whole >= 1_000_000) return `${(whole / 1_000_000).toFixed(2)}M`;
+  if (whole >= 1_000) return `${(whole / 1_000).toFixed(1)}K`;
+  return whole.toLocaleString();
+}
+
+function holderPercentage(balance: string, totalSupply: string): string {
+  try {
+    const b = BigInt(balance);
+    const s = BigInt(totalSupply);
+    if (s === BigInt(0)) return "0%";
+    // Calculate percentage with 2 decimal places
+    const pct = (Number(b * BigInt(10000) / s) / 100).toFixed(2);
+    return `${pct}%`;
+  } catch {
+    return "";
+  }
+}
+
 // ===== COMPONENT =====
 export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
   // Arena live data
   const [arenaConnected, setArenaConnected] = useState(false);
   const [community, setCommunity] = useState<ArenaCommunity | null>(null);
   const [arenaStats, setArenaStats] = useState<ArenaStats | null>(null);
-  const [arenaHolders, setArenaHolders] = useState<ArenaHolder[]>([]);
   const [ownerProfile, setOwnerProfile] = useState<ArenaOwner | null>(null);
 
-  // Snowtrace on-chain data (always available)
+  // Snowtrace on-chain data (always available — THIS IS THE TOKEN HOLDERS DATA)
   const [onChainHolders, setOnChainHolders] = useState<SnowtraceHolder[]>([]);
   const [transfers, setTransfers] = useState<TransferData[]>([]);
   const [holdersCount, setHoldersCount] = useState(0);
+  const [totalSupply, setTotalSupply] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const prevCountRef = useRef(0);
 
@@ -127,7 +143,6 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
         setArenaConnected(true);
         if (data.community) setCommunity(data.community);
         if (data.stats) setArenaStats(data.stats);
-        if (data.topHolders) setArenaHolders(data.topHolders);
         if (data.ownerProfile) setOwnerProfile(data.ownerProfile);
       } else {
         setArenaConnected(false);
@@ -178,11 +193,23 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
     try {
       const res = await fetch("/api/snowtrace?action=info");
       const data = await res.json();
-      if (data.holderCount) {
-        setHoldersCount(parseInt(data.holderCount));
+      if (data.supply) {
+        setTotalSupply(data.supply);
       }
     } catch (err) {
       console.error("Failed to fetch token info:", err);
+    }
+  }, []);
+
+  const fetchHolderCount = useCallback(async () => {
+    try {
+      const res = await fetch("/api/snowtrace?action=holdercount");
+      const data = await res.json();
+      if (data.holderCount && data.holderCount > 0) {
+        setHoldersCount(data.holderCount);
+      }
+    } catch (err) {
+      console.error("Failed to fetch holder count:", err);
     }
   }, []);
 
@@ -195,11 +222,12 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
         fetchOnChainHolders(),
         fetchTransfers(),
         fetchTokenInfo(),
+        fetchHolderCount(),
       ]);
       setLoading(false);
     };
     init();
-  }, [fetchArenaLive, fetchOnChainHolders, fetchTransfers, fetchTokenInfo]);
+  }, [fetchArenaLive, fetchOnChainHolders, fetchTransfers, fetchTokenInfo, fetchHolderCount]);
 
   // ===== AUTO-REFRESH =====
   useEffect(() => {
@@ -212,14 +240,16 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
   }, [fetchArenaLive, fetchOnChainHolders, fetchTransfers]);
 
   useEffect(() => {
-    const interval = setInterval(fetchTokenInfo, 120000);
+    const interval = setInterval(() => {
+      fetchTokenInfo();
+      fetchHolderCount();
+    }, 120000);
     return () => clearInterval(interval);
-  }, [fetchTokenInfo]);
+  }, [fetchTokenInfo, fetchHolderCount]);
 
-  // Determine which holders to show
-  const displayHolders = arenaHolders.length > 0 ? arenaHolders : [];
-  const onChainDisplayHolders = onChainHolders.slice(0, 8);
-  const totalHolders = arenaStats ? (arenaStats.buys + arenaStats.sells > 0 ? arenaHolders.length : holdersCount) : holdersCount || onChainHolders.length;
+  // Token holders display (from Snowtrace on-chain data)
+  const displayHolders = onChainHolders.slice(0, 10);
+  const displayHoldersCount = holdersCount || onChainHolders.length;
 
   return (
     <section
@@ -236,7 +266,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
             </h2>
             <p className="text-gray-500 mt-3 text-sm sm:text-base">
               {arenaConnected
-                ? `$DOOMHOUND is LIVE on The Arena — Real-time data from Arena Community API + On-chain`
+                ? `$DOOMHOUND is LIVE on The Arena — Real-time data from Arena + On-chain`
                 : "$DOOMHOUND is LIVE on Avalanche — On-chain data auto-refreshes every 20s"}
             </p>
           </div>
@@ -331,21 +361,19 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                       </span>
                     </div>
                   )}
+                  {/* Token Holders — from Snowtrace on-chain data */}
+                  <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-red-900/30">
+                    <span className="text-gray-400 text-sm">Token Holders</span>
+                    <span className="text-red-400 text-lg sm:text-xl font-bold font-mono">
+                      {displayHoldersCount}
+                    </span>
+                  </div>
                   {/* Community Followers */}
                   {arenaConnected && community && (
                     <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
-                      <span className="text-gray-400 text-sm">Followers</span>
+                      <span className="text-gray-400 text-sm">Arena Followers</span>
                       <span className="text-white text-sm font-bold font-mono">
                         {formatNumber(community.followerCount || 0)}
-                      </span>
-                    </div>
-                  )}
-                  {/* Owner Key Holders */}
-                  {arenaConnected && arenaHolders.length > 0 && (
-                    <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
-                      <span className="text-gray-400 text-sm">Key Holders</span>
-                      <span className="text-red-400 text-lg sm:text-xl font-bold font-mono">
-                        {arenaHolders.length}
                       </span>
                     </div>
                   )}
@@ -378,68 +406,54 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
               </div>
             </ScrollReveal>
 
-            {/* Arena Key Holders (if connected) or On-Chain Top Holders */}
-            {(displayHolders.length > 0 || onChainDisplayHolders.length > 0) && (
+            {/* Top $DOOMHOUND Token Holders (from Snowtrace on-chain) */}
+            {displayHolders.length > 0 && (
               <ScrollReveal delay={0.2}>
                 <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
-                  <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-3 sm:mb-4">
-                    {arenaConnected && displayHolders.length > 0
-                      ? "Top Key Holders"
-                      : "Top Holders"}
-                  </h3>
-                  <div className="space-y-2">
-                    {/* Arena key holders */}
-                    {displayHolders.length > 0
-                      ? displayHolders.slice(0, 10).map((holder, i) => (
-                          <div
-                            key={holder.handle}
-                            className="flex items-center gap-2 sm:gap-3 bg-[#0a0a0a] rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border border-[#2a2a2a]"
-                          >
-                            <span className="text-red-500 font-bold text-xs sm:text-sm w-5 text-center">
-                              #{i + 1}
-                            </span>
-                            {holder.profilePicture && (
-                              <img
-                                src={holder.profilePicture}
-                                alt=""
-                                className="w-6 h-6 rounded-full border border-[#2a2a2a]"
-                              />
-                            )}
-                            <a
-                              href={`https://arena.social/${holder.handle}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-gray-300 text-xs sm:text-sm hover:text-red-300 transition-colors"
-                            >
-                              @{holder.handle}
-                            </a>
-                            <span className="text-orange-400 ml-auto text-xs sm:text-sm font-mono whitespace-nowrap">
-                              {holder.shareCount} key{holder.shareCount !== 1 ? "s" : ""}
-                            </span>
-                          </div>
-                        ))
-                      : onChainDisplayHolders.map((holder, i) => (
-                          <div
-                            key={holder.address}
-                            className="flex items-center gap-2 sm:gap-3 bg-[#0a0a0a] rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border border-[#2a2a2a]"
-                          >
-                            <span className="text-red-500 font-bold text-xs sm:text-sm w-5 text-center">
-                              #{i + 1}
-                            </span>
-                            <a
-                              href={`https://snowtrace.io/address/${holder.address}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-gray-300 text-xs sm:text-sm font-mono hover:text-red-300 transition-colors"
-                            >
-                              {shortenAddress(holder.address)}
-                            </a>
-                            <span className="text-red-400 ml-auto text-xs sm:text-sm font-mono whitespace-nowrap">
-                              {formatBalance(holder.balance)} DOOMHOUND
-                            </span>
-                          </div>
-                        ))}
+                  <div className="flex items-center justify-between mb-3 sm:mb-4">
+                    <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500">
+                      Top $DOOMHOUND Holders
+                    </h3>
+                    <span className="text-[10px] sm:text-xs text-green-400 bg-green-900/20 px-2 py-0.5 rounded">
+                      On-Chain
+                    </span>
                   </div>
+                  <div className="space-y-2">
+                    {displayHolders.map((holder, i) => (
+                      <div
+                        key={holder.address}
+                        className="flex items-center gap-2 sm:gap-3 bg-[#0a0a0a] rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border border-[#2a2a2a]"
+                      >
+                        <span className="text-red-500 font-bold text-xs sm:text-sm w-5 text-center">
+                          #{i + 1}
+                        </span>
+                        <a
+                          href={`https://snowtrace.io/address/${holder.address}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-300 text-xs sm:text-sm font-mono hover:text-red-300 transition-colors"
+                        >
+                          {shortenAddress(holder.address)}
+                        </a>
+                        <span className="text-red-400 ml-auto text-xs sm:text-sm font-mono whitespace-nowrap">
+                          {formatTokenAmount(holder.balance)} DOOMHOUND
+                        </span>
+                        {totalSupply && (
+                          <span className="text-gray-600 text-[10px] sm:text-xs font-mono whitespace-nowrap">
+                            {holderPercentage(holder.balance, totalSupply)}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <a
+                    href={`https://snowtrace.io/token/${DOOMHOUND_CONTRACT}#tokenHolders`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full text-center text-red-400 text-xs mt-3 hover:text-red-300 transition-colors"
+                  >
+                    View all holders on Snowtrace →
+                  </a>
                 </div>
               </ScrollReveal>
             )}
@@ -529,7 +543,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                       >
                         The Arena
                       </a>
-                      {" "}&middot; On-chain by{" "}
+                      {" "}&middot; Token holders &amp; transfers by{" "}
                       <a
                         href="https://snowtrace.io"
                         target="_blank"

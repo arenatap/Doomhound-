@@ -404,7 +404,12 @@ export async function POST(request: NextRequest) {
         if (member.lastCheckIn) {
           const lastStr = getUserDate(new Date(member.lastCheckIn));
           if (lastStr === todayStr) {
-            return NextResponse.json({ error: "Already checked in today", member });
+            // Already checked in today — return full member data so client can update
+            const fullMember = await db.packMember.findUnique({
+              where: { handle: cleanHandle },
+              include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
+            });
+            return NextResponse.json({ error: "Already checked in today", member: fullMember });
           }
         }
 

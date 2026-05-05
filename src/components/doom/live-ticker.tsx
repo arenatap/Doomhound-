@@ -51,13 +51,6 @@ interface ArenaStats {
   sellVolume: string;
 }
 
-interface ArenaHolder {
-  handle: string;
-  userName: string;
-  profilePicture: string;
-  shareCount: number;
-}
-
 interface ArenaOwner {
   handle: string;
   userName: string;
@@ -76,13 +69,19 @@ function formatAvax(val: number): string {
   return `${(val / 1000000).toFixed(2)}M`;
 }
 
+function formatNumber(n: number): string {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+  return n.toLocaleString();
+}
+
 export function LiveTicker() {
   const [arenaConnected, setArenaConnected] = useState(false);
   const [community, setCommunity] = useState<ArenaCommunity | null>(null);
   const [stats, setStats] = useState<ArenaStats | null>(null);
-  const [holders, setHolders] = useState<ArenaHolder[]>([]);
   const [ownerProfile, setOwnerProfile] = useState<ArenaOwner | null>(null);
   const [prevStats, setPrevStats] = useState<ArenaStats | null>(null);
+  const [holderCount, setHolderCount] = useState(0);
 
   // Fetch Arena live data periodically
   const fetchArenaData = useCallback(async () => {
@@ -102,7 +101,6 @@ export function LiveTicker() {
         setPrevStats(stats); // save previous for comparison
         setStats(data.stats);
       }
-      if (data.topHolders) setHolders(data.topHolders);
       if (data.ownerProfile) setOwnerProfile(data.ownerProfile);
     } catch (err) {
       console.error("Ticker: Arena fetch failed:", err);
@@ -110,11 +108,29 @@ export function LiveTicker() {
     }
   }, [stats]);
 
+  // Fetch token holder count from Snowtrace
+  const fetchHolderCount = useCallback(async () => {
+    try {
+      const res = await fetch("/api/snowtrace?action=holdercount");
+      const data = await res.json();
+      if (data.holderCount && data.holderCount > 0) {
+        setHolderCount(data.holderCount);
+      }
+    } catch (err) {
+      console.error("Ticker: Holder count fetch failed:", err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchArenaData(); // Initial fetch
+    fetchHolderCount();
     const interval = setInterval(fetchArenaData, 20000); // Every 20s
-    return () => clearInterval(interval);
-  }, [fetchArenaData]);
+    const holderInterval = setInterval(fetchHolderCount, 120000); // Every 2 min
+    return () => {
+      clearInterval(interval);
+      clearInterval(holderInterval);
+    };
+  }, [fetchArenaData, fetchHolderCount]);
 
   // Build messages: mix live Arena data with hype messages
   const messages = useMemo(() => {
@@ -122,8 +138,8 @@ export function LiveTicker() {
 
     const liveMsgs: string[] = [];
 
-    // Price
-    liveMsgs.push(`📈 $DOOMHOUND Key Price: ${formatAvax(stats.price)} AVAX`);
+    // Token Price
+    liveMsgs.push(`📈 $DOOMHOUND Price: ${formatAvax(stats.price)} AVAX`);
 
     // Market cap
     liveMsgs.push(`💰 Market Cap: ${formatAvax(stats.marketCap)} AVAX`);
@@ -146,10 +162,9 @@ export function LiveTicker() {
       liveMsgs.push(`${direction} Price ${change}% — ${formatAvax(stats.price)} AVAX`);
     }
 
-    // Top holder
-    if (holders.length > 0) {
-      const top = holders[0];
-      liveMsgs.push(`🐋 @${top.handle} holds ${top.shareCount} key${top.shareCount > 1 ? "s" : ""}`);
+    // Token Holders count
+    if (holderCount > 0) {
+      liveMsgs.push(`🐋 ${formatNumber(holderCount)} $DOOMHOUND token holders and growing!`);
     }
 
     // Community followers
@@ -159,12 +174,12 @@ export function LiveTicker() {
 
     // Owner info
     if (ownerProfile && ownerProfile.followerCount > 0) {
-      liveMsgs.push(`👑 @${ownerProfile.handle} — ${ownerProfile.followerCount} followers, ${ownerProfile.keyPrice.toFixed(4)} AVAX/key`);
+      liveMsgs.push(`👑 @${ownerProfile.handle} — ${ownerProfile.followerCount} Arena followers`);
     }
 
     // Mix live data with hype
     return [...liveMsgs, ...LIVE_MESSAGES.slice(0, 4)];
-  }, [arenaConnected, stats, prevStats, holders, community, ownerProfile]);
+  }, [arenaConnected, stats, prevStats, holderCount, community, ownerProfile]);
 
   // Duplicate for seamless loop
   const doubled = useMemo(() => [...messages, ...messages], [messages]);
