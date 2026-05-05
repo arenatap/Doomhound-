@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Copy, Check, ExternalLink, Crosshair } from "lucide-react";
+import { Copy, Check, Crosshair, ExternalLink } from "lucide-react";
 import { ScrollReveal } from "./scroll-reveal";
 
 // ===== RAID TEMPLATES =====
@@ -36,12 +36,12 @@ const RAID_TEMPLATES = [
 
 // ===== RAID TARGETS =====
 const RAID_TARGETS = [
-  { hashtag: "#DOOMHOUND", url: "https://arena.social/search?q=%23DOOMHOUND" },
-  { hashtag: "#TheArena", url: "https://arena.social/search?q=%23TheArena" },
-  { hashtag: "$DOOMHOUND", url: "https://arena.social/search?q=%24DOOMHOUND" },
-  { hashtag: "#Memecoins", url: "https://arena.social/search?q=%23Memecoins" },
-  { hashtag: "#AVAX", url: "https://arena.social/search?q=%23AVAX" },
-  { hashtag: "#Crypto", url: "https://arena.social/search?q=%23Crypto" },
+  "#DOOMHOUND",
+  "#TheArena",
+  "$DOOMHOUND",
+  "#Memecoins",
+  "#AVAX",
+  "#Crypto",
 ];
 
 // ===== BATTLE CRY GENERATOR =====
@@ -209,19 +209,17 @@ export function WarRoomSection() {
                 </div>
                 <div className="p-3 sm:p-4">
                   <div className="flex flex-wrap gap-2">
-                    {RAID_TARGETS.map((target) => (
-                      <a
-                        key={target.hashtag}
-                        href={target.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 sm:px-4 sm:py-2 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg text-red-400 hover:text-orange-400 hover:border-red-600/40 text-xs sm:text-sm font-bold transition-all hover:shadow-[0_0_10px_rgba(220,38,38,0.2)] flex items-center gap-1.5"
+                    {RAID_TARGETS.map((hashtag) => (
+                      <button
+                        key={hashtag}
+                        onClick={() => navigator.clipboard.writeText(hashtag)}
+                        className="px-3 py-1.5 sm:px-4 sm:py-2 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg text-red-400 hover:text-orange-400 hover:border-red-600/40 text-xs sm:text-sm font-bold transition-all hover:shadow-[0_0_10px_rgba(220,38,38,0.2)] cursor-pointer"
                       >
-                        {target.hashtag}
-                        <ExternalLink className="w-3 h-3 opacity-50" />
-                      </a>
+                        {hashtag}
+                      </button>
                     ))}
                   </div>
+                  <p className="text-gray-600 text-[10px] sm:text-xs mt-3 italic">Click to copy hashtag</p>
                 </div>
               </div>
 
