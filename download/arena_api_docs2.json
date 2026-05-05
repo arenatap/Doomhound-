@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://arena.social/agents",
+    "name": "AI Agents API Documentation - The Arena",
+    "snippet": "... agents/shares/stats Get statistics about a user's shares (keys). Query Parameters: - userId (required): User ID to get share stats for Example: ```bash curl ...",
+    "host_name": "arena.social",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.cosmicjs.com/docs/dashboard/ai/agents",
+    "name": "Agents - Cosmic API Reference",
+    "snippet": "6 days ago — Agents help you automate content management, application development, and browser-based workflows. For recurring or scheduled execution, use ...",
+    "host_name": "www.cosmicjs.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://desk.zoho.com/DeskAPIDocument",
+    "name": "Zoho Desk API Documentation",
+    "snippet": "Introduction. Zoho Desk APIs facilitate integration with other Zoho applications and third-party tools by adhering to RESTful principles.",
+    "host_name": "desk.zoho.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://docs.evaluagent.com",
+    "name": "EvaluAgent API Documentation",
+    "snippet": "You can use the EvaluAgent API to access and update information within your EvaluAgent account. The Evaluagent API is organised around REST.",
+    "host_name": "docs.evaluagent.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://ampcode.com/manual",
+    "name": "Owner's Manual - Amp",
+    "snippet": "Congratulations on installing Amp. This manual helps you get the most out of it. Why Amp?##. Amp is the frontier coding agent for your terminal and editor.",
+    "host_name": "ampcode.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]
