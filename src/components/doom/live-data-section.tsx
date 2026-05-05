@@ -5,7 +5,8 @@ import { ScrollReveal } from "./scroll-reveal";
 
 // ===== CONFIGURATION =====
 // $DOOMHOUND is LIVE on The Arena
-const DOOMHOUND_SUBJECT_ID = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
+// Arena uses its own internal subjectId (UUID), NOT the contract address
+const DOOMHOUND_SUBJECT_ID = "a3647ab9-4366-4cea-b7bb-2f945981045c";
 
 // ===== TYPES =====
 interface HolderData {
