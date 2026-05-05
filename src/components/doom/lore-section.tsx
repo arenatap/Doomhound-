@@ -13,22 +13,22 @@ export function LoreSection() {
   return (
     <section
       id="lore"
-      className="relative py-20 md:py-32 bg-[#0a0a0a] overflow-hidden"
+      className="relative py-16 sm:py-20 md:py-32 bg-[#0a0a0a] overflow-hidden"
     >
       <EmberParticles />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4">
+      <div className="relative z-10 max-w-3xl mx-auto px-6 sm:px-8">
         <ScrollReveal>
-          <h2 className="font-creepster text-5xl md:text-7xl text-red-500 animate-glow-red text-center mb-16">
+          <h2 className="font-creepster text-4xl sm:text-5xl md:text-7xl text-red-500 animate-glow-red text-center mb-10 sm:mb-16">
             THE LORE
           </h2>
         </ScrollReveal>
 
-        <div className="space-y-8">
+        <div className="space-y-6">
           {loreParagraphs.map((text, i) => (
             <ScrollReveal key={i} delay={i * 0.15}>
-              <div className="bg-[#1a1a1a]/80 backdrop-blur border border-red-900/30 rounded-xl p-6 md:p-8 animate-breathing-glow hover:border-red-700/50 transition-all duration-500">
-                <p className="text-base md:text-lg text-gray-300 leading-relaxed">
+              <div className="bg-[#1a1a1a]/80 backdrop-blur border border-red-900/30 rounded-xl p-5 sm:p-6 md:p-8 animate-breathing-glow hover:border-red-700/50 transition-all duration-500">
+                <p className="text-sm sm:text-base md:text-lg text-gray-300 leading-relaxed">
                   {text}
                 </p>
               </div>
