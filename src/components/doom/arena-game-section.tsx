@@ -341,7 +341,7 @@ export function ArenaGameSection() {
   const canDoVerify = member ? canVerify(member.lastVerifiedAt) : false;
   const verifyCooldown = member ? verifyCooldownMins(member.lastVerifiedAt) : 0;
   const balanceTier = member ? getBalanceTier(member.doomhoundBalance) : null;
-  const lastMemeClaim = member?.activities.find(
+  const lastMemeClaim = member?.activities?.find(
     (a) => a.type === "meme_generated" && Date.now() - new Date(a.createdAt).getTime() < 600000
   );
 
@@ -691,11 +691,11 @@ export function ArenaGameSection() {
                     </div>
 
                     {/* Recent Activity */}
-                    {member.activities.length > 0 && (
+                    {(member.activities?.length ?? 0) > 0 && (
                       <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 sm:p-5">
                         <h4 className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mb-3">Recent Activity</h4>
                         <div className="space-y-2 max-h-40 sm:max-h-48 overflow-y-auto no-scrollbar">
-                          {member.activities.slice(0, 10).map((act) => (
+                          {(member.activities || []).slice(0, 10).map((act) => (
                             <div key={act.id}
                               className="flex items-center gap-2 text-xs sm:text-sm bg-[#0a0a0a] rounded-lg px-3 py-2 border border-[#2a2a2a]">
                               <span>{POINTS[act.type]?.icon || "•"}</span>
@@ -711,6 +711,17 @@ export function ArenaGameSection() {
                 ) : (
                   /* ===== LEADERBOARD ===== */
                   <motion.div key="leaderboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                    {/* Rank Tiers Legend */}
+                    <div className="flex items-center justify-center gap-3 sm:gap-4 mb-4 flex-wrap">
+                      {RANK_TIERS.map((tier) => (
+                        <div key={tier.title} className="flex items-center gap-1">
+                          <span className="text-xs sm:text-sm">{tier.emoji}</span>
+                          <span className={`text-[9px] sm:text-[10px] font-bold ${tier.color}`}>{tier.title}</span>
+                          <span className="text-gray-600 text-[8px] sm:text-[9px] font-mono">{tier.minPoints}+</span>
+                        </div>
+                      ))}
+                    </div>
+
                     <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 sm:p-6 md:p-8">
                       {leaderboard.length === 0 ? (
                         <div className="text-center py-8">

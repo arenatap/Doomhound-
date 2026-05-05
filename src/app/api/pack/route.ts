@@ -563,16 +563,19 @@ export async function POST(request: NextRequest) {
 
       // ===== CHECK $DOOMHOUND BALANCE =====
       case "check_balance": {
-        const member = await db.packMember.findUnique({ where: { handle: cleanHandle } });
+        const member = await db.packMember.findUnique({
+          where: { handle: cleanHandle },
+          include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
+        });
         if (!member) {
           return NextResponse.json({ error: "Not registered" }, { status: 404 });
         }
         if (!member.walletAddress) {
-          return NextResponse.json({ error: "No wallet address linked to your Arena profile", member });
+          return NextResponse.json({ error: "No wallet address linked to your Arena profile. Connect a wallet on The Arena first!", member });
         }
         if (!process.env.DOOMHOUND_CONTRACT) {
           return NextResponse.json({
-            error: "Token not launched yet — balance check available after launch!",
+            error: "$DOOMHOUND not launched yet — balance check available after launch!",
             member,
             preLaunch: true,
           });
