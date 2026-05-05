@@ -51,6 +51,13 @@ export default function HomePage() {
     return () => document.removeEventListener("click", handleBtnClick);
   }, [playBite]);
 
+  // Keep-alive: ping the server every 4 min to prevent Render free tier sleep
+  useEffect(() => {
+    const ping = () => fetch("/api").catch(() => {});
+    const interval = setInterval(ping, 240000); // 4 minutes
+    return () => clearInterval(interval);
+  }, []);
+
   const handleNewBuy = useCallback(() => {
     playPing();
   }, [playPing]);
