@@ -19,7 +19,11 @@ services:
         sync: false
       - key: DOOMHOUND_CONTRACT
         value: 0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb
+      - key: DOOMHOUND_COMMUNITY_ID
+        value: 4b326b82-46e7-4ac7-a34b-8e8d00913f0b
+      - key: DOOMHOUND_OWNER_ID
+        value: 50e801a6-0f7d-4ca9-a855-462f834f2900
       - key: DOOMHOUND_SUBJECT_ID
-        value: 0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb
+        value: 50e801a6-0f7d-4ca9-a855-462f834f2900
       - key: AVAX_RPC_URL
         value: https://api.avax.network/ext/bc/C/rpc

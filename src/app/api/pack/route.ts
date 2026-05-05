@@ -77,8 +77,12 @@ async function arenaFetch(endpoint: string) {
       "X-API-Key": ARENA_API_KEY || "",
       "Content-Type": "application/json",
     },
+    next: { revalidate: 30 },
   });
-  if (!res.ok) throw new Error(`Arena API error: ${res.status}`);
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Arena API error: ${res.status} ${res.statusText} ${text}`);
+  }
   return res.json();
 }
 
@@ -389,42 +393,38 @@ export async function POST(request: NextRequest) {
         if (!member) {
           return NextResponse.json({ error: "Not registered" }, { status: 404 });
         }
+
+        // Use Europe/Rome timezone for date comparison (user's timezone)
+        const now = new Date();
+        const userTz = body.timezone || "Europe/Rome";
+        const getUserDate = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: userTz }); // YYYY-MM-DD format
+        
+        const todayStr = getUserDate(now);
+
         if (member.lastCheckIn) {
-          const last = new Date(member.lastCheckIn);
-          const now = new Date();
-          if (
-            last.getFullYear() === now.getFullYear() &&
-            last.getMonth() === now.getMonth() &&
-            last.getDate() === now.getDate()
-          ) {
+          const lastStr = getUserDate(new Date(member.lastCheckIn));
+          if (lastStr === todayStr) {
             return NextResponse.json({ error: "Already checked in today", member });
           }
         }
 
         // Calculate streak
         let newStreakCount = 1;
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
         if (member.lastStreakAt) {
-          const lastStreak = new Date(member.lastStreakAt);
-          // If last streak was yesterday, continue streak
-          if (
-            lastStreak.getFullYear() === yesterday.getFullYear() &&
-            lastStreak.getMonth() === yesterday.getMonth() &&
-            lastStreak.getDate() === yesterday.getDate()
-          ) {
+          const lastStreakStr = getUserDate(new Date(member.lastStreakAt));
+          // Calculate yesterday in user's timezone
+          const yesterday = new Date(now);
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStr = getUserDate(yesterday);
+
+          if (lastStreakStr === yesterdayStr) {
+            // Last streak was yesterday — continue streak
             newStreakCount = member.streakCount + 1;
+          } else if (lastStreakStr === todayStr) {
+            // Already checked in today (shouldn't happen, but keep streak)
+            newStreakCount = member.streakCount;
           }
-          // If last streak was today (shouldn't happen due to check above, but handle)
-          const lastCheckIn = new Date(member.lastCheckIn || member.lastStreakAt);
-          const now = new Date();
-          if (
-            lastCheckIn.getFullYear() === now.getFullYear() &&
-            lastCheckIn.getMonth() === now.getMonth() &&
-            lastCheckIn.getDate() === now.getDate()
-          ) {
-            newStreakCount = member.streakCount; // Keep existing streak
-          }
+          // If last streak was before yesterday, streak resets to 1 (default)
         }
 
         await addActivity(cleanHandle, "daily_checkin", `Daily summon completed (streak: ${newStreakCount})`, POINTS_CONFIG.daily_checkin.value);

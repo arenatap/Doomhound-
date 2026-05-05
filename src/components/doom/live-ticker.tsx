@@ -31,18 +31,58 @@ const MARQUEE_CSS = `
 `;
 
 // ===== TYPES =====
-interface ArenaLiveUpdate {
-  type: "holder" | "price" | "follower" | "hype";
-  message: string;
-  emoji: string;
+interface ArenaCommunity {
+  name: string;
+  ticker: string;
+  tokenName: string;
+  followerCount: number;
+  contractAddress: string;
+  photoURL: string;
+}
+
+interface ArenaStats {
+  price: number;
+  marketCap: number;
+  totalSupply: number;
+  buys: number;
+  sells: number;
+  liquidity: number;
+  buyVolume: string;
+  sellVolume: string;
+}
+
+interface ArenaHolder {
+  handle: string;
+  userName: string;
+  profilePicture: string;
+  shareCount: number;
+}
+
+interface ArenaOwner {
+  handle: string;
+  userName: string;
+  profilePicture: string;
+  followerCount: number;
+  threadCount: number;
+  keyPrice: number;
+}
+
+function formatAvax(val: number): string {
+  if (val <= 0) return "0";
+  if (val < 0.0001) return "<0.0001";
+  if (val < 1) return val.toFixed(4);
+  if (val < 100) return val.toFixed(2);
+  if (val < 1000000) return val.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  return `${(val / 1000000).toFixed(2)}M`;
 }
 
 export function LiveTicker() {
-  const [liveUpdates, setLiveUpdates] = useState<ArenaLiveUpdate[]>([]);
   const [arenaConnected, setArenaConnected] = useState(false);
-  const [lastPrice, setLastPrice] = useState<number | null>(null);
-  const [lastHolders, setLastHolders] = useState<number | null>(null);
-  const [lastFollowers, setLastFollowers] = useState<number | null>(null);
+  const [community, setCommunity] = useState<ArenaCommunity | null>(null);
+  const [stats, setStats] = useState<ArenaStats | null>(null);
+  const [holders, setHolders] = useState<ArenaHolder[]>([]);
+  const [ownerProfile, setOwnerProfile] = useState<ArenaOwner | null>(null);
+  const [prevStats, setPrevStats] = useState<ArenaStats | null>(null);
 
   // Fetch Arena live data periodically
   const fetchArenaData = useCallback(async () => {
@@ -56,87 +96,75 @@ export function LiveTicker() {
       }
 
       setArenaConnected(true);
-      const updates: ArenaLiveUpdate[] = [];
 
-      // Check for price changes
-      if (data.stats?.currentPrice !== undefined) {
-        const newPrice = data.stats.currentPrice;
-        if (lastPrice !== null && newPrice !== lastPrice) {
-          const direction = newPrice > lastPrice ? "📈" : "📉";
-          const change = ((newPrice - lastPrice) / lastPrice * 100).toFixed(1);
-          updates.push({
-            type: "price",
-            message: `$DOOMHOUND Key ${direction} ${change}% — Now ${newPrice.toFixed(4)} AVAX`,
-            emoji: direction,
-          });
-        }
-        setLastPrice(newPrice);
+      if (data.community) setCommunity(data.community);
+      if (data.stats) {
+        setPrevStats(stats); // save previous for comparison
+        setStats(data.stats);
       }
-
-      // Check for new holders
-      if (data.stats?.holderCount !== undefined) {
-        const newHolders = data.stats.holderCount;
-        if (lastHolders !== null && newHolders > lastHolders) {
-          const diff = newHolders - lastHolders;
-          updates.push({
-            type: "holder",
-            message: `🐺 ${diff} new key holder${diff > 1 ? "s" : ""}! Total: ${newHolders} holders`,
-            emoji: "🐺",
-          });
-        }
-        setLastHolders(newHolders);
-      }
-
-      // Check for new followers
-      if (data.profile?.followerCount !== undefined) {
-        const newFollowers = data.profile.followerCount;
-        if (lastFollowers !== null && newFollowers > lastFollowers) {
-          const diff = newFollowers - lastFollowers;
-          updates.push({
-            type: "follower",
-            message: `🔥 ${diff} new follower${diff > 1 ? "s" : ""} on Arena! Total: ${newFollowers}`,
-            emoji: "🔥",
-          });
-        }
-        setLastFollowers(newFollowers);
-      }
-
-      // Add top holder info
-      if (data.topHolders && data.topHolders.length > 0) {
-        const topHolder = data.topHolders[0];
-        if (topHolder.handle) {
-          updates.push({
-            type: "holder",
-            message: `🐋 @${topHolder.handle} holds ${topHolder.shareCount || "?"} $DOOMHOUND keys`,
-            emoji: "🐋",
-          });
-        }
-      }
-
-      if (updates.length > 0) {
-        setLiveUpdates(updates);
-      }
+      if (data.topHolders) setHolders(data.topHolders);
+      if (data.ownerProfile) setOwnerProfile(data.ownerProfile);
     } catch (err) {
       console.error("Ticker: Arena fetch failed:", err);
       setArenaConnected(false);
     }
-  }, [lastPrice, lastHolders, lastFollowers]);
+  }, [stats]);
 
   useEffect(() => {
     fetchArenaData(); // Initial fetch
-    const interval = setInterval(fetchArenaData, 30000); // Every 30s
+    const interval = setInterval(fetchArenaData, 20000); // Every 20s
     return () => clearInterval(interval);
   }, [fetchArenaData]);
 
-  // Build messages: live updates from Arena + fallback hype messages
+  // Build messages: mix live Arena data with hype messages
   const messages = useMemo(() => {
-    if (arenaConnected && liveUpdates.length > 0) {
-      // Mix live Arena updates with some hype messages
-      const liveMsgs = liveUpdates.map((u) => `${u.emoji} ${u.message}`);
-      return [...liveMsgs, ...LIVE_MESSAGES.slice(0, 5)];
+    if (!arenaConnected || !stats) return LIVE_MESSAGES;
+
+    const liveMsgs: string[] = [];
+
+    // Price
+    liveMsgs.push(`📈 $DOOMHOUND Key Price: ${formatAvax(stats.price)} AVAX`);
+
+    // Market cap
+    liveMsgs.push(`💰 Market Cap: ${formatAvax(stats.marketCap)} AVAX`);
+
+    // Buy/Sell activity
+    const totalTx = stats.buys + stats.sells;
+    if (totalTx > 0) {
+      liveMsgs.push(`🔥 ${stats.buys} buys / ${stats.sells} sells — Buy pressure ${stats.buys > stats.sells ? "🔥" : "⚠️"}`);
     }
-    return LIVE_MESSAGES;
-  }, [arenaConnected, liveUpdates]);
+
+    // Liquidity
+    if (stats.liquidity > 0) {
+      liveMsgs.push(`💧 Liquidity: ${formatAvax(stats.liquidity)} AVAX`);
+    }
+
+    // Price change
+    if (prevStats && prevStats.price !== stats.price) {
+      const change = ((stats.price - prevStats.price) / prevStats.price * 100).toFixed(1);
+      const direction = stats.price > prevStats.price ? "📈" : "📉";
+      liveMsgs.push(`${direction} Price ${change}% — ${formatAvax(stats.price)} AVAX`);
+    }
+
+    // Top holder
+    if (holders.length > 0) {
+      const top = holders[0];
+      liveMsgs.push(`🐋 @${top.handle} holds ${top.shareCount} key${top.shareCount > 1 ? "s" : ""}`);
+    }
+
+    // Community followers
+    if (community && community.followerCount > 0) {
+      liveMsgs.push(`🐺 ${community.followerCount} followers on The Arena`);
+    }
+
+    // Owner info
+    if (ownerProfile && ownerProfile.followerCount > 0) {
+      liveMsgs.push(`👑 @${ownerProfile.handle} — ${ownerProfile.followerCount} followers, ${ownerProfile.keyPrice.toFixed(4)} AVAX/key`);
+    }
+
+    // Mix live data with hype
+    return [...liveMsgs, ...LIVE_MESSAGES.slice(0, 4)];
+  }, [arenaConnected, stats, prevStats, holders, community, ownerProfile]);
 
   // Duplicate for seamless loop
   const doubled = useMemo(() => [...messages, ...messages], [messages]);
@@ -168,8 +196,12 @@ export function LiveTicker() {
                   ? "text-red-400"
                   : msg.includes("📈") || msg.includes("📉")
                   ? "text-yellow-400"
+                  : msg.includes("💰") || msg.includes("💧")
+                  ? "text-green-400"
                   : msg.includes("🐺")
                   ? "text-red-300"
+                  : msg.includes("👑")
+                  ? "text-purple-400"
                   : "text-orange-300"
               }`}
             >

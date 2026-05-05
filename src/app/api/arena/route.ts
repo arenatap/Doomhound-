@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// ===== ARENA API — REAL ENDPOINTS =====
-// Docs: https://arena.social/agents
-// Base URL: https://api.starsarena.com
-// All endpoints require X-API-Key header
+// ===== ARENA API — COMMUNITY ENDPOINTS =====
+// DOOMHOUND is a Community on The Arena, NOT a regular user.
+// Community ID: 4b326b82-46e7-4ac7-a34b-8e8d00913f0b
+// Owner (Toff): 50e801a6-0f7d-4ca9-a855-462f834f2900
+// Contract: 0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb
 
 const ARENA_API_BASE = "https://api.starsarena.com";
 const ARENA_API_KEY = process.env.ARENA_API_KEY || "";
 
-// The DOOMHOUND user ID on Arena (set after registration)
-// Can be found via /agents/user/handle?handle=doomhound
-const DOOMHOUND_USER_ID = process.env.DOOMHOUND_SUBJECT_ID || "";
+const DOOMHOUND_COMMUNITY_ID = "4b326b82-46e7-4ac7-a34b-8e8d00913f0b";
+const DOOMHOUND_OWNER_ID = "50e801a6-0f7d-4ca9-a855-462f834f2900";
 
 async function arenaFetch(endpoint: string, options?: RequestInit) {
   const url = `${ARENA_API_BASE}${endpoint}`;
@@ -21,7 +21,7 @@ async function arenaFetch(endpoint: string, options?: RequestInit) {
       "Content-Type": "application/json",
       ...options?.headers,
     },
-    next: { revalidate: 30 }, // Cache for 30s
+    next: { revalidate: 20 }, // Cache for 20s for live feel
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -30,167 +30,177 @@ async function arenaFetch(endpoint: string, options?: RequestInit) {
   return res.json();
 }
 
+// Helper: convert wei-like string to AVAX number
+function weiToAvax(wei: string | number): number {
+  if (!wei) return 0;
+  const val = typeof wei === "string" ? parseFloat(wei) : wei;
+  return val / 1e18;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get("action");
 
   try {
     switch (action) {
-      // ===== SHARES & KEY DATA =====
-
-      // Get $DOOMHOUND share/key stats (price, holders, market cap)
-      case "stats": {
-        const userId = searchParams.get("userId") || DOOMHOUND_USER_ID;
-        if (!userId) {
-          return NextResponse.json(
-            { error: "userId or DOOMHOUND_SUBJECT_ID env required" },
-            { status: 400 }
-          );
+      // ===== LIVE DATA (for ticker + status section) =====
+      case "live": {
+        if (!ARENA_API_KEY) {
+          return NextResponse.json({
+            connected: false,
+            message: "Arena API not configured. Set ARENA_API_KEY env.",
+          });
         }
-        const data = await arenaFetch(`/agents/shares/stats?userId=${userId}`);
-        return NextResponse.json(data);
-      }
 
-      // Get holders of $DOOMHOUND keys/shares
-      case "holders": {
-        const userId = searchParams.get("userId") || DOOMHOUND_USER_ID;
-        const page = searchParams.get("page") || "1";
-        const pageSize = searchParams.get("pageSize") || "25";
-        const endpoint = userId
-          ? `/agents/shares/holders?userId=${userId}&page=${page}&pageSize=${pageSize}`
-          : `/agents/shares/holders?page=${page}&pageSize=${pageSize}`;
-        const data = await arenaFetch(endpoint);
-        return NextResponse.json(data);
-      }
-
-      // Get holder wallet addresses
-      case "holder-addresses": {
-        const userId = searchParams.get("userId") || DOOMHOUND_USER_ID;
-        if (!userId) {
-          return NextResponse.json(
-            { error: "userId required" },
-            { status: 400 }
-          );
-        }
-        const page = searchParams.get("page") || "1";
-        const pageSize = searchParams.get("pageSize") || "25";
-        const data = await arenaFetch(
-          `/agents/shares/holder-addresses?userId=${userId}&page=${page}&pageSize=${pageSize}`
-        );
-        return NextResponse.json(data);
-      }
-
-      // Get the agent's holdings (shares of other users)
-      case "holdings": {
-        const page = searchParams.get("page") || "1";
-        const pageSize = searchParams.get("pageSize") || "25";
-        const data = await arenaFetch(
-          `/agents/shares/holdings?page=${page}&pageSize=${pageSize}`
-        );
-        return NextResponse.json(data);
-      }
-
-      // Get earnings breakdown
-      case "earnings": {
-        const userId = searchParams.get("userId") || DOOMHOUND_USER_ID;
-        if (!userId) {
-          return NextResponse.json(
-            { error: "userId required" },
-            { status: 400 }
-          );
-        }
-        const data = await arenaFetch(
-          `/agents/shares/earnings-breakdown?userId=${userId}`
-        );
-        return NextResponse.json(data);
-      }
-
-      // ===== USER DATA =====
-
-      // Get user profile by handle
-      case "profile": {
-        const handle = searchParams.get("handle");
-        if (!handle) {
-          return NextResponse.json(
-            { error: "handle is required" },
-            { status: 400 }
-          );
-        }
-        const data = await arenaFetch(
-          `/agents/user/handle?handle=${encodeURIComponent(handle)}`
-        );
-        return NextResponse.json(data);
-      }
-
-      // Get user by ID
-      case "user": {
-        const userId = searchParams.get("userId");
-        if (!userId) {
-          return NextResponse.json(
-            { error: "userId is required" },
-            { status: 400 }
-          );
-        }
-        const data = await arenaFetch(
-          `/agents/user/id?userId=${userId}`
-        );
-        return NextResponse.json(data);
-      }
-
-      // Get the DOOMHOUND profile (combined profile + stats)
-      case "doomhound": {
-        const userId = DOOMHOUND_USER_ID;
-        if (!userId) {
-          return NextResponse.json(
-            { error: "DOOMHOUND_SUBJECT_ID env not set" },
-            { status: 400 }
-          );
-        }
-        // Fetch profile + share stats in parallel
-        const [profileData, statsData, holdersData] = await Promise.allSettled([
-          arenaFetch(`/agents/user/id?userId=${userId}`),
-          arenaFetch(`/agents/shares/stats?userId=${userId}`),
-          arenaFetch(`/agents/shares/holders?userId=${userId}&page=1&pageSize=10`),
+        // Fetch community data (includes stats) + owner profile + owner holders
+        const [communityResult, ownerResult, holdersResult] = await Promise.allSettled([
+          arenaFetch(`/agents/communities/search?searchString=doomhound&page=1&pageSize=10`),
+          arenaFetch(`/agents/user/id?userId=${DOOMHOUND_OWNER_ID}`),
+          arenaFetch(`/agents/shares/holders?userId=${DOOMHOUND_OWNER_ID}&page=1&pageSize=10`),
         ]);
 
+        // Extract community data
+        let community: any = null;
+        if (communityResult.status === "fulfilled") {
+          const communities = communityResult.value?.communities || [];
+          community = communities.find(
+            (c: any) => c.contractAddress?.toLowerCase() === "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb".toLowerCase()
+          ) || communities[0] || null;
+        }
+
+        // Extract owner profile
+        let ownerProfile: any = null;
+        if (ownerResult.status === "fulfilled") {
+          ownerProfile = ownerResult.value?.user || null;
+        }
+
+        // Extract holders
+        let topHolders: any[] = [];
+        if (holdersResult.status === "fulfilled") {
+          const raw = holdersResult.value?.holders || [];
+          topHolders = raw.slice(0, 10).map((h: any) => ({
+            handle: h.traderUser?.handle || "unknown",
+            userName: h.traderUser?.userName || "",
+            profilePicture: h.traderUser?.profilePicture || h.traderUser?.twitterPicture || "",
+            shareCount: h.amount || 0,
+          }));
+        }
+
+        // Build stats from community data
+        const stats = community?.stats || null;
+        const formattedStats = stats
+          ? {
+              price: weiToAvax(stats.price),
+              marketCap: weiToAvax(stats.marketCap),
+              totalSupply: weiToAvax(stats.totalSupply),
+              buys: stats.buys || 0,
+              sells: stats.sells || 0,
+              buyVolume: stats.buyVolume || "0",
+              sellVolume: stats.sellVolume || "0",
+              liquidity: weiToAvax(stats.liquidity),
+            }
+          : null;
+
         return NextResponse.json({
-          profile: profileData.status === "fulfilled" ? profileData.value : null,
-          stats: statsData.status === "fulfilled" ? statsData.value : null,
-          holders: holdersData.status === "fulfilled" ? holdersData.value : null,
+          connected: true,
+          community: community
+            ? {
+                id: community.id,
+                name: community.name,
+                ticker: community.ticker,
+                tokenName: community.tokenName,
+                description: community.description,
+                photoURL: community.photoURL,
+                contractAddress: community.contractAddress,
+                followerCount: community.followerCount || 0,
+                tokenPhase: community.tokenPhase,
+                createdOn: community.createdOn,
+                paymentToken: community.paymentToken,
+              }
+            : null,
+          stats: formattedStats,
+          topHolders,
+          ownerProfile: ownerProfile
+            ? {
+                handle: ownerProfile.handle,
+                userName: ownerProfile.userName,
+                profilePicture: ownerProfile.profilePicture,
+                followerCount: ownerProfile.followerCount || 0,
+                threadCount: ownerProfile.threadCount || 0,
+                keyPrice: weiToAvax(ownerProfile.keyPrice || ownerProfile.lastKeyPrice || "0"),
+              }
+            : null,
+          fetchedAt: new Date().toISOString(),
         });
       }
 
-      // Get top users on Arena
-      case "top": {
-        const page = searchParams.get("page") || "1";
-        const pageSize = searchParams.get("pageSize") || "20";
+      // ===== COMMUNITY DETAILS =====
+      case "community": {
+        if (!ARENA_API_KEY) {
+          return NextResponse.json({ error: "Arena API not configured" }, { status: 400 });
+        }
         const data = await arenaFetch(
-          `/agents/user/top?page=${page}&pageSize=${pageSize}`
+          `/agents/communities/search?searchString=doomhound&page=1&pageSize=10`
+        );
+        const community = (data.communities || []).find(
+          (c: any) => c.contractAddress?.toLowerCase() === "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb".toLowerCase()
+        ) || data.communities?.[0] || null;
+        return NextResponse.json({ community });
+      }
+
+      // ===== OWNER (TOFF) SHARES =====
+      case "stats": {
+        if (!ARENA_API_KEY) {
+          return NextResponse.json({ error: "Arena API not configured" }, { status: 400 });
+        }
+        const data = await arenaFetch(
+          `/agents/shares/stats?userId=${DOOMHOUND_OWNER_ID}`
         );
         return NextResponse.json(data);
       }
 
-      // Search users
-      case "search": {
-        const q = searchParams.get("q");
-        if (!q) {
-          return NextResponse.json(
-            { error: "q parameter is required" },
-            { status: 400 }
-          );
+      // ===== OWNER KEY HOLDERS =====
+      case "holders": {
+        if (!ARENA_API_KEY) {
+          return NextResponse.json({ error: "Arena API not configured" }, { status: 400 });
         }
         const page = searchParams.get("page") || "1";
-        const pageSize = searchParams.get("pageSize") || "20";
+        const pageSize = searchParams.get("pageSize") || "25";
         const data = await arenaFetch(
-          `/agents/user/search?searchString=${encodeURIComponent(q)}&page=${page}&pageSize=${pageSize}`
+          `/agents/shares/holders?userId=${DOOMHOUND_OWNER_ID}&page=${page}&pageSize=${pageSize}`
         );
         return NextResponse.json(data);
       }
 
-      // ===== THREADS & POSTS =====
+      // ===== OWNER PROFILE =====
+      case "profile": {
+        if (!ARENA_API_KEY) {
+          return NextResponse.json({ error: "Arena API not configured" }, { status: 400 });
+        }
+        const data = await arenaFetch(
+          `/agents/user/id?userId=${DOOMHOUND_OWNER_ID}`
+        );
+        return NextResponse.json(data);
+      }
 
-      // Get trending posts
+      // ===== OWNER THREADS =====
+      case "threads": {
+        if (!ARENA_API_KEY) {
+          return NextResponse.json({ error: "Arena API not configured" }, { status: 400 });
+        }
+        const page = searchParams.get("page") || "1";
+        const pageSize = searchParams.get("pageSize") || "10";
+        const data = await arenaFetch(
+          `/agents/threads/feed/user?userId=${DOOMHOUND_OWNER_ID}&page=${page}&pageSize=${pageSize}`
+        );
+        return NextResponse.json(data);
+      }
+
+      // ===== TRENDING POSTS =====
       case "trending": {
+        if (!ARENA_API_KEY) {
+          return NextResponse.json({ error: "Arena API not configured" }, { status: 400 });
+        }
         const page = searchParams.get("page") || "1";
         const pageSize = searchParams.get("pageSize") || "10";
         const data = await arenaFetch(
@@ -199,87 +209,58 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(data);
       }
 
-      // Get user's threads/posts
-      case "threads": {
-        const userId = searchParams.get("userId") || DOOMHOUND_USER_ID;
-        if (!userId) {
-          return NextResponse.json(
-            { error: "userId required" },
-            { status: 400 }
-          );
+      // ===== USER LOOKUP (for pack registration) =====
+      case "user": {
+        if (!ARENA_API_KEY) {
+          return NextResponse.json({ error: "Arena API not configured" }, { status: 400 });
         }
-        const page = searchParams.get("page") || "1";
-        const pageSize = searchParams.get("pageSize") || "10";
+        const handle = searchParams.get("handle");
+        if (!handle) {
+          return NextResponse.json({ error: "handle is required" }, { status: 400 });
+        }
         const data = await arenaFetch(
-          `/agents/threads/feed/user?userId=${userId}&page=${page}&pageSize=${pageSize}`
+          `/agents/user/handle?handle=${encodeURIComponent(handle)}`
         );
         return NextResponse.json(data);
       }
 
-      // ===== FOLLOW DATA =====
+      // ===== USER SEARCH =====
+      case "search": {
+        if (!ARENA_API_KEY) {
+          return NextResponse.json({ error: "Arena API not configured" }, { status: 400 });
+        }
+        const q = searchParams.get("q");
+        if (!q) {
+          return NextResponse.json({ error: "q parameter is required" }, { status: 400 });
+        }
+        const data = await arenaFetch(
+          `/agents/user/search?searchString=${encodeURIComponent(q)}&page=1&pageSize=20`
+        );
+        return NextResponse.json(data);
+      }
 
-      // Get followers
+      // ===== FOLLOWERS OF OWNER =====
       case "followers": {
-        const userId = searchParams.get("userId") || DOOMHOUND_USER_ID;
-        if (!userId) {
-          return NextResponse.json(
-            { error: "userId required" },
-            { status: 400 }
-          );
+        if (!ARENA_API_KEY) {
+          return NextResponse.json({ error: "Arena API not configured" }, { status: 400 });
         }
         const page = searchParams.get("page") || "1";
         const pageSize = searchParams.get("pageSize") || "20";
         const data = await arenaFetch(
-          `/agents/follow/followers/list?followersOfUserId=${userId}&pageNumber=${page}&pageSize=${pageSize}`
+          `/agents/follow/followers/list?followersOfUserId=${DOOMHOUND_OWNER_ID}&pageNumber=${page}&pageSize=${pageSize}`
         );
         return NextResponse.json(data);
       }
 
-      // Get following
-      case "following": {
-        const userId = searchParams.get("userId") || DOOMHOUND_USER_ID;
-        if (!userId) {
-          return NextResponse.json(
-            { error: "userId required" },
-            { status: 400 }
-          );
+      // ===== EARNINGS BREAKDOWN =====
+      case "earnings": {
+        if (!ARENA_API_KEY) {
+          return NextResponse.json({ error: "Arena API not configured" }, { status: 400 });
         }
-        const page = searchParams.get("page") || "1";
-        const pageSize = searchParams.get("pageSize") || "20";
         const data = await arenaFetch(
-          `/agents/follow/following/list?followingUserId=${userId}&pageNumber=${page}&pageSize=${pageSize}`
+          `/agents/shares/earnings-breakdown?userId=${DOOMHOUND_OWNER_ID}`
         );
         return NextResponse.json(data);
-      }
-
-      // ===== COMBINED LIVE DATA FOR TICKER =====
-
-      // Get combined live data for the ticker + status section
-      case "live": {
-        const userId = DOOMHOUND_USER_ID;
-        if (!userId) {
-          // No Arena API key configured — return fallback
-          return NextResponse.json({
-            connected: false,
-            message: "Arena API not configured. Set ARENA_API_KEY and DOOMHOUND_SUBJECT_ID.",
-          });
-        }
-
-        const [statsResult, holdersResult, profileResult] = await Promise.allSettled([
-          arenaFetch(`/agents/shares/stats?userId=${userId}`),
-          arenaFetch(`/agents/shares/holders?userId=${userId}&page=1&pageSize=5`),
-          arenaFetch(`/agents/user/id?userId=${userId}`),
-        ]);
-
-        return NextResponse.json({
-          connected: true,
-          stats: statsResult.status === "fulfilled" ? statsResult.value?.stats : null,
-          topHolders: holdersResult.status === "fulfilled"
-            ? (holdersResult.value?.holders || []).slice(0, 5)
-            : [],
-          profile: profileResult.status === "fulfilled" ? profileResult.value?.user : null,
-          fetchedAt: new Date().toISOString(),
-        });
       }
 
       default:
@@ -287,9 +268,8 @@ export async function GET(request: NextRequest) {
           {
             error: "Unknown action",
             availableActions: [
-              "stats", "holders", "holder-addresses", "holdings", "earnings",
-              "profile", "user", "doomhound", "top", "search",
-              "trending", "threads", "followers", "following", "live",
+              "live", "community", "stats", "holders", "profile",
+              "threads", "trending", "user", "search", "followers", "earnings",
             ],
           },
           { status: 400 }

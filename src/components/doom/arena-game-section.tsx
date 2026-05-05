@@ -250,9 +250,10 @@ export function ArenaGameSection() {
   const doCheckIn = useCallback(async () => {
     if (!member) return;
     try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Rome";
       const res = await fetch("/api/pack", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "checkin", handle: member.handle }),
+        body: JSON.stringify({ action: "checkin", handle: member.handle, timezone }),
       });
       const data = await res.json();
       if (data.member) { setMember(data.member); loadLeaderboard(); }

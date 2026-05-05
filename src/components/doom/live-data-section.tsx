@@ -8,31 +8,43 @@ const DOOMHOUND_CONTRACT = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
 const ARENA_COMMUNITY_URL = `https://arena.social/community/${DOOMHOUND_CONTRACT}`;
 
 // ===== TYPES =====
-interface ArenaShareStats {
-  totalSupply: number;
-  holderCount: number;
-  currentPrice: number;
+interface ArenaCommunity {
+  name: string;
+  ticker: string;
+  tokenName: string;
+  followerCount: number;
+  contractAddress: string;
+  photoURL: string;
+  description: string;
+  createdOn: string;
+  paymentToken: string;
+}
+
+interface ArenaStats {
+  price: number;
   marketCap: number;
+  totalSupply: number;
+  buys: number;
+  sells: number;
+  liquidity: number;
+  buyVolume: string;
+  sellVolume: string;
 }
 
 interface ArenaHolder {
-  id: string;
   handle: string;
   userName: string;
   profilePicture: string;
   shareCount: number;
-  totalValue: number;
 }
 
-interface ArenaProfile {
-  id: string;
+interface ArenaOwner {
   handle: string;
   userName: string;
   profilePicture: string;
   followerCount: number;
-  postCount: number;
-  sharePrice: number;
-  shareHolders: number;
+  threadCount: number;
+  keyPrice: number;
 }
 
 interface SnowtraceHolder {
@@ -77,6 +89,7 @@ function formatBalance(raw: string, decimals: string = "18"): string {
 }
 
 function formatAvax(val: number): string {
+  if (val <= 0) return "0";
   if (val < 0.0001) return "<0.0001";
   if (val < 1) return val.toFixed(4);
   if (val < 100) return val.toFixed(2);
@@ -93,9 +106,10 @@ function formatNumber(n: number): string {
 export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
   // Arena live data
   const [arenaConnected, setArenaConnected] = useState(false);
-  const [arenaStats, setArenaStats] = useState<ArenaShareStats | null>(null);
+  const [community, setCommunity] = useState<ArenaCommunity | null>(null);
+  const [arenaStats, setArenaStats] = useState<ArenaStats | null>(null);
   const [arenaHolders, setArenaHolders] = useState<ArenaHolder[]>([]);
-  const [arenaProfile, setArenaProfile] = useState<ArenaProfile | null>(null);
+  const [ownerProfile, setOwnerProfile] = useState<ArenaOwner | null>(null);
 
   // Snowtrace on-chain data (always available)
   const [onChainHolders, setOnChainHolders] = useState<SnowtraceHolder[]>([]);
@@ -111,9 +125,10 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
       const data = await res.json();
       if (data.connected) {
         setArenaConnected(true);
+        if (data.community) setCommunity(data.community);
         if (data.stats) setArenaStats(data.stats);
         if (data.topHolders) setArenaHolders(data.topHolders);
-        if (data.profile) setArenaProfile(data.profile);
+        if (data.ownerProfile) setOwnerProfile(data.ownerProfile);
       } else {
         setArenaConnected(false);
       }
@@ -192,7 +207,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
       fetchArenaLive();
       fetchOnChainHolders();
       fetchTransfers();
-    }, 30000);
+    }, 20000); // 20s for more live feel
     return () => clearInterval(interval);
   }, [fetchArenaLive, fetchOnChainHolders, fetchTransfers]);
 
@@ -201,10 +216,10 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
     return () => clearInterval(interval);
   }, [fetchTokenInfo]);
 
-  // Determine which holders to show (Arena > Snowtrace)
+  // Determine which holders to show
   const displayHolders = arenaHolders.length > 0 ? arenaHolders : [];
   const onChainDisplayHolders = onChainHolders.slice(0, 8);
-  const totalHolders = arenaStats?.holderCount || holdersCount || onChainHolders.length;
+  const totalHolders = arenaStats ? (arenaStats.buys + arenaStats.sells > 0 ? arenaHolders.length : holdersCount) : holdersCount || onChainHolders.length;
 
   return (
     <section
@@ -221,8 +236,8 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
             </h2>
             <p className="text-gray-500 mt-3 text-sm sm:text-base">
               {arenaConnected
-                ? "$DOOMHOUND is LIVE on The Arena — Real-time data from Arena API + On-chain"
-                : "$DOOMHOUND is LIVE on Avalanche — On-chain data auto-refreshes every 30s"}
+                ? `$DOOMHOUND is LIVE on The Arena — Real-time data from Arena Community API + On-chain`
+                : "$DOOMHOUND is LIVE on Avalanche — On-chain data auto-refreshes every 20s"}
             </p>
           </div>
         </ScrollReveal>
@@ -257,24 +272,24 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
               </div>
             </ScrollReveal>
 
-            {/* Arena Key/Share Stats (LIVE from Arena API) */}
+            {/* Arena Community Stats (LIVE from Arena API) */}
             <ScrollReveal delay={0.1}>
               <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 md:p-8">
                 <div className="flex justify-between items-center mb-4 sm:mb-5">
                   <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500">
-                    {arenaConnected ? "Arena Key Stats" : "On-Chain Stats"}
+                    {arenaConnected ? "Arena Community Stats" : "On-Chain Stats"}
                   </h3>
                   <span className="text-[10px] sm:text-xs uppercase text-green-400 bg-green-900/20 px-2 py-0.5 rounded animate-pulse">
                     ● LIVE
                   </span>
                 </div>
                 <div className="space-y-3">
-                  {/* Arena Key Price (if connected) */}
+                  {/* Token Price */}
                   {arenaConnected && arenaStats && (
                     <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-red-900/30">
-                      <span className="text-gray-400 text-sm">Key Price</span>
+                      <span className="text-gray-400 text-sm">Token Price</span>
                       <span className="text-orange-400 text-lg sm:text-xl font-bold font-mono">
-                        {formatAvax(arenaStats.currentPrice)} AVAX
+                        {formatAvax(arenaStats.price)} AVAX
                       </span>
                     </div>
                   )}
@@ -287,21 +302,50 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                       </span>
                     </div>
                   )}
-                  {/* Holders */}
-                  <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
-                    <span className="text-gray-400 text-sm">
-                      {arenaConnected ? "Key Holders" : "Holders"}
-                    </span>
-                    <span className="text-red-400 text-lg sm:text-xl font-bold font-mono">
-                      {loading ? "..." : totalHolders}
-                    </span>
-                  </div>
-                  {/* Followers (if Arena connected) */}
-                  {arenaConnected && arenaProfile && (
+                  {/* Liquidity */}
+                  {arenaConnected && arenaStats && arenaStats.liquidity > 0 && (
+                    <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
+                      <span className="text-gray-400 text-sm">Liquidity</span>
+                      <span className="text-green-400 text-sm font-bold font-mono">
+                        {formatAvax(arenaStats.liquidity)} AVAX
+                      </span>
+                    </div>
+                  )}
+                  {/* Buys / Sells */}
+                  {arenaConnected && arenaStats && (
+                    <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
+                      <span className="text-gray-400 text-sm">Buys / Sells</span>
+                      <span className="text-sm font-bold font-mono">
+                        <span className="text-green-400">{arenaStats.buys}</span>
+                        <span className="text-gray-600 mx-1">/</span>
+                        <span className="text-red-400">{arenaStats.sells}</span>
+                      </span>
+                    </div>
+                  )}
+                  {/* Total Supply */}
+                  {arenaConnected && arenaStats && arenaStats.totalSupply > 0 && (
+                    <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
+                      <span className="text-gray-400 text-sm">Total Supply</span>
+                      <span className="text-white text-sm font-bold font-mono">
+                        {formatNumber(arenaStats.totalSupply)} DOOMHOUND
+                      </span>
+                    </div>
+                  )}
+                  {/* Community Followers */}
+                  {arenaConnected && community && (
                     <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
                       <span className="text-gray-400 text-sm">Followers</span>
                       <span className="text-white text-sm font-bold font-mono">
-                        {formatNumber(arenaProfile.followerCount || 0)}
+                        {formatNumber(community.followerCount || 0)}
+                      </span>
+                    </div>
+                  )}
+                  {/* Owner Key Holders */}
+                  {arenaConnected && arenaHolders.length > 0 && (
+                    <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
+                      <span className="text-gray-400 text-sm">Key Holders</span>
+                      <span className="text-red-400 text-lg sm:text-xl font-bold font-mono">
+                        {arenaHolders.length}
                       </span>
                     </div>
                   )}
@@ -346,9 +390,9 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                   <div className="space-y-2">
                     {/* Arena key holders */}
                     {displayHolders.length > 0
-                      ? displayHolders.map((holder, i) => (
+                      ? displayHolders.slice(0, 10).map((holder, i) => (
                           <div
-                            key={holder.id}
+                            key={holder.handle}
                             className="flex items-center gap-2 sm:gap-3 bg-[#0a0a0a] rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 border border-[#2a2a2a]"
                           >
                             <span className="text-red-500 font-bold text-xs sm:text-sm w-5 text-center">
@@ -370,7 +414,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                               @{holder.handle}
                             </a>
                             <span className="text-orange-400 ml-auto text-xs sm:text-sm font-mono whitespace-nowrap">
-                              {holder.shareCount} keys
+                              {holder.shareCount} key{holder.shareCount !== 1 ? "s" : ""}
                             </span>
                           </div>
                         ))
@@ -503,7 +547,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                       >
                         DexScreener
                       </a>
-                      {" "}&middot; Auto-refresh 30s
+                      {" "}&middot; Auto-refresh 20s
                     </>
                   ) : (
                     <>
@@ -525,7 +569,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                       >
                         DexScreener
                       </a>
-                      {" "}&middot; Auto-refresh 30s
+                      {" "}&middot; Auto-refresh 20s
                     </>
                   )}
                 </p>
