@@ -8,12 +8,10 @@ import { BloodSplash } from "./blood-splash";
 export function HeroSection() {
   const [copied, setCopied] = useState(false);
 
-  // Contract address will be set after token launch on The Arena
-  // Update this and the buy link once DOOMHOUND_CONTRACT is known
-  const contractAddress = "Launching Tonight...";
-  const fullAddress = "";
-  const tokenLive = false; // Set to true after launch
-  const arenaTokenUrl = "https://arena.social/home"; // Update to specific token page after launch
+  const fullAddress = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
+  const contractAddress = fullAddress;
+  const tokenLive = true;
+  const arenaTokenUrl = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
 
   const handleCopy = () => {
     if (!fullAddress) return;

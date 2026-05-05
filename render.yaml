@@ -18,8 +18,8 @@ services:
       - key: ARENA_API_KEY
         sync: false
       - key: DOOMHOUND_CONTRACT
-        sync: false
+        value: 0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb
       - key: DOOMHOUND_SUBJECT_ID
-        sync: false
+        value: 0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb
       - key: AVAX_RPC_URL
         value: https://api.avax.network/ext/bc/C/rpc

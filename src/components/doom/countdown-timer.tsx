@@ -126,7 +126,7 @@ export function CountdownTimer() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              href="https://arena.social/home"
+              href="https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block px-6 sm:px-8 py-3 sm:py-4 bg-red-600 hover:bg-red-700 text-white font-bold text-sm sm:text-base md:text-lg rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transition-all animate-breathing-glow"
