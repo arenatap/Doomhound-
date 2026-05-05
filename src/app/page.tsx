@@ -54,7 +54,7 @@ export default function HomePage() {
   }, [playEvilLaugh]);
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-[#f5f5f5] relative" ref={containerRef}>
+    <main className="min-h-screen bg-[#0a0a0a] text-[#f5f5f5] relative overflow-x-hidden" ref={containerRef}>
       <HeroSection />
       <LoreSection />
       <TokenomicsSection />
