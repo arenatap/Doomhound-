@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import { ScrollReveal } from "./scroll-reveal";
 
 // ===== CONFIG =====
-// Set the launch date here. Leave empty string for "awaiting summoning" state.
-const LAUNCH_DATE = ""; // e.g. "2026-05-15T18:00:00Z"
+// Launch: Midnight Rome time (CEST) May 7, 2026 = 22:00 UTC May 6
+const LAUNCH_DATE = "2026-05-06T22:00:00Z";
 
 interface TimeLeft {
   days: number;

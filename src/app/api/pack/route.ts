@@ -50,8 +50,8 @@ const ACHIEVEMENT_DEFS: AchievementDef[] = [
   { id: "meme_lord", name: "Meme Lord", emoji: "🎨", description: "5+ memes forged" },
 ];
 
-// Placeholder launch date for "OG Hound" achievement
-const SITE_LAUNCH_DATE = new Date("2026-05-10T00:00:00Z");
+// Launch: Midnight Rome (CEST) May 7, 2026 = 22:00 UTC May 6
+const SITE_LAUNCH_DATE = new Date("2026-05-06T22:00:00Z");
 
 function getRank(points: number): string {
   for (const tier of RANK_TIERS) {

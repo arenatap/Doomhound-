@@ -8,10 +8,15 @@ import { BloodSplash } from "./blood-splash";
 export function HeroSection() {
   const [copied, setCopied] = useState(false);
 
-  const contractAddress = "0x000...DOOM";
-  const fullAddress = "0x0000000000000000000000000000000000DOOM";
+  // Contract address will be set after token launch on The Arena
+  // Update this and the buy link once DOOMHOUND_CONTRACT is known
+  const contractAddress = "Launching Tonight...";
+  const fullAddress = "";
+  const tokenLive = false; // Set to true after launch
+  const arenaTokenUrl = "https://arena.social/home"; // Update to specific token page after launch
 
   const handleCopy = () => {
+    if (!fullAddress) return;
     navigator.clipboard.writeText(fullAddress);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -91,20 +96,20 @@ export function HeroSection() {
         >
           <BloodSplash className="w-full sm:w-auto">
             <a
-              href="https://arena.social/home"
+              href={arenaTokenUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center w-full sm:w-auto px-8 sm:px-10 md:px-12 py-4 md:py-5 text-base sm:text-lg md:text-xl font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transition-all duration-300 animate-breathing-glow"
             >
-              BUY $DOOMHOUND
+              {tokenLive ? "BUY $DOOMHOUND" : "🔥 LAUNCHING TONIGHT"}
             </a>
           </BloodSplash>
           <BloodSplash className="w-full sm:w-auto">
             <a
-              href="#live-data"
+              href="#arena-game"
               className="inline-flex items-center justify-center w-full sm:w-auto px-8 sm:px-10 md:px-12 py-4 md:py-5 text-base sm:text-lg md:text-xl font-bold bg-transparent border-2 border-red-600/80 hover:border-red-500 text-red-400 hover:text-red-300 rounded-xl hover:shadow-[0_0_20px_rgba(220,38,38,0.3)] transition-all duration-300"
             >
-              VIEW CHART
+              JOIN THE PACK
             </a>
           </BloodSplash>
         </motion.div>
@@ -119,17 +124,19 @@ export function HeroSection() {
           <code className="text-xs sm:text-sm md:text-base text-gray-400 font-mono truncate">
             {contractAddress}
           </code>
-          <button
-            onClick={handleCopy}
-            className="p-1.5 hover:text-red-400 transition-colors flex-shrink-0"
-            aria-label="Copy contract address"
-          >
-            {copied ? (
-              <Check className="w-4 h-4 text-green-500" />
-            ) : (
-              <Copy className="w-4 h-4 text-gray-400" />
-            )}
-          </button>
+          {fullAddress && (
+            <button
+              onClick={handleCopy}
+              className="p-1.5 hover:text-red-400 transition-colors flex-shrink-0"
+              aria-label="Copy contract address"
+            >
+              {copied ? (
+                <Check className="w-4 h-4 text-green-500" />
+              ) : (
+                <Copy className="w-4 h-4 text-gray-400" />
+              )}
+            </button>
+          )}
         </motion.div>
       </div>
 
