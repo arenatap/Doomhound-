@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,20 +7,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// ===== DOOMHOUND PACK MEMBERS =====
+model PackMember {
+  id            String   @id @default(cuid())
+  handle        String   @unique    // Arena handle (without @)
+  userName      String              // Display name from Arena
+  profilePic    String              // Profile picture URL
+  walletAddress String?             // Wallet address from Arena profile
+  points        Int      @default(0)
+  rank          String   @default("Lost Soul")  // Rank title
+  lastCheckIn   DateTime?           // Last daily check-in
+  doomhoundBalance Float @default(0) // $DOOMHOUND token balance
+  balanceCheckedAt DateTime?         // When balance was last verified
+  referredBy    String?              // Arena handle of referrer
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  activities    ActivityLog[]
+
+  @@index([handle])
+  @@index([points])
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model ActivityLog {
+  id          String   @id @default(cuid())
+  memberHandle String             // Arena handle (FK)
+  type        String              // register, daily_checkin, arena_post, meme_generated, referral, doomhound_holder
+  description String
+  points      Int
+  createdAt   DateTime @default(now())
+
+  member      PackMember @relation(fields: [memberHandle], references: [handle], onDelete: Cascade)
+
+  @@index([memberHandle])
+  @@index([createdAt])
 }
