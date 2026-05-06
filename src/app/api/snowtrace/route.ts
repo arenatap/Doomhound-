@@ -114,9 +114,52 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ transfers: [] });
       }
 
+      // Get burn transactions (transfers to 0xdead address)
+      case "burns": {
+        const DEAD_ADDRESS = "0x000000000000000000000000000000000000dEaD";
+        const data = await snowtraceGet({
+          module: "account",
+          action: "tokentx",
+          contractaddress: DOOMHOUND_CONTRACT,
+          address: DEAD_ADDRESS,
+          page: "1",
+          offset: "50",
+          sort: "desc",
+        });
+
+        if (data.status === "1" && Array.isArray(data.result)) {
+          const burns = (data.result || []).map((t: any) => ({
+            hash: t.hash,
+            from: t.from,
+            value: t.value,
+            decimals: t.tokenDecimal || 18,
+            timeStamp: t.timeStamp,
+            blockNumber: t.blockNumber,
+          }));
+
+          // Calculate total burned (sum of all values)
+          let totalBurned = BigInt(0);
+          for (const b of burns) {
+            try { totalBurned += BigInt(b.value); } catch {}
+          }
+
+          // Convert from wei to tokens
+          const divisor = BigInt(10) ** BigInt(18);
+          const totalBurnedTokens = Number(totalBurned / divisor) + Number(totalBurned % divisor) / Number(divisor);
+
+          return NextResponse.json({
+            burns,
+            totalBurnedTokens,
+            burnCount: burns.length,
+          });
+        }
+
+        return NextResponse.json({ burns: [], totalBurnedTokens: 0, burnCount: 0 });
+      }
+
       default:
         return NextResponse.json(
-          { error: "Unknown action", availableActions: ["holders", "info", "holdercount", "transfers"] },
+          { error: "Unknown action", availableActions: ["holders", "info", "holdercount", "transfers", "burns"] },
           { status: 400 }
         );
     }

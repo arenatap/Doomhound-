@@ -173,6 +173,20 @@ body {
   animation: glow-red 2s ease-in-out infinite;
 }
 
+/* Green glow for calculator section */
+@keyframes glow-green {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(34, 197, 94, 0.5), 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(34, 197, 94, 0.8), 0 0 40px rgba(34, 197, 94, 0.5), 0 0 60px rgba(34, 197, 94, 0.3);
+  }
+}
+
+.animate-glow-green {
+  animation: glow-green 2s ease-in-out infinite;
+}
+
 /* Flame animation at bottom of sections */
 @keyframes flame-flicker {
   0%, 100% {

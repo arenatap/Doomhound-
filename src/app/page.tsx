@@ -23,6 +23,8 @@ import { SoundToggle } from "@/components/doom/sound-toggle";
 import { FloatingBuy } from "@/components/doom/floating-buy";
 import { BondingCurveSection } from "@/components/doom/bonding-curve-section";
 import { MilestoneSection } from "@/components/doom/milestone-section";
+import { BurnArenaSection } from "@/components/doom/burn-arena-section";
+import { DoomCalculatorSection } from "@/components/doom/doom-calculator-section";
 import { BuyToast } from "@/components/doom/buy-toast";
 import { Navbar } from "@/components/doom/navbar";
 import { useSoundEffects } from "@/components/doom/use-sound-effects";
@@ -77,6 +79,8 @@ export default function HomePage() {
       <LiveTicker />
       <BondingCurveSection />
       <MilestoneSection />
+      <BurnArenaSection />
+      <DoomCalculatorSection />
 
       <CountdownTimer />
       <LoreSection />
