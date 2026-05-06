@@ -54,7 +54,7 @@ export function CopyPastaSection() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLiveData();
-    const interval = setInterval(fetchLiveData, 15000);
+    const interval = setInterval(fetchLiveData, 30000);
     return () => clearInterval(interval);
   }, [fetchLiveData]);
 

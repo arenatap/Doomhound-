@@ -88,7 +88,7 @@ export function BondingCurveSection() {
   useEffect(() => {
     fetchData();
     // Refresh every 15 seconds for live feel
-    const interval = setInterval(fetchData, 15000);
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
@@ -148,7 +148,7 @@ export function BondingCurveSection() {
                   </span>
                 )}
                 <span className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest">
-                  {isGraduated ? "Complete!" : "Live — Updates Every 15s"}
+                  {isGraduated ? "Complete!" : "Live — Updates Every 30s"}
                 </span>
               </div>
               <motion.span

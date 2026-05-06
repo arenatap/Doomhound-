@@ -67,23 +67,39 @@ function getBalanceTier(balance: number) {
   return null;
 }
 
-// ===== ARENA API =====
+// ===== ARENA API WITH CACHING =====
 const ARENA_API_BASE = "https://api.starsarena.com";
 const ARENA_API_KEY = process.env.ARENA_API_KEY;
 
-async function arenaFetch(endpoint: string) {
+// In-memory cache to avoid hitting Arena rate limits (1000 req/hr)
+const arenaCache = new Map<string, { data: any; expires: number }>();
+const CACHE_TTL = 60_000; // 1 minute cache
+
+async function arenaFetch(endpoint: string, cacheTtl = CACHE_TTL) {
+  const cacheKey = endpoint;
+  const cached = arenaCache.get(cacheKey);
+  if (cached && Date.now() < cached.expires) {
+    return cached.data;
+  }
+
   const res = await fetch(`${ARENA_API_BASE}${endpoint}`, {
     headers: {
       "X-API-Key": ARENA_API_KEY || "",
       "Content-Type": "application/json",
     },
-    next: { revalidate: 30 },
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
+    // If rate limited, return stale cache if available
+    if (res.status === 429 && cached) {
+      console.log(`Arena 429 — using stale cache for ${endpoint}`);
+      return cached.data;
+    }
     throw new Error(`Arena API error: ${res.status} ${res.statusText} ${text}`);
   }
-  return res.json();
+  const data = await res.json();
+  arenaCache.set(cacheKey, { data, expires: Date.now() + cacheTtl });
+  return data;
 }
 
 // ===== ACHIEVEMENT HELPERS =====

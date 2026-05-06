@@ -124,7 +124,7 @@ export function LiveTicker() {
   useEffect(() => {
     fetchArenaData(); // Initial fetch
     fetchHolderCount();
-    const interval = setInterval(fetchArenaData, 20000); // Every 20s
+    const interval = setInterval(fetchArenaData, 30000); // Every 30s
     const holderInterval = setInterval(fetchHolderCount, 120000); // Every 2 min
     return () => {
       clearInterval(interval);

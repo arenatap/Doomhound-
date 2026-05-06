@@ -56,7 +56,7 @@ export function HeroSection() {
 
   useEffect(() => {
     fetchLiveData();
-    const interval = setInterval(fetchLiveData, 20000);
+    const interval = setInterval(fetchLiveData, 30000);
     return () => clearInterval(interval);
   }, [fetchLiveData]);
 

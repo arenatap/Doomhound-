@@ -12,7 +12,18 @@ const ARENA_API_KEY = process.env.ARENA_API_KEY || "";
 const DOOMHOUND_COMMUNITY_ID = "4b326b82-46e7-4ac7-a34b-8e8d00913f0b";
 const DOOMHOUND_OWNER_ID = "50e801a6-0f7d-4ca9-a855-462f834f2900";
 
-async function arenaFetch(endpoint: string, options?: RequestInit) {
+// In-memory cache to reduce Arena API calls (rate limit: 1000 req/hr)
+const arenaCache = new Map<string, { data: any; expires: number }>();
+const CACHE_TTL_DEFAULT = 30_000; // 30s for live data
+const CACHE_TTL_STATIC = 120_000; // 2min for static data (profiles, etc.)
+
+async function arenaFetch(endpoint: string, options?: RequestInit, cacheTtl = CACHE_TTL_DEFAULT) {
+  const cacheKey = `GET:${endpoint}`;
+  const cached = arenaCache.get(cacheKey);
+  if (cached && Date.now() < cached.expires) {
+    return cached.data;
+  }
+
   const url = `${ARENA_API_BASE}${endpoint}`;
   const res = await fetch(url, {
     ...options,
@@ -21,13 +32,19 @@ async function arenaFetch(endpoint: string, options?: RequestInit) {
       "Content-Type": "application/json",
       ...options?.headers,
     },
-    next: { revalidate: 10 }, // Cache for 10s for live bonding curve
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
+    // If rate limited, return stale cache if available
+    if (res.status === 429 && cached) {
+      console.log(`Arena 429 — using stale cache for ${endpoint}`);
+      return cached.data;
+    }
     throw new Error(`Arena API error: ${res.status} ${res.statusText} ${text}`);
   }
-  return res.json();
+  const data = await res.json();
+  arenaCache.set(cacheKey, { data, expires: Date.now() + cacheTtl });
+  return data;
 }
 
 // Helper: convert wei-like string to AVAX number
@@ -54,8 +71,8 @@ export async function GET(request: NextRequest) {
 
         // Fetch community data (includes stats) + owner profile
         const [communityResult, ownerResult] = await Promise.allSettled([
-          arenaFetch(`/agents/communities/search?searchString=doomhound&page=1&pageSize=10`),
-          arenaFetch(`/agents/user/id?userId=${DOOMHOUND_OWNER_ID}`),
+          arenaFetch(`/agents/communities/search?searchString=doomhound&page=1&pageSize=10`, undefined, CACHE_TTL_DEFAULT),
+          arenaFetch(`/agents/user/id?userId=${DOOMHOUND_OWNER_ID}`, undefined, CACHE_TTL_STATIC),
         ]);
 
         // Extract community data
