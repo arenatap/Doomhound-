@@ -119,14 +119,34 @@ export function BurnArenaSection() {
       {/* Background fire glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(220,38,38,0.05)_0%,transparent_70%)]" />
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 sm:px-10 md:px-16">
+      <div className="relative z-10 max-w-5xl mx-auto px-6 sm:px-10 md:px-16">
+        {/* Header with mascot breathing fire */}
         <ScrollReveal>
-          <h2 className="font-creepster text-4xl sm:text-6xl md:text-7xl text-orange-500 animate-glow-red text-center mb-4 sm:mb-6">
-            🔥 BURN ARENA
-          </h2>
-          <p className="text-center text-gray-400 text-sm sm:text-base md:text-lg mb-8 sm:mb-12 max-w-xl mx-auto">
-            10M $DOOM burned daily at noon. Supply shrinking. No mercy. The hound eats its own.
-          </p>
+          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10 mb-8 sm:mb-12">
+            {/* Text side */}
+            <div className="flex-1 text-center md:text-left">
+              <h2 className="font-creepster text-4xl sm:text-6xl md:text-7xl text-orange-500 animate-glow-red mb-3 sm:mb-4">
+                🔥 BURN ARENA
+              </h2>
+              <p className="text-gray-400 text-sm sm:text-base md:text-lg max-w-md md:mx-0 mx-auto">
+                10M $DOOM burned daily at noon. Supply shrinking. No mercy. The hound eats its own.
+              </p>
+            </div>
+            {/* Mascot — the hound breathes fire on the burns */}
+            <div className="relative flex-shrink-0">
+              <div className="relative w-40 h-40 sm:w-52 sm:h-52 md:w-56 md:h-56 rounded-full overflow-hidden border-2 border-orange-600/50 shadow-[0_0_40px_rgba(234,88,12,0.3),0_0_80px_rgba(220,38,38,0.15)]">
+                <img
+                  src="/images/doomhound-fire.png"
+                  alt="Doomhound breathing fire"
+                  className="w-full h-full object-cover"
+                  style={{ filter: "brightness(1.1) contrast(1.1)" }}
+                />
+              </div>
+              {/* Fire glow ring animation */}
+              <div className="absolute inset-0 rounded-full border border-orange-500/20 animate-pulse" />
+              <div className="absolute -inset-2 rounded-full border border-red-600/10 animate-pulse" style={{ animationDelay: "0.5s" }} />
+            </div>
+          </div>
         </ScrollReveal>
 
         {/* Main Stats Row */}
