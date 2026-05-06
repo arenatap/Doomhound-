@@ -20,13 +20,15 @@ interface ArenaCommunity {
 }
 
 // ===== MILESTONES =====
-// Graduation at 503 AVAX / 2.1M $ARENA
+// Graduation at 503 AVAX / 2,149,963.74 $ARENA (from Arena production source)
+// 1 AVAX = 4,274.28 $ARENA
+const ARENA_PER_AVAX = 4274.28;
 const MILESTONES = [
   { mcap: 50, label: "Pup Phase", desc: "The hound awakens", emoji: "🐶" },
   { mcap: 100, label: "Shadow Fang", desc: "Gaining speed", emoji: "🐺" },
   { mcap: 200, label: "Hellfire", desc: "The pack is united", emoji: "🔥" },
   { mcap: 350, label: "Alpha Hound", desc: "Unstoppable force", emoji: "💀" },
-  { mcap: 503, label: "GRADUATION", desc: "Liquidity locked forever! 2.1M $ARENA reached!", emoji: "🎓", isGraduation: true },
+  { mcap: 503, label: "GRADUATION", desc: "Liquidity locked forever! 2.15M $ARENA reached!", emoji: "🎓", isGraduation: true },
 ];
 
 const ARENA_TOKEN_URL = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb?ref=Toff083249361";

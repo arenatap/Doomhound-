@@ -8,6 +8,7 @@ import { BloodSplash } from "./blood-splash";
 const fullAddress = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
 const ARENA_TOKEN_URL = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb?ref=Toff083249361";
 const GRADUATION_MCAP_AVAX = 503;
+const ARENA_PER_AVAX = 4274.28; // from Arena production source: 2,149,963.74 $ARENA / 503 AVAX
 
 interface ArenaStats {
   price: number;
@@ -132,7 +133,7 @@ export function HeroSection() {
           transition={{ delay: 0.9, duration: 0.8 }}
           className="text-sm sm:text-base md:text-lg text-orange-400/80 font-mono mb-6 md:mb-8 tracking-wider"
         >
-          Micro Cap · 503 AVAX to Graduate · Be Early
+          Micro Cap · 503 AVAX to Graduate · 2.15M $ARENA · Be Early
         </motion.p>
 
         {/* MICRO CAP ALERT Badge */}
@@ -172,7 +173,7 @@ export function HeroSection() {
                   💰 MC {formatAvax(stats.marketCap)}
                 </span>
                 <span className="inline-flex items-center gap-1.5 bg-[#1a1a1a]/80 backdrop-blur border border-red-900/40 rounded-full px-3 py-1 text-red-300 text-xs sm:text-sm font-mono">
-                  📊 {Math.min(100, (stats.marketCap / GRADUATION_MCAP_AVAX) * 100).toFixed(1)}% to graduation
+                  📊 {Math.min(100, (stats.marketCap / GRADUATION_MCAP_AVAX) * 100).toFixed(1)}% to grad · {(stats.marketCap * ARENA_PER_AVAX / 1000).toFixed(0)}K $ARENA
                 </span>
               </>
             )}

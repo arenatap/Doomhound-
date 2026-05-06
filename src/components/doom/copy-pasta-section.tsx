@@ -61,7 +61,7 @@ export function CopyPastaSection() {
   // Build the 5th dynamic shill text
   const bondingPct = stats ? Math.min(100, (stats.marketCap / GRADUATION_MCAP_AVAX) * 100).toFixed(1) : "XX";
   const mcapStr = stats ? formatAvax(stats.marketCap) : "XX";
-  const dynamicShillText = `$DOOMHOUND is STILL at micro cap! Only ${mcapStr} AVAX market cap and ${bondingPct}% to graduation (503 AVAX / 2.1M $ARENA). When this graduates, liquidity gets LOCKED. Early buyers eat best. Don't fade the hound 🐺🔥`;
+  const dynamicShillText = `$DOOMHOUND is STILL at micro cap! Only ${mcapStr} AVAX market cap and ${bondingPct}% to graduation (503 AVAX / 2.15M $ARENA). When this graduates, liquidity gets LOCKED. Early buyers eat best. Don't fade the hound 🐺🔥`;
 
   const allShillTexts = [...staticShillTexts, dynamicShillText];
 

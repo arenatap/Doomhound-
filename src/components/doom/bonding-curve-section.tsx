@@ -24,11 +24,16 @@ interface ArenaCommunity {
   tokenName: string;
 }
 
-// Arena bonding curve graduation thresholds
-// $DOOMHOUND graduates when market cap reaches 503 AVAX (equivalent to 2.1M $ARENA)
-// Paired with $ARENA token on The Arena platform
+// Arena bonding curve graduation thresholds (from Arena production source code)
+// TOKEN_PHASE_LIQUIDITY_THRESHOLD = 503 AVAX
+// ARENA_TOKEN_PHASE_LIQUIDITY_THRESHOLD = 2,149,963.74 $ARENA
+// 1 AVAX = 4,274.28 $ARENA (Arena internal rate)
+// Note: The Arena UI shows "Bonding Curve Progress" calculated via a parametric
+// formula (calculateCostScaledParametric) which differs from simple marketCap/threshold.
+// Our progress shows "Market Cap Progress" based on live API data.
 const GRADUATION_MCAP_AVAX = 503;
-const GRADUATION_MCAP_ARENA = 2_100_000;
+const GRADUATION_MCAP_ARENA = 2_149_963.74;
+const ARENA_PER_AVAX = 4274.28;
 
 function formatAvax(val: number): string {
   if (val <= 0) return "0";
@@ -82,11 +87,15 @@ export function BondingCurveSection() {
   }, [fetchData]);
 
   // Calculate progress from LIVE market cap
-  const marketCap = stats?.marketCap || 0;
+  // The API marketCap is in AVAX (price × supply, both in 18-decimal units)
+  const marketCap = stats?.marketCap || 0; // in AVAX
+  const marketCapArena = marketCap * ARENA_PER_AVAX; // convert to $ARENA
   const progress = Math.min(100, (marketCap / GRADUATION_MCAP_AVAX) * 100);
   const isGraduated = (community?.tokenPhase ?? 1) > 1 || progress >= 100;
-  const remaining = Math.max(0, GRADUATION_MCAP_AVAX - marketCap);
-  const price = stats?.price || 0;
+  const remainingAvax = Math.max(0, GRADUATION_MCAP_AVAX - marketCap);
+  const remainingArena = Math.max(0, GRADUATION_MCAP_ARENA - marketCapArena);
+  const price = stats?.price || 0; // in AVAX
+  const priceArena = price * ARENA_PER_AVAX; // in $ARENA
 
   // Detect if market cap changed (for animation)
   const mcapDelta = marketCap - prevMarketCap.current;
@@ -136,8 +145,13 @@ export function BondingCurveSection() {
                 {progress.toFixed(1)}%
               </motion.span>
               <p className="text-gray-500 text-xs sm:text-sm mt-1 uppercase tracking-wider">
-                {isGraduated ? "Graduated from bonding curve!" : "To Graduation"}
+                {isGraduated ? "Graduated from bonding curve!" : "Market Cap to Graduation"}
               </p>
+              {!isGraduated && (
+                <p className="text-gray-600 text-[10px] sm:text-xs mt-1">
+                  Check <a href={ARENA_TOKEN_URL} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 underline">Arena</a> for official bonding curve progress
+                </p>
+              )}
             </div>
 
             {/* Progress bar */}
@@ -171,7 +185,7 @@ export function BondingCurveSection() {
             </div>
 
             {/* Live Stats row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-5">
               {connected && stats ? (
                 <>
                   <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
@@ -187,6 +201,13 @@ export function BondingCurveSection() {
                       <span className="text-gray-500 text-[9px] ml-1">AVAX</span>
                     </p>
                     <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Price</p>
+                  </div>
+                  <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
+                    <p className="text-purple-400 font-bold text-sm sm:text-base font-mono">
+                      {formatCount(marketCapArena)}
+                      <span className="text-gray-500 text-[9px] ml-1">$ARENA</span>
+                    </p>
+                    <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">MC in $ARENA</p>
                   </div>
                   <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
                     <p className="text-green-400 font-bold text-sm sm:text-base font-mono">{formatCount(stats.buys)}</p>
@@ -211,10 +232,10 @@ export function BondingCurveSection() {
               <div className="text-center">
                 <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3 flex-wrap">
                   <span className="inline-flex items-center gap-1.5 bg-orange-900/20 border border-orange-800/30 rounded-full px-3 py-1 text-orange-400 text-xs sm:text-sm font-mono">
-                    🎯 {formatAvax(remaining)} AVAX to graduate
+                    🎯 {formatAvax(remainingAvax)} AVAX to graduate
                   </span>
                   <span className="inline-flex items-center gap-1.5 bg-purple-900/20 border border-purple-800/30 rounded-full px-3 py-1 text-purple-400 text-xs sm:text-sm font-mono">
-                    🪙 2.1M $ARENA target
+                    🪙 {formatCount(remainingArena)} $ARENA left
                   </span>
                 </div>
                 {lastUpdated && (
