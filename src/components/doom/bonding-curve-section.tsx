@@ -62,6 +62,7 @@ export function BondingCurveSection() {
   const [stats, setStats] = useState<ArenaStats | null>(null);
   const [community, setCommunity] = useState<ArenaCommunity | null>(null);
   const [connected, setConnected] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const prevMarketCap = useRef<number>(0);
 
@@ -71,6 +72,7 @@ export function BondingCurveSection() {
       const data = await res.json();
       if (data.connected) {
         setConnected(true);
+        setRateLimited(data.rateLimited || false);
         if (data.stats) {
           setStats((prev) => {
             if (prev) prevMarketCap.current = prev.marketCap;
@@ -78,7 +80,7 @@ export function BondingCurveSection() {
           });
         }
         if (data.community) setCommunity(data.community);
-        setLastUpdated(new Date());
+        if (!data.rateLimited) setLastUpdated(new Date());
       }
     } catch {
       setConnected(false);
@@ -245,7 +247,11 @@ export function BondingCurveSection() {
               ) : (
                 <>
                   <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a] col-span-2">
-                    <p className="text-gray-600 text-xs">Loading live data...</p>
+                    {rateLimited ? (
+                      <p className="text-orange-400 text-xs">⚠️ Arena API rate limited — data will refresh shortly. Check <a href={ARENA_TOKEN_URL} target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 underline">Arena</a> for live stats.</p>
+                    ) : (
+                      <p className="text-gray-600 text-xs">Loading live data...</p>
+                    )}
                   </div>
                 </>
               )}

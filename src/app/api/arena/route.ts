@@ -17,34 +17,50 @@ const arenaCache = new Map<string, { data: any; expires: number }>();
 const CACHE_TTL_DEFAULT = 30_000; // 30s for live data
 const CACHE_TTL_STATIC = 120_000; // 2min for static data (profiles, etc.)
 
-async function arenaFetch(endpoint: string, options?: RequestInit, cacheTtl = CACHE_TTL_DEFAULT) {
+async function arenaFetch(endpoint: string, options?: RequestInit, cacheTtl = CACHE_TTL_DEFAULT): Promise<any> {
   const cacheKey = `GET:${endpoint}`;
   const cached = arenaCache.get(cacheKey);
   if (cached && Date.now() < cached.expires) {
     return cached.data;
   }
 
-  const url = `${ARENA_API_BASE}${endpoint}`;
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      "X-API-Key": ARENA_API_KEY,
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    // If rate limited, return stale cache if available
-    if (res.status === 429 && cached) {
-      console.log(`Arena 429 — using stale cache for ${endpoint}`);
+  try {
+    const url = `${ARENA_API_BASE}${endpoint}`;
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        "X-API-Key": ARENA_API_KEY,
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+    });
+    if (!res.ok) {
+      // If rate limited, return stale cache if available (even if expired)
+      if (res.status === 429 && cached) {
+        console.log(`Arena 429 — using stale cache for ${endpoint}`);
+        return cached.data;
+      }
+      // For other errors, try stale cache too
+      if (cached) {
+        console.log(`Arena ${res.status} — using stale cache for ${endpoint}`);
+        return cached.data;
+      }
+      // No cache available, return null instead of throwing
+      console.error(`Arena API error: ${res.status} — no cache for ${endpoint}`);
+      return null;
+    }
+    const data = await res.json();
+    arenaCache.set(cacheKey, { data, expires: Date.now() + cacheTtl });
+    return data;
+  } catch (err) {
+    // Network error — use stale cache if available
+    if (cached) {
+      console.log(`Arena fetch error — using stale cache for ${endpoint}`);
       return cached.data;
     }
-    throw new Error(`Arena API error: ${res.status} ${res.statusText} ${text}`);
+    console.error(`Arena fetch error — no cache for ${endpoint}:`, err);
+    return null;
   }
-  const data = await res.json();
-  arenaCache.set(cacheKey, { data, expires: Date.now() + cacheTtl });
-  return data;
 }
 
 // Helper: convert wei-like string to AVAX number
@@ -70,15 +86,13 @@ export async function GET(request: NextRequest) {
         }
 
         // Fetch community data (includes stats) + owner profile
-        const [communityResult, ownerResult] = await Promise.allSettled([
-          arenaFetch(`/agents/communities/search?searchString=doomhound&page=1&pageSize=10`, undefined, CACHE_TTL_DEFAULT),
-          arenaFetch(`/agents/user/id?userId=${DOOMHOUND_OWNER_ID}`, undefined, CACHE_TTL_STATIC),
-        ]);
+        const communityData = await arenaFetch(`/agents/communities/search?searchString=doomhound&page=1&pageSize=10`, undefined, CACHE_TTL_DEFAULT);
+        const ownerData = await arenaFetch(`/agents/user/id?userId=${DOOMHOUND_OWNER_ID}`, undefined, CACHE_TTL_STATIC);
 
         // Extract community data
         let community: any = null;
-        if (communityResult.status === "fulfilled") {
-          const communities = communityResult.value?.communities || [];
+        if (communityData) {
+          const communities = communityData.communities || [];
           community = communities.find(
             (c: any) => c.contractAddress?.toLowerCase() === "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb".toLowerCase()
           ) || communities[0] || null;
@@ -86,8 +100,8 @@ export async function GET(request: NextRequest) {
 
         // Extract owner profile
         let ownerProfile: any = null;
-        if (ownerResult.status === "fulfilled") {
-          ownerProfile = ownerResult.value?.user || null;
+        if (ownerData) {
+          ownerProfile = ownerData.user || null;
         }
 
         // Build stats from community data
@@ -107,6 +121,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
           connected: true,
+          rateLimited: !communityData, // true if Arena API returned 429 with no cache
           community: community
             ? {
                 id: community.id,
