@@ -9,7 +9,7 @@ import { ScrollReveal } from "./scroll-reveal";
 // Burns are fetched on-chain from Snowtrace (transfers to 0xdead).
 
 const DEAD_ADDRESS = "0x000000000000000000000000000000000000dEaD";
-const TOTAL_SUPPLY = 3_000_000_000; // 3B $DOOM total circulating supply
+const TOTAL_SUPPLY = 4_692_471_068; // 4.69B $DOOM total circulating supply (from Snowtrace on-chain data)
 const BURN_AMOUNT_DAILY = 10_000_000; // 10M per day
 const SNOWTRACE_TX = "https://snowtrace.io/tx/";
 
