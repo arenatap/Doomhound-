@@ -26,7 +26,8 @@ interface ArenaStats {
   totalSupply: number;
   buys: number;
   sells: number;
-  liquidity: number;
+  liquidityAvax: number;
+  liquidityArena: number;
   buyVolume: string;
   sellVolume: string;
 }
@@ -333,11 +334,11 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                     </div>
                   )}
                   {/* Liquidity */}
-                  {arenaConnected && arenaStats && arenaStats.liquidity > 0 && (
+                  {arenaConnected && arenaStats && arenaStats.liquidityAvax > 0 && (
                     <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
                       <span className="text-gray-400 text-sm">Liquidity</span>
                       <span className="text-green-400 text-sm font-bold font-mono">
-                        {formatAvax(arenaStats.liquidity)} AVAX
+                        {formatAvax(arenaStats.liquidityAvax)} AVAX
                       </span>
                     </div>
                   )}

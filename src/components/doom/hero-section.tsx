@@ -13,7 +13,8 @@ const ARENA_PER_AVAX = 4274.28; // from Arena production source: 2,149,963.74 $A
 interface ArenaStats {
   price: number;
   marketCap: number;
-  liquidity: number;
+  liquidityAvax: number;
+  liquidityArena: number;
   buys: number;
   sells: number;
 }
@@ -31,6 +32,7 @@ export function HeroSection() {
   const [copied, setCopied] = useState(false);
   const [stats, setStats] = useState<ArenaStats | null>(null);
   const [holdersCount, setHoldersCount] = useState(0);
+  const [bondingCurveProgress, setBondingCurveProgress] = useState<number | null>(null);
 
   const fetchLiveData = useCallback(async () => {
     try {
@@ -45,8 +47,7 @@ export function HeroSection() {
         setStats(arenaData.stats);
       }
       if (arenaData.community?.bondingCurveProgress != null) {
-        // Arena provides direct progress — use it
-        setStats(prev => prev ? { ...prev, _apiProgress: arenaData.community.bondingCurveProgress } as any : prev);
+        setBondingCurveProgress(arenaData.community.bondingCurveProgress);
       }
       if (holderData.holderCount) {
         setHoldersCount(holderData.holderCount);
@@ -66,13 +67,12 @@ export function HeroSection() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Calculate graduation progress based on liquidity (not market cap)
-  const liquidity = stats?.liquidity || 0;
-  const apiProgress = (stats as any)?._apiProgress;
-  const gradProgress = apiProgress != null && apiProgress > 0
-    ? Math.min(100, apiProgress)
-    : Math.min(100, (liquidity / GRADUATION_LIQUIDITY_AVAX) * 100);
-  const gradArenaK = ((liquidity || stats?.marketCap || 0) * ARENA_PER_AVAX / 1000);
+  // Calculate graduation progress — use server-calculated bondingCurveProgress
+  const liquidityAvax = stats?.liquidityAvax || 0;
+  const gradProgress = bondingCurveProgress != null && bondingCurveProgress > 0
+    ? Math.min(100, bondingCurveProgress)
+    : Math.min(100, (liquidityAvax / GRADUATION_LIQUIDITY_AVAX) * 100);
+  const gradArenaK = ((stats?.liquidityArena || 0) / 1000);
 
   return (
     <section

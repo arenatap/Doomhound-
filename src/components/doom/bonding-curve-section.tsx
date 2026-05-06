@@ -13,7 +13,8 @@ interface ArenaStats {
   sells: number;
   buyVolume: string;
   sellVolume: string;
-  liquidity: number;
+  liquidityAvax: number;
+  liquidityArena: number;
 }
 
 interface ArenaCommunity {
@@ -31,12 +32,9 @@ interface ArenaCommunity {
 // 1 AVAX = 4,274.28 $ARENA (Arena internal rate)
 //
 // IMPORTANT: The graduation threshold is a LIQUIDITY threshold, not a market cap threshold.
-// Progress should be calculated using `liquidity` (total AVAX deposited into the bonding curve),
-// NOT `marketCap` (price × supply). Market cap can be significantly higher than liquidity
-// due to the bonding curve premium. Using marketCap overstates progress.
-//
-// The Arena UI may also provide a direct `bondingCurveProgress` field via the API.
-// If available, we use that for maximum accuracy.
+// The API now returns `liquidityAvax` and `liquidityArena` correctly converted based on
+// the paymentToken. For $DOOMHOUND, paymentToken="arena", so liquidity accumulates in $ARENA.
+// The bondingCurveProgress is calculated server-side for accuracy.
 const GRADUATION_LIQUIDITY_AVAX = 503;
 const GRADUATION_MCAP_ARENA = 2_149_963.74;
 const ARENA_PER_AVAX = 4274.28;
@@ -95,23 +93,25 @@ export function BondingCurveSection() {
   }, [fetchData]);
 
   // Calculate progress from LIVE data
-  // The API marketCap is in AVAX (price × supply, both in 18-decimal units)
-  // The API liquidity is in AVAX (total AVAX deposited into the bonding curve)
+  // The API returns:
+  //   marketCap — in AVAX (price × supply)
+  //   liquidityAvax — liquidity converted to AVAX (correct for $ARENA payment tokens)
+  //   liquidityArena — liquidity in $ARENA (raw deposited amount)
+  //   bondingCurveProgress — calculated server-side: liquidityArena / 2,149,963.74 * 100
   //
-  // Graduation threshold = 503 AVAX of LIQUIDITY (not market cap)
-  // Using marketCap overstates progress because marketCap > liquidity in a bonding curve
+  // Graduation threshold = 503 AVAX / 2,149,963.74 $ARENA of LIQUIDITY
   const marketCap = stats?.marketCap || 0; // in AVAX
-  const liquidity = stats?.liquidity || 0; // in AVAX — this is the correct metric for progress
+  const liquidityAvax = stats?.liquidityAvax || 0; // in AVAX
+  const liquidityArena = stats?.liquidityArena || 0; // in $ARENA
   const marketCapArena = marketCap * ARENA_PER_AVAX; // convert to $ARENA
-  const liquidityArena = liquidity * ARENA_PER_AVAX; // convert to $ARENA
 
-  // Use Arena's direct bondingCurveProgress if available, otherwise calculate from liquidity
-  const apiProgress = community?.bondingCurveProgress;
-  const calculatedProgress = Math.min(100, (liquidity / GRADUATION_LIQUIDITY_AVAX) * 100);
-  const progress = apiProgress != null && apiProgress > 0 ? Math.min(100, apiProgress) : calculatedProgress;
+  // Use server-calculated bondingCurveProgress (most accurate)
+  const progress = community?.bondingCurveProgress != null && community.bondingCurveProgress > 0
+    ? Math.min(100, community.bondingCurveProgress)
+    : Math.min(100, (liquidityAvax / GRADUATION_LIQUIDITY_AVAX) * 100);
 
   const isGraduated = (community?.tokenPhase ?? 1) > 1 || progress >= 100;
-  const remainingAvax = Math.max(0, GRADUATION_LIQUIDITY_AVAX - liquidity);
+  const remainingAvax = Math.max(0, GRADUATION_LIQUIDITY_AVAX - liquidityAvax);
   const remainingArena = Math.max(0, GRADUATION_MCAP_ARENA - liquidityArena);
   const price = stats?.price || 0; // in AVAX
   const priceArena = price * ARENA_PER_AVAX; // in $ARENA
@@ -209,7 +209,7 @@ export function BondingCurveSection() {
                 <>
                   <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
                     <p className="text-cyan-400 font-bold text-sm sm:text-base font-mono">
-                      {formatAvax(liquidity)}
+                      {formatAvax(liquidityAvax)}
                       <span className="text-gray-500 text-[9px] ml-1">AVAX</span>
                     </p>
                     <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Liquidity (Curve)</p>

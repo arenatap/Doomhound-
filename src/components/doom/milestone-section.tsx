@@ -12,7 +12,8 @@ interface ArenaStats {
   totalSupply: number;
   buys: number;
   sells: number;
-  liquidity: number;
+  liquidityAvax: number;
+  liquidityArena: number;
 }
 
 interface ArenaCommunity {
@@ -85,14 +86,14 @@ export function MilestoneSection() {
   }, [fetchData]);
 
   const marketCap = stats?.marketCap || 0;
-  const liquidity = stats?.liquidity || 0; // Use liquidity for milestone progress
+  const liquidityAvax = stats?.liquidityAvax || 0; // Use liquidityAvax for milestone progress
   const isGraduated = (community?.tokenPhase ?? 1) > 1;
 
   // Determine which milestone index is the "current" one (first not yet achieved)
-  // Use LIQUIDITY (not market cap) since milestones are based on bonding curve liquidity
+  // Use LIQUIDITY AVAX (not market cap) since milestones are based on bonding curve liquidity
   let currentMilestoneIdx = MILESTONES.length - 1;
   for (let i = 0; i < MILESTONES.length; i++) {
-    if (liquidity < MILESTONES[i].mcap) {
+    if (liquidityAvax < MILESTONES[i].mcap) {
       currentMilestoneIdx = i;
       break;
     }
@@ -102,7 +103,7 @@ export function MilestoneSection() {
   const currentMilestone = MILESTONES[currentMilestoneIdx];
   const prevMilestoneMcap = currentMilestoneIdx > 0 ? MILESTONES[currentMilestoneIdx - 1].mcap : 0;
   const progressToNext = currentMilestone
-    ? Math.min(100, ((liquidity - prevMilestoneMcap) / (currentMilestone.mcap - prevMilestoneMcap)) * 100)
+    ? Math.min(100, ((liquidityAvax - prevMilestoneMcap) / (currentMilestone.mcap - prevMilestoneMcap)) * 100)
     : 100;
 
   return (
@@ -125,12 +126,12 @@ export function MilestoneSection() {
           <div className="text-center mb-8 sm:mb-12">
             <p className="text-gray-500 text-xs sm:text-sm uppercase tracking-widest mb-2">Current Liquidity (Bonding Curve)</p>
             <motion.p
-              key={Math.round(liquidity)}
+              key={Math.round(liquidityAvax)}
               initial={{ scale: 1.1, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="font-creepster text-4xl sm:text-6xl md:text-7xl text-orange-400"
             >
-              {connected ? `${formatAvax(liquidity)} AVAX` : "Loading..."}
+              {connected ? `${formatAvax(liquidityAvax)} AVAX` : "Loading..."}
             </motion.p>
             <p className="text-gray-600 text-xs mt-1">Liquidity (Bonding Curve)</p>
           </div>
@@ -139,7 +140,7 @@ export function MilestoneSection() {
         {/* Milestones List */}
         <div className="space-y-4 sm:space-y-5">
           {MILESTONES.map((milestone, i) => {
-            const isAchieved = liquidity >= milestone.mcap || isGraduated;
+            const isAchieved = liquidityAvax >= milestone.mcap || isGraduated;
             const isCurrent = i === currentMilestoneIdx && !isAchieved;
             const isFuture = !isAchieved && !isCurrent;
             const status: MilestoneStatus = isAchieved ? "achieved" : isCurrent ? "current" : "future";
@@ -225,7 +226,7 @@ export function MilestoneSection() {
                         <div className="mt-3">
                           <div className="flex items-center justify-between text-[10px] sm:text-xs mb-1.5">
                             <span className="text-orange-400 font-mono">
-                              {formatAvax(liquidity)} AVAX
+                              {formatAvax(liquidityAvax)} AVAX
                             </span>
                             <span className="text-orange-400/70 font-mono">
                               {progressToNext.toFixed(1)}% to {milestone.mcap} AVAX

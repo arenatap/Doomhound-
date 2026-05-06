@@ -46,7 +46,8 @@ interface ArenaStats {
   totalSupply: number;
   buys: number;
   sells: number;
-  liquidity: number;
+  liquidityAvax: number;
+  liquidityArena: number;
   buyVolume: string;
   sellVolume: string;
 }
@@ -151,8 +152,8 @@ export function LiveTicker() {
     }
 
     // Liquidity
-    if (stats.liquidity > 0) {
-      liveMsgs.push(`💧 Liquidity: ${formatAvax(stats.liquidity)} AVAX`);
+    if (stats.liquidityAvax > 0) {
+      liveMsgs.push(`💧 Liquidity: ${formatAvax(stats.liquidityAvax)} AVAX`);
     }
 
     // Price change

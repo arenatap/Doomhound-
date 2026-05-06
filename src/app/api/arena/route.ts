@@ -63,12 +63,17 @@ async function arenaFetch(endpoint: string, options?: RequestInit, cacheTtl = CA
   }
 }
 
-// Helper: convert wei-like string to AVAX number
-function weiToAvax(wei: string | number): number {
+// Helper: convert wei-like string to number (divide by 1e18)
+function fromWei(wei: string | number): number {
   if (!wei) return 0;
   const val = typeof wei === "string" ? parseFloat(wei) : wei;
   return val / 1e18;
 }
+
+// Arena bonding curve constants (from Arena production source)
+const ARENA_PER_AVAX = 4274.28; // 2,149,963.74 $ARENA / 503 AVAX
+const GRADUATION_LIQUIDITY_AVAX = 503;
+const GRADUATION_LIQUIDITY_ARENA = 2_149_963.74;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -105,17 +110,48 @@ export async function GET(request: NextRequest) {
         }
 
         // Build stats from community data
+        // CRITICAL: The Arena API returns different units depending on paymentToken:
+        // - price, marketCap, totalSupply are ALWAYS in AVAX-wei (18 decimals)
+        // - liquidity is in the PAYMENT TOKEN's wei:
+        //   * If paymentToken === "arena" → liquidity is in $ARENA-wei (18 decimals)
+        //   * If paymentToken === "avax"  → liquidity is in AVAX-wei (18 decimals)
+        // This is because the bonding curve accumulates whatever token users pay with.
         const stats = community?.stats || null;
+        const paymentToken = community?.paymentToken || "arena";
+
+        // Convert raw liquidity based on payment token
+        let liquidityArena = 0;
+        let liquidityAvax = 0;
+        if (stats?.liquidity) {
+          const liquidityRaw = fromWei(stats.liquidity); // raw value / 1e18
+          if (paymentToken === "arena") {
+            liquidityArena = liquidityRaw;
+            liquidityAvax = liquidityRaw / ARENA_PER_AVAX;
+          } else {
+            // paymentToken === "avax" or other
+            liquidityAvax = liquidityRaw;
+            liquidityArena = liquidityRaw * ARENA_PER_AVAX;
+          }
+        }
+
+        // Calculate bonding curve progress correctly
+        // Use liquidity (in $ARENA) vs graduation threshold (2,149,963.74 $ARENA)
+        // This is more accurate than marketCap because it reflects actual deposited funds
+        const bondingCurveProgress = liquidityArena > 0
+          ? Math.min(100, (liquidityArena / GRADUATION_LIQUIDITY_ARENA) * 100)
+          : null;
+
         const formattedStats = stats
           ? {
-              price: weiToAvax(stats.price),
-              marketCap: weiToAvax(stats.marketCap),
-              totalSupply: weiToAvax(stats.totalSupply),
+              price: fromWei(stats.price),
+              marketCap: fromWei(stats.marketCap),
+              totalSupply: fromWei(stats.totalSupply),
               buys: stats.buys || 0,
               sells: stats.sells || 0,
               buyVolume: stats.buyVolume || "0",
               sellVolume: stats.sellVolume || "0",
-              liquidity: weiToAvax(stats.liquidity),
+              liquidityAvax: liquidityAvax,
+              liquidityArena: liquidityArena,
             }
           : null;
 
@@ -137,13 +173,8 @@ export async function GET(request: NextRequest) {
                 paymentToken: community.paymentToken,
                 isLP: community.isLP || false,
                 bcGroupId: community.bcGroupId || null,
-                // Bonding curve progress — Arena may provide this directly
-                bondingCurveProgress: community.bondingCurveProgress ?? community.progress ?? community.bondingCurvePercent ?? null,
-                // Additional stats fields for bonding curve accuracy
-                totalSupplyRaw: stats?.totalSupply ?? null,
-                liquidityRaw: stats?.liquidity ?? null,
-                priceRaw: stats?.price ?? null,
-                marketCapRaw: stats?.marketCap ?? null,
+                // Calculated bonding curve progress (from liquidity / graduation threshold)
+                bondingCurveProgress: bondingCurveProgress,
               }
             : null,
           stats: formattedStats,
@@ -154,7 +185,7 @@ export async function GET(request: NextRequest) {
                 profilePicture: ownerProfile.profilePicture,
                 followerCount: ownerProfile.followerCount || 0,
                 threadCount: ownerProfile.threadCount || 0,
-                keyPrice: weiToAvax(ownerProfile.keyPrice || ownerProfile.lastKeyPrice || "0"),
+                keyPrice: fromWei(ownerProfile.keyPrice || ownerProfile.lastKeyPrice || "0"),
               }
             : null,
           fetchedAt: new Date().toISOString(),
