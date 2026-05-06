@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { ScrollReveal } from "./scroll-reveal";
 
@@ -11,18 +11,24 @@ interface ArenaStats {
   totalSupply: number;
   buys: number;
   sells: number;
+  buyVolume: string;
+  sellVolume: string;
   liquidity: number;
 }
 
 interface ArenaCommunity {
   followerCount: number;
   tokenPhase: number;
+  name: string;
+  ticker: string;
+  tokenName: string;
 }
 
-// The Arena bonding curve threshold (approximate — phase 1 → phase 2 graduation)
-// On The Arena, tokens graduate from bonding curve when they reach sufficient market cap
-// Typical threshold is ~100 AVAX market cap for community tokens
-const BONDING_CURVE_TARGET_AVAX = 100;
+// Arena bonding curve graduation threshold
+// Based on Arena platform data: at ~55 AVAX market cap the progress was 34%
+// → Graduation threshold ≈ 162 AVAX market cap
+// This is the known Arena community token graduation market cap
+const GRADUATION_MCAP_AVAX = 162;
 
 function formatAvax(val: number): string {
   if (val <= 0) return "0";
@@ -33,12 +39,20 @@ function formatAvax(val: number): string {
   return `${(val / 1000000).toFixed(2)}M`;
 }
 
+function formatCount(n: number): string {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+  return n.toLocaleString();
+}
+
 const ARENA_TOKEN_URL = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb?ref=Toff083249361";
 
 export function BondingCurveSection() {
   const [stats, setStats] = useState<ArenaStats | null>(null);
   const [community, setCommunity] = useState<ArenaCommunity | null>(null);
   const [connected, setConnected] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const prevMarketCap = useRef<number>(0);
 
   const fetchData = useCallback(async () => {
     try {
@@ -46,8 +60,14 @@ export function BondingCurveSection() {
       const data = await res.json();
       if (data.connected) {
         setConnected(true);
-        if (data.stats) setStats(data.stats);
+        if (data.stats) {
+          setStats((prev) => {
+            if (prev) prevMarketCap.current = prev.marketCap;
+            return data.stats;
+          });
+        }
         if (data.community) setCommunity(data.community);
+        setLastUpdated(new Date());
       }
     } catch {
       setConnected(false);
@@ -56,15 +76,21 @@ export function BondingCurveSection() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 20000);
+    // Refresh every 15 seconds for live feel
+    const interval = setInterval(fetchData, 15000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  // Calculate progress
+  // Calculate progress from LIVE market cap
   const marketCap = stats?.marketCap || 0;
-  const progress = Math.min(100, (marketCap / BONDING_CURVE_TARGET_AVAX) * 100);
+  const progress = Math.min(100, (marketCap / GRADUATION_MCAP_AVAX) * 100);
   const isGraduated = (community?.tokenPhase ?? 1) > 1 || progress >= 100;
-  const remaining = Math.max(0, BONDING_CURVE_TARGET_AVAX - marketCap);
+  const remaining = Math.max(0, GRADUATION_MCAP_AVAX - marketCap);
+  const price = stats?.price || 0;
+
+  // Detect if market cap changed (for animation)
+  const mcapDelta = marketCap - prevMarketCap.current;
+  const isGrowing = mcapDelta > 0;
 
   return (
     <section id="bonding-curve" className="relative py-20 sm:py-28 bg-[#0a0a0a] overflow-hidden">
@@ -86,20 +112,31 @@ export function BondingCurveSection() {
         {/* Progress Bar */}
         <ScrollReveal delay={0.1}>
           <div className="bg-[#1a1a1a] border border-red-900/30 rounded-xl p-5 sm:p-6 md:p-8">
-            {/* Big percentage */}
+            {/* Live indicator + Big percentage */}
             <div className="text-center mb-5 sm:mb-6">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                {!isGraduated && (
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </span>
+                )}
+                <span className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-widest">
+                  {isGraduated ? "Complete!" : "Live — Updates Every 15s"}
+                </span>
+              </div>
               <motion.span
                 key={Math.round(progress)}
                 initial={{ scale: 1.2, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className={`font-creepster text-5xl sm:text-7xl md:text-8xl ${
-                  isGraduated ? "text-green-400" : progress >= 75 ? "text-orange-400" : "text-red-400"
+                className={`font-creepster text-5xl sm:text-7xl md:text-8xl block ${
+                  isGraduated ? "text-green-400" : progress >= 75 ? "text-orange-400" : progress >= 50 ? "text-yellow-400" : "text-red-400"
                 }`}
               >
                 {progress.toFixed(1)}%
               </motion.span>
               <p className="text-gray-500 text-xs sm:text-sm mt-1 uppercase tracking-wider">
-                {isGraduated ? "Complete!" : "To Graduation"}
+                {isGraduated ? "Graduated from bonding curve!" : "To Graduation"}
               </p>
             </div>
 
@@ -114,6 +151,8 @@ export function BondingCurveSection() {
                     ? "bg-gradient-to-r from-green-600 to-green-400"
                     : progress >= 75
                     ? "bg-gradient-to-r from-red-600 via-orange-500 to-yellow-400"
+                    : progress >= 50
+                    ? "bg-gradient-to-r from-red-600 via-orange-500 to-orange-400"
                     : "bg-gradient-to-r from-red-700 to-red-500"
                 }`}
                 style={{
@@ -131,24 +170,30 @@ export function BondingCurveSection() {
               )}
             </div>
 
-            {/* Stats row */}
+            {/* Live Stats row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-5">
               {connected && stats ? (
                 <>
                   <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
-                    <p className="text-white font-bold text-sm sm:text-base font-mono">{formatAvax(marketCap)}</p>
+                    <p className={`font-bold text-sm sm:text-base font-mono ${isGrowing ? "text-green-400" : "text-white"}`}>
+                      {formatAvax(marketCap)}
+                      <span className="text-gray-500 text-[9px] ml-1">AVAX</span>
+                    </p>
                     <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Market Cap</p>
                   </div>
                   <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
-                    <p className="text-orange-400 font-bold text-sm sm:text-base font-mono">{formatAvax(stats.price)}</p>
+                    <p className="text-orange-400 font-bold text-sm sm:text-base font-mono">
+                      {formatAvax(price)}
+                      <span className="text-gray-500 text-[9px] ml-1">AVAX</span>
+                    </p>
                     <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Price</p>
                   </div>
                   <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
-                    <p className="text-green-400 font-bold text-sm sm:text-base font-mono">{stats.buys}</p>
+                    <p className="text-green-400 font-bold text-sm sm:text-base font-mono">{formatCount(stats.buys)}</p>
                     <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Buys</p>
                   </div>
                   <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
-                    <p className="text-red-400 font-bold text-sm sm:text-base font-mono">{stats.sells}</p>
+                    <p className="text-red-400 font-bold text-sm sm:text-base font-mono">{formatCount(stats.sells)}</p>
                     <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Sells</p>
                   </div>
                 </>
@@ -167,6 +212,11 @@ export function BondingCurveSection() {
                 <p className="text-gray-400 text-xs sm:text-sm mb-3">
                   <span className="text-orange-400 font-bold">{formatAvax(remaining)} AVAX</span> market cap needed to graduate
                 </p>
+                {lastUpdated && (
+                  <p className="text-gray-600 text-[9px] sm:text-[10px] mb-3">
+                    Last updated: {lastUpdated.toLocaleTimeString()} · Auto-refreshes every 15s
+                  </p>
+                )}
                 <a
                   href={ARENA_TOKEN_URL}
                   target="_blank"

@@ -167,6 +167,7 @@ export function ArenaGameSection() {
   const [verifyResult, setVerifyResult] = useState<{
     newThreads: number;
     newFollowers: number;
+    communityPostsFound: number;
     trendingBonus: number;
     totalNewPoints: number;
   } | null>(null);
@@ -282,6 +283,7 @@ export function ArenaGameSection() {
         setVerifyResult({
           newThreads: data.newThreads,
           newFollowers: data.newFollowers,
+          communityPostsFound: data.communityPostsFound || 0,
           trendingBonus: data.trendingBonus,
           totalNewPoints: data.totalNewPoints,
         });
@@ -452,6 +454,11 @@ export function ArenaGameSection() {
                               📝 {verifyResult.newThreads} new post{verifyResult.newThreads > 1 ? "s" : ""} detected — submit the link below for +30 pts each!
                             </p>
                           )}
+                          {verifyResult.communityPostsFound > 0 && (
+                            <p className="text-orange-400 text-[10px] sm:text-xs">
+                              🐺 {verifyResult.communityPostsFound} post{verifyResult.communityPostsFound > 1 ? "s" : ""} found in $DOOMHOUND community — submit the link below for +30 pts each!
+                            </p>
+                          )}
                           {verifyResult.newFollowers > 0 && (
                             <p className="text-gray-400 text-[10px] sm:text-xs">
                               👥 {verifyResult.newFollowers} new follower{verifyResult.newFollowers > 1 ? "s" : ""} (+{verifyResult.newFollowers * POINTS.arena_follower.value} pts)
@@ -464,11 +471,19 @@ export function ArenaGameSection() {
                           )}
                         </div>
                       ) : (
-                        <p className="text-gray-400 text-xs sm:text-sm">
-                          {verifyResult.newThreads > 0
-                            ? `${verifyResult.newThreads} new post(s) detected! Submit the post URL below for +30 pts.`
-                            : "No new Arena activity detected. Post about $DOOMHOUND and submit the link!"}
-                        </p>
+                        <div className="space-y-1.5">
+                          {(verifyResult.newThreads > 0 || verifyResult.communityPostsFound > 0) ? (
+                            <p className="text-gray-300 text-xs sm:text-sm">
+                              {verifyResult.communityPostsFound > 0
+                                ? `${verifyResult.communityPostsFound} post(s) found in the $DOOMHOUND community! Submit the post URL below for +30 pts each.`
+                                : `${verifyResult.newThreads} new post(s) detected! Submit the post URL below for +30 pts.`}
+                            </p>
+                          ) : (
+                            <p className="text-gray-400 text-xs sm:text-sm">
+                              No new posts detected yet. Post about $DOOMHOUND on <a href="https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb?ref=Toff083249361" target="_blank" rel="noopener noreferrer" className="text-red-400 hover:text-red-300 underline">the community page</a> or your profile, then submit the link below!
+                            </p>
+                          )}
+                        </div>
                       )}
                     </motion.div>
                   )}
@@ -645,7 +660,7 @@ export function ArenaGameSection() {
                         <span className="text-2xl sm:text-3xl">🎨</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-white text-sm sm:text-base font-bold">Arena Post</p>
-                          <p className="text-gray-500 text-xs sm:text-sm">+{POINTS.meme_generated.value} pts · Post about $DOOMHOUND on Arena, then submit the link</p>
+                          <p className="text-gray-500 text-xs sm:text-sm">+{POINTS.meme_generated.value} pts · Post about $DOOMHOUND on Arena or the community page, then submit the link</p>
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -672,7 +687,7 @@ export function ArenaGameSection() {
                         </BloodSplash>
                       </div>
                       <p className="text-gray-600 text-[9px] sm:text-[10px] mt-1.5">
-                        Post about $DOOMHOUND on <a href="https://arena.social/home" target="_blank" rel="noopener noreferrer" className="text-red-400/60 hover:text-red-400">The Arena</a>, copy the post URL, and paste it here. We verify it via API.
+                        Post about $DOOMHOUND on <a href="https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb?ref=Toff083249361" target="_blank" rel="noopener noreferrer" className="text-red-400/60 hover:text-red-400">the $DOOMHOUND community page</a> or your Arena profile, copy the post URL, and paste it here. We verify it via API.
                       </p>
                     </div>
 

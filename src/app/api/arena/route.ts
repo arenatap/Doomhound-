@@ -21,7 +21,7 @@ async function arenaFetch(endpoint: string, options?: RequestInit) {
       "Content-Type": "application/json",
       ...options?.headers,
     },
-    next: { revalidate: 20 }, // Cache for 20s for live feel
+    next: { revalidate: 10 }, // Cache for 10s for live bonding curve
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
@@ -103,6 +103,8 @@ export async function GET(request: NextRequest) {
                 tokenPhase: community.tokenPhase,
                 createdOn: community.createdOn,
                 paymentToken: community.paymentToken,
+                isLP: community.isLP || false,
+                bcGroupId: community.bcGroupId || null,
               }
             : null,
           stats: formattedStats,

@@ -81,3 +81,28 @@ Stage Summary:
 - Main fix: Live ticker bar now shows LIVE messages instead of "launching soon"
 - All other sections already showing LIVE state correctly
 - Push successful to GitHub main branch - Render will auto-deploy
+
+---
+Task ID: 1
+Agent: Main
+Task: Remove "How to Summon $DOOMHOUND" section, fix bonding curve to be live, fix Arena post verification for community posts
+
+Work Log:
+- Removed HowToBuySection import and component from page.tsx (user said "su the arena hai già un wallet eliminiamolo del tutto")
+- Rewrote bonding-curve-section.tsx with live Arena API data:
+  - Progress calculated from live market cap vs graduation threshold (162 AVAX)
+  - Auto-refreshes every 15 seconds (down from 20s)
+  - Shows live market cap, price, buys, sells with AVAX labels
+  - Added live green dot indicator + "Live — Updates Every 15s" label
+  - Added last updated timestamp
+  - Removed hardcoded 100 AVAX target, now uses 162 AVAX based on actual Arena data (34% at 55 AVAX)
+- Updated arena/route.ts: cache reduced from 20s to 10s, added isLP and bcGroupId to community response
+- Fixed verify_arena action in pack/route.ts: now also scans DOOMHOUND community feed for user's posts
+- Updated arena-game-section.tsx: added communityPostsFound to verify result, improved "no posts" message with direct link to community page, updated Meme Forge description and help text to mention community page posting
+- Build verified successfully
+
+Stage Summary:
+- "How to Summon" section completely removed
+- Bonding curve now shows real-time live data from Arena API (34% → updates as market cap grows)
+- Arena post verification now also checks community page posts (not just profile posts)
+- All changes pushed to GitHub for Render auto-deploy

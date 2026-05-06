@@ -4,7 +4,7 @@ import { useEffect, useCallback } from "react";
 import { HeroSection } from "@/components/doom/hero-section";
 import { LiveTicker } from "@/components/doom/live-ticker";
 import { CountdownTimer } from "@/components/doom/countdown-timer";
-import { HowToBuySection } from "@/components/doom/how-to-buy-section";
+
 import { LoreSection } from "@/components/doom/lore-section";
 import { TokenomicsSection } from "@/components/doom/tokenomics-section";
 import { LiveDataSection } from "@/components/doom/live-data-section";
@@ -74,7 +74,7 @@ export default function HomePage() {
       <HeroSection />
       <LiveTicker />
       <BondingCurveSection />
-      <HowToBuySection />
+
       <CountdownTimer />
       <LoreSection />
       <TokenomicsSection />

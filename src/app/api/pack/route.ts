@@ -500,6 +500,27 @@ export async function POST(request: NextRequest) {
           });
         }
 
+        // Also check for new posts in the DOOMHOUND community feed by this user
+        // This detects posts made ON the community page, not just the user's personal profile
+        let communityPostsFound = 0;
+        try {
+          const arenaUserId = profile.id;
+          if (arenaUserId) {
+            const communityFeed = await arenaFetch(
+              `/agents/threads/feed/community?communityId=4b326b82-46e7-4ac7-a34b-8e8d00913f0b&page=1&pageSize=25`
+            );
+            const communityThreads = communityFeed.threads || [];
+            for (const thread of communityThreads) {
+              const threadHandle = (thread.userHandle || "").toLowerCase();
+              if (threadHandle === cleanHandle) {
+                communityPostsFound++;
+              }
+            }
+          }
+        } catch (err: any) {
+          console.log("Community feed scan failed:", err?.message || err);
+        }
+
         // Scan trending feed for mentions of this user's $DOOMHOUND posts
         const trendingData = await arenaFetch(
           "/agents/threads/feed/trendingPosts?pageSize=50"
@@ -558,6 +579,7 @@ export async function POST(request: NextRequest) {
           verified: true,
           newThreads,
           newFollowers,
+          communityPostsFound,
           trendingBonus,
           totalNewPoints,
           currentThreadCount,
