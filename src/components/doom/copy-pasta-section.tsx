@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 // Every shill text gets this link appended — NEVER copy without it
 const SHILL_LINK = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb?ref=Toff083249361";
 const HASHTAGS = "#DOOMHOUND #Avalanche #TheArena";
-const GRADUATION_MCAP_AVAX = 162;
+const GRADUATION_MCAP_AVAX = 503;
 
 const staticShillTexts = [
   "$DOOMHOUND is the Arena's most feared contender. Can't kill what's already from hell. 0 tax, LP burned, contract renounced. This hound doesn't rug — it DEVOURS rugs. Join the pack 🔥",
@@ -61,7 +61,7 @@ export function CopyPastaSection() {
   // Build the 5th dynamic shill text
   const bondingPct = stats ? Math.min(100, (stats.marketCap / GRADUATION_MCAP_AVAX) * 100).toFixed(1) : "XX";
   const mcapStr = stats ? formatAvax(stats.marketCap) : "XX";
-  const dynamicShillText = `$DOOMHOUND is STILL at micro cap! Only ${mcapStr} AVAX market cap and ${bondingPct}% to graduation. When this graduates, liquidity gets LOCKED. Early buyers eat best. Don't fade the hound 🐺🔥`;
+  const dynamicShillText = `$DOOMHOUND is STILL at micro cap! Only ${mcapStr} AVAX market cap and ${bondingPct}% to graduation (503 AVAX / 2.1M $ARENA). When this graduates, liquidity gets LOCKED. Early buyers eat best. Don't fade the hound 🐺🔥`;
 
   const allShillTexts = [...staticShillTexts, dynamicShillText];
 

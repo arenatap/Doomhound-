@@ -7,7 +7,7 @@ import { BloodSplash } from "./blood-splash";
 
 const fullAddress = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
 const ARENA_TOKEN_URL = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb?ref=Toff083249361";
-const GRADUATION_MCAP_AVAX = 162;
+const GRADUATION_MCAP_AVAX = 503;
 
 interface ArenaStats {
   price: number;
@@ -132,7 +132,7 @@ export function HeroSection() {
           transition={{ delay: 0.9, duration: 0.8 }}
           className="text-sm sm:text-base md:text-lg text-orange-400/80 font-mono mb-6 md:mb-8 tracking-wider"
         >
-          Micro Cap · Bonding Curve Active · Be Early
+          Micro Cap · 503 AVAX to Graduate · Be Early
         </motion.p>
 
         {/* MICRO CAP ALERT Badge */}

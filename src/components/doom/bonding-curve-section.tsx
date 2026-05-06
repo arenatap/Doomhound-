@@ -24,11 +24,11 @@ interface ArenaCommunity {
   tokenName: string;
 }
 
-// Arena bonding curve graduation threshold
-// Based on Arena platform data: at ~55 AVAX market cap the progress was 34%
-// → Graduation threshold ≈ 162 AVAX market cap
-// This is the known Arena community token graduation market cap
-const GRADUATION_MCAP_AVAX = 162;
+// Arena bonding curve graduation thresholds
+// $DOOMHOUND graduates when market cap reaches 503 AVAX (equivalent to 2.1M $ARENA)
+// Paired with $ARENA token on The Arena platform
+const GRADUATION_MCAP_AVAX = 503;
+const GRADUATION_MCAP_ARENA = 2_100_000;
 
 function formatAvax(val: number): string {
   if (val <= 0) return "0";
@@ -206,12 +206,17 @@ export function BondingCurveSection() {
               )}
             </div>
 
-            {/* Remaining + CTA */}
+            {/* Graduation Targets */}
             {!isGraduated && (
               <div className="text-center">
-                <p className="text-gray-400 text-xs sm:text-sm mb-3">
-                  <span className="text-orange-400 font-bold">{formatAvax(remaining)} AVAX</span> market cap needed to graduate
-                </p>
+                <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5 bg-orange-900/20 border border-orange-800/30 rounded-full px-3 py-1 text-orange-400 text-xs sm:text-sm font-mono">
+                    🎯 {formatAvax(remaining)} AVAX to graduate
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 bg-purple-900/20 border border-purple-800/30 rounded-full px-3 py-1 text-purple-400 text-xs sm:text-sm font-mono">
+                    🪙 2.1M $ARENA target
+                  </span>
+                </div>
                 {lastUpdated && (
                   <p className="text-gray-600 text-[9px] sm:text-[10px] mb-3">
                     Last updated: {lastUpdated.toLocaleTimeString()} · Auto-refreshes every 15s
