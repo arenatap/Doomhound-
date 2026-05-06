@@ -709,53 +709,102 @@ export async function POST(request: NextRequest) {
         let verified = false;
         let verificationDetail = "";
 
+        // Extract handle from URL (e.g. arena.social/Toff083249361/status/...)
+        const urlHandleMatch = trimmedUrl.match(/arena\.social\/([a-zA-Z0-9_]+)\/status\//);
+        const urlHandle = urlHandleMatch ? urlHandleMatch[1].toLowerCase() : null;
+
         if (threadId) {
+          // Strategy 1: Search the user's thread feed for this thread ID
+          // This works for BOTH profile posts AND community posts
           try {
-            // Try to fetch the thread from Arena API
-            const threadData = await arenaFetch(`/agents/threads/${threadId}`);
-            const thread = threadData.thread || threadData;
+            // First get the user's Arena profile to get their userId
+            const arenaProfile = await arenaFetch(
+              `/agents/user/handle?handle=${encodeURIComponent(cleanHandle)}`
+            );
+            const arenaUserId = arenaProfile.user?.id;
 
-            if (thread) {
-              // Verify ownership — the thread must be from this user
-              const threadHandle = (
-                thread.userHandle ||
-                thread.user?.handle ||
-                thread.handle ||
-                ""
-              ).toLowerCase();
+            if (arenaUserId) {
+              // Fetch user's recent threads (includes community posts)
+              const userThreadsData = await arenaFetch(
+                `/agents/threads/feed/user?userId=${arenaUserId}&page=1&pageSize=25`
+              );
+              const userThreads = userThreadsData.threads || [];
 
-              if (threadHandle === cleanHandle) {
-                // Verify content mentions $DOOMHOUND
-                const content = stripHtml(thread.content || "").toLowerCase();
-                const communityTicker = thread.community?.ticker?.toLowerCase();
+              // Find the specific thread by ID
+              const foundThread = userThreads.find((t: any) => t.id === threadId);
 
-                const isDoomhoundRelated =
-                  content.includes("doomhound") ||
-                  content.includes("$doomhound") ||
-                  content.includes("doom") ||
-                  communityTicker === "doomhound";
+              if (foundThread) {
+                // Verify ownership
+                const threadHandle = (foundThread.userHandle || "").toLowerCase();
+                if (threadHandle === cleanHandle || (urlHandle && urlHandle === cleanHandle)) {
+                  // Verify content is $DOOMHOUND related
+                  const content = stripHtml(foundThread.content || "").toLowerCase();
+                  const communityTicker = foundThread.community?.ticker?.toLowerCase();
+                  const communityId = foundThread.communityId;
 
-                if (isDoomhoundRelated) {
-                  verified = true;
-                  verificationDetail = "Content verified on Arena";
+                  const isDoomhoundRelated =
+                    content.includes("doomhound") ||
+                    content.includes("$doomhound") ||
+                    content.includes("doom") ||
+                    communityTicker === "doomhound" ||
+                    communityId === "4b326b82-46e7-4ac7-a34b-8e8d00913f0b"; // DOOMHOUND community
+
+                  if (isDoomhoundRelated) {
+                    verified = true;
+                    verificationDetail = foundThread.communityId
+                      ? "Community post verified on $DOOMHOUND Arena"
+                      : "Post verified on Arena";
+                  } else {
+                    return NextResponse.json({
+                      error: "This post doesn't mention $DOOMHOUND. Post about $DOOMHOUND on Arena and submit that link!",
+                    }, { status: 400 });
+                  }
                 } else {
                   return NextResponse.json({
-                    error: "This post doesn't mention $DOOMHOUND. Post about $DOOMHOUND on Arena and submit that link!",
+                    error: "This post doesn't belong to your Arena account. Submit your own $DOOMHOUND post!",
                   }, { status: 400 });
                 }
-              } else {
-                return NextResponse.json({
-                  error: "This post doesn't belong to your Arena account. Submit your own $DOOMHOUND post!",
-                }, { status: 400 });
               }
             }
           } catch (err: any) {
-            // Thread API might not support direct lookup, fall back to threadCount check
-            console.log("Thread API lookup failed, falling back to threadCount verification:", err?.message || err);
+            console.log("User thread feed lookup failed:", err?.message || err);
+          }
+
+          // Strategy 2: Search DOOMHOUND community feed for this thread
+          if (!verified) {
+            try {
+              const communityFeed = await arenaFetch(
+                `/agents/threads/feed/community?communityId=4b326b82-46e7-4ac7-a34b-8e8d00913f0b&page=1&pageSize=25`
+              );
+              const communityThreads = communityFeed.threads || [];
+              const foundThread = communityThreads.find((t: any) => t.id === threadId);
+
+              if (foundThread) {
+                const threadHandle = (foundThread.userHandle || "").toLowerCase();
+                if (threadHandle === cleanHandle || (urlHandle && urlHandle === cleanHandle)) {
+                  verified = true;
+                  verificationDetail = "Community post found in $DOOMHOUND feed";
+                } else {
+                  return NextResponse.json({
+                    error: "This post doesn't belong to your Arena account. Submit your own $DOOMHOUND post!",
+                  }, { status: 400 });
+                }
+              }
+            } catch (err: any) {
+              console.log("Community feed lookup failed:", err?.message || err);
+            }
+          }
+
+          // Strategy 3: URL-based verification
+          // If the URL contains the user's handle and a valid thread UUID,
+          // and we have duplicate detection, accept it
+          if (!verified && urlHandle === cleanHandle) {
+            verified = true;
+            verificationDetail = "Arena post URL verified (handle match + thread ID)";
           }
         }
 
-        // Fallback verification: check if threadCount has increased
+        // Strategy 4: Fallback — check if threadCount has increased
         if (!verified) {
           try {
             const arenaData = await arenaFetch(
@@ -766,15 +815,10 @@ export async function POST(request: NextRequest) {
               if (currentThreadCount > member.lastThreadCount) {
                 verified = true;
                 verificationDetail = "New post activity detected on Arena";
-                // Update the tracked thread count
                 await db.packMember.update({
                   where: { handle: cleanHandle },
                   data: { lastThreadCount: currentThreadCount },
                 });
-              } else {
-                return NextResponse.json({
-                  error: "No new post detected on your Arena profile. Make sure you posted on Arena first!",
-                }, { status: 400 });
               }
             }
           } catch (err) {
@@ -784,7 +828,7 @@ export async function POST(request: NextRequest) {
 
         if (!verified) {
           return NextResponse.json({
-            error: "Could not verify your post on Arena. Make sure you posted about $DOOMHOUND and the URL is correct.",
+            error: "Could not verify your post on Arena. Make sure the URL is correct and the post is from your account.",
           }, { status: 400 });
         }
 
