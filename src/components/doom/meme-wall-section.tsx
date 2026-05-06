@@ -10,6 +10,7 @@ const memes = [
   { src: "/images/doomhound-meme2.png", alt: "Hound destroying a rug", label: "Rug Destroyer" },
   { src: "/images/doomhound-meme3.png", alt: "Hound in sports car", label: "Lambo When" },
   { src: "/images/doomhound-meme4.png", alt: "Hound as scientist", label: "Mad Scientist" },
+  { src: "/images/doomhound-meme5.png", alt: "Doomhound Mascot", label: "The Mascot" },
 ];
 
 export function MemeWallSection() {

@@ -9,6 +9,7 @@ const templates = [
   { src: "/images/doomhound-meme2.png", label: "Rug Pull" },
   { src: "/images/doomhound-meme3.png", label: "Lambo" },
   { src: "/images/doomhound-meme4.png", label: "Scientist" },
+  { src: "/images/doomhound-meme5.png", label: "Mascot" },
 ];
 
 export function MemeGeneratorSection() {
@@ -88,7 +89,7 @@ export function MemeGeneratorSection() {
               <label className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-3 sm:mb-4 block">
                 Choose Template
               </label>
-              <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+              <div className="grid grid-cols-5 gap-2 sm:gap-3 md:gap-4">
                 {templates.map((t, i) => (
                   <button
                     key={i}
