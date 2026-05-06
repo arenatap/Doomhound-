@@ -94,6 +94,25 @@ export async function GET(request: NextRequest) {
         const communityData = await arenaFetch(`/agents/communities/search?searchString=doomhound&page=1&pageSize=10`, undefined, CACHE_TTL_DEFAULT);
         const ownerData = await arenaFetch(`/agents/user/id?userId=${DOOMHOUND_OWNER_ID}`, undefined, CACHE_TTL_STATIC);
 
+        // Fetch AVAX/USD price from CoinGecko (cached for 5 min)
+        let avaxUsd = 9.6; // fallback
+        try {
+          const cgCacheKey = "GET:coingecko:avax";
+          const cgCached = arenaCache.get(cgCacheKey);
+          if (cgCached && Date.now() < cgCached.expires) {
+            avaxUsd = cgCached.data;
+          } else {
+            const cgRes = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=avalanche-2&vs_currencies=usd");
+            if (cgRes.ok) {
+              const cgData = await cgRes.json();
+              avaxUsd = cgData?.["avalanche-2"]?.usd || 9.6;
+              arenaCache.set(cgCacheKey, { data: avaxUsd, expires: Date.now() + 300_000 }); // 5 min cache
+            }
+          }
+        } catch {
+          // Keep fallback
+        }
+
         // Extract community data
         let community: any = null;
         if (communityData) {
@@ -189,6 +208,7 @@ export async function GET(request: NextRequest) {
               }
             : null,
           fetchedAt: new Date().toISOString(),
+          avaxUsd: avaxUsd,
         });
       }
 

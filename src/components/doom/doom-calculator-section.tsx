@@ -45,8 +45,8 @@ function formatUsd(val: number): string {
   return `$${(val / 1000000).toFixed(2)}M`;
 }
 
-// Rough AVAX/USD price for display
-const AVAX_USD = 22;
+// AVAX/USD price — fetched live from CoinGecko, fallback to 9.6
+const AVAX_USD_FALLBACK = 9.6;
 
 const PRESET_AMOUNTS = [0.5, 1, 2, 5, 10];
 
@@ -54,6 +54,7 @@ export function DoomCalculatorSection() {
   const [stats, setStats] = useState<ArenaStats | null>(null);
   const [community, setCommunity] = useState<ArenaCommunity | null>(null);
   const [connected, setConnected] = useState(false);
+  const [avaxUsd, setAvaxUsd] = useState(AVAX_USD_FALLBACK);
   const [investmentInput, setInvestmentInput] = useState("2");
   const investment = parseFloat(investmentInput) || 0;
 
@@ -65,6 +66,8 @@ export function DoomCalculatorSection() {
         setConnected(true);
         if (data.stats) setStats(data.stats);
         if (data.community) setCommunity(data.community);
+        // Extract live AVAX/USD from API if available
+        if (data.avaxUsd) setAvaxUsd(data.avaxUsd);
       }
     } catch {
       setConnected(false);
@@ -91,9 +94,9 @@ export function DoomCalculatorSection() {
 
   const tokensYouGet = currentPrice > 0 ? investment / currentPrice : 0;
   const estimatedValueAvax = investment * multiplier;
-  const estimatedValueUsd = estimatedValueAvax * AVAX_USD;
+  const estimatedValueUsd = estimatedValueAvax * avaxUsd;
   const estimatedProfitAvax = Math.max(0, estimatedValueAvax - investment);
-  const estimatedProfitUsd = estimatedProfitAvax * AVAX_USD;
+  const estimatedProfitUsd = estimatedProfitAvax * avaxUsd;
   const roi = investment > 0 && multiplier > 1 ? ((multiplier - 1) * 100) : 0;
 
   return (
@@ -211,7 +214,7 @@ export function DoomCalculatorSection() {
                           <p className="text-white font-mono text-lg sm:text-xl font-bold">
                             {formatAvax(investment)} AVAX
                           </p>
-                          <p className="text-gray-600 text-[10px] sm:text-xs">≈ {formatUsd(investment * AVAX_USD)}</p>
+                          <p className="text-gray-600 text-[10px] sm:text-xs">≈ {formatUsd(investment * avaxUsd)}</p>
                         </div>
                         <div className="bg-[#1a1a1a] rounded-lg p-4 border border-green-900/30">
                           <p className="text-gray-500 text-[10px] sm:text-xs uppercase mb-1">Value at Graduation</p>
