@@ -9,7 +9,7 @@ import { ScrollReveal } from "./scroll-reveal";
 // Burns are fetched on-chain from Snowtrace (transfers to 0xdead).
 
 const DEAD_ADDRESS = "0x000000000000000000000000000000000000dEaD";
-const TOTAL_SUPPLY = 3_400_000_000; // 3.4B $DOOM total supply
+const TOTAL_SUPPLY = 3_000_000_000; // 3B $DOOM total circulating supply
 const BURN_AMOUNT_DAILY = 10_000_000; // 10M per day
 const SNOWTRACE_TX = "https://snowtrace.io/tx/";
 
@@ -77,8 +77,8 @@ export function BurnArenaSection() {
       const minutes = romeTime.getMinutes();
       const seconds = romeTime.getSeconds();
 
-      // Next burn at 8:00 AM Rome time
-      let targetH = 8;
+      // Next burn at 12:00 (noon) Rome time
+      let targetH = 12;
       let daysToAdd = 0;
       if (hours > targetH || (hours === targetH && minutes > 0)) {
         daysToAdd = 1;
@@ -125,7 +125,7 @@ export function BurnArenaSection() {
             🔥 BURN ARENA
           </h2>
           <p className="text-center text-gray-400 text-sm sm:text-base md:text-lg mb-8 sm:mb-12 max-w-xl mx-auto">
-            10M $DOOM burned daily. Supply shrinking. No mercy. The hound eats its own.
+            10M $DOOM burned daily at noon. Supply shrinking. No mercy. The hound eats its own.
           </p>
         </ScrollReveal>
 
@@ -173,7 +173,7 @@ export function BurnArenaSection() {
                   <p className="text-gray-600 text-[8px] sm:text-[10px] uppercase">sec</p>
                 </div>
               </div>
-              <p className="text-gray-600 text-[10px] sm:text-xs mt-2">Every morning at 8:00 AM CET</p>
+              <p className="text-gray-600 text-[10px] sm:text-xs mt-2">Every day at 12:00 PM CET</p>
             </div>
 
             {/* Burn Schedule */}
