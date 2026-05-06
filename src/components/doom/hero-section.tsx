@@ -7,6 +7,7 @@ import { BloodSplash } from "./blood-splash";
 
 const fullAddress = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
 const ARENA_TOKEN_URL = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb?ref=Toff083249361";
+const GRADUATION_MCAP_AVAX = 162;
 
 interface ArenaStats {
   price: number;
@@ -119,17 +120,47 @@ export function HeroSection() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.8 }}
-          className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 mb-6 md:mb-8"
+          className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 mb-3 md:mb-4"
         >
           The Arena&apos;s Most Feared Contender
         </motion.p>
+
+        {/* Micro Cap Urgency Line */}
+        <motion.p
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.9, duration: 0.8 }}
+          className="text-sm sm:text-base md:text-lg text-orange-400/80 font-mono mb-6 md:mb-8 tracking-wider"
+        >
+          Micro Cap · Bonding Curve Active · Be Early
+        </motion.p>
+
+        {/* MICRO CAP ALERT Badge */}
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.85, duration: 0.6 }}
+          className="flex justify-center mb-4 md:mb-5"
+        >
+          <span className="relative inline-flex items-center gap-2 bg-red-900/40 border border-red-500/60 rounded-full px-4 py-1.5 sm:px-5 sm:py-2 text-red-300 text-xs sm:text-sm md:text-base font-bold uppercase tracking-wider shadow-[0_0_15px_rgba(220,38,38,0.3)]">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+            </span>
+            🔥 MICRO CAP ALERT
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500" />
+            </span>
+          </span>
+        </motion.div>
 
         {/* Live Stats Pills */}
         {(stats || holdersCount > 0) && (
           <motion.div
             initial={{ y: 10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.9, duration: 0.8 }}
+            transition={{ delay: 1, duration: 0.8 }}
             className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap mb-6 md:mb-8"
           >
             {stats && (
@@ -139,6 +170,9 @@ export function HeroSection() {
                 </span>
                 <span className="inline-flex items-center gap-1.5 bg-[#1a1a1a]/80 backdrop-blur border border-[#2a2a2a] rounded-full px-3 py-1 text-white text-xs sm:text-sm font-mono">
                   💰 MC {formatAvax(stats.marketCap)}
+                </span>
+                <span className="inline-flex items-center gap-1.5 bg-[#1a1a1a]/80 backdrop-blur border border-red-900/40 rounded-full px-3 py-1 text-red-300 text-xs sm:text-sm font-mono">
+                  📊 {Math.min(100, (stats.marketCap / GRADUATION_MCAP_AVAX) * 100).toFixed(1)}% to graduation
                 </span>
               </>
             )}

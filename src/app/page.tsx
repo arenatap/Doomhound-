@@ -22,6 +22,8 @@ import { AbyssEasterEgg } from "@/components/doom/abyss-easter-egg";
 import { SoundToggle } from "@/components/doom/sound-toggle";
 import { FloatingBuy } from "@/components/doom/floating-buy";
 import { BondingCurveSection } from "@/components/doom/bonding-curve-section";
+import { MilestoneSection } from "@/components/doom/milestone-section";
+import { BuyToast } from "@/components/doom/buy-toast";
 import { Navbar } from "@/components/doom/navbar";
 import { useSoundEffects } from "@/components/doom/use-sound-effects";
 import { useGlobalBloodSplash } from "@/components/doom/use-global-blood-splash";
@@ -74,6 +76,7 @@ export default function HomePage() {
       <HeroSection />
       <LiveTicker />
       <BondingCurveSection />
+      <MilestoneSection />
 
       <CountdownTimer />
       <LoreSection />
@@ -96,6 +99,7 @@ export default function HomePage() {
       <AbyssEasterEgg />
       <SoundToggle enabled={enabled} onToggle={toggleSound} />
       <FloatingBuy />
+      <BuyToast />
     </main>
   );
 }
