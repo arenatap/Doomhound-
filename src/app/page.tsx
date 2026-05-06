@@ -4,6 +4,7 @@ import { useEffect, useCallback } from "react";
 import { HeroSection } from "@/components/doom/hero-section";
 import { LiveTicker } from "@/components/doom/live-ticker";
 import { CountdownTimer } from "@/components/doom/countdown-timer";
+import { HowToBuySection } from "@/components/doom/how-to-buy-section";
 import { LoreSection } from "@/components/doom/lore-section";
 import { TokenomicsSection } from "@/components/doom/tokenomics-section";
 import { LiveDataSection } from "@/components/doom/live-data-section";
@@ -20,6 +21,7 @@ import { KonamiCode } from "@/components/doom/konami-code";
 import { AbyssEasterEgg } from "@/components/doom/abyss-easter-egg";
 import { SoundToggle } from "@/components/doom/sound-toggle";
 import { FloatingBuy } from "@/components/doom/floating-buy";
+import { BondingCurveSection } from "@/components/doom/bonding-curve-section";
 import { Navbar } from "@/components/doom/navbar";
 import { useSoundEffects } from "@/components/doom/use-sound-effects";
 import { useGlobalBloodSplash } from "@/components/doom/use-global-blood-splash";
@@ -71,6 +73,8 @@ export default function HomePage() {
       <Navbar />
       <HeroSection />
       <LiveTicker />
+      <BondingCurveSection />
+      <HowToBuySection />
       <CountdownTimer />
       <LoreSection />
       <TokenomicsSection />

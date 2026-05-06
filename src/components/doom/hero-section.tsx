@@ -1,20 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, Copy, Check } from "lucide-react";
 import { BloodSplash } from "./blood-splash";
 
+const fullAddress = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
+const ARENA_TOKEN_URL = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb?ref=Toff083249361";
+
+interface ArenaStats {
+  price: number;
+  marketCap: number;
+  buys: number;
+  sells: number;
+}
+
+function formatAvax(val: number): string {
+  if (val <= 0) return "0";
+  if (val < 0.0001) return "<0.0001";
+  if (val < 1) return val.toFixed(4);
+  if (val < 100) return val.toFixed(2);
+  if (val < 1000000) return val.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  return `${(val / 1000000).toFixed(2)}M`;
+}
+
 export function HeroSection() {
   const [copied, setCopied] = useState(false);
+  const [stats, setStats] = useState<ArenaStats | null>(null);
+  const [holdersCount, setHoldersCount] = useState(0);
 
-  const fullAddress = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
-  const contractAddress = fullAddress;
-  const tokenLive = true;
-  const arenaTokenUrl = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
+  const fetchLiveData = useCallback(async () => {
+    try {
+      const [arenaRes, holderRes] = await Promise.all([
+        fetch("/api/arena?action=live"),
+        fetch("/api/snowtrace?action=holdercount"),
+      ]);
+      const arenaData = await arenaRes.json();
+      const holderData = await holderRes.json();
+
+      if (arenaData.connected && arenaData.stats) {
+        setStats(arenaData.stats);
+      }
+      if (holderData.holderCount) {
+        setHoldersCount(holderData.holderCount);
+      }
+    } catch { /* silent */ }
+  }, []);
+
+  useEffect(() => {
+    fetchLiveData();
+    const interval = setInterval(fetchLiveData, 20000);
+    return () => clearInterval(interval);
+  }, [fetchLiveData]);
 
   const handleCopy = () => {
-    if (!fullAddress) return;
     navigator.clipboard.writeText(fullAddress);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -80,10 +119,41 @@ export function HeroSection() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.8 }}
-          className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 mb-8 md:mb-12"
+          className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 mb-6 md:mb-8"
         >
           The Arena&apos;s Most Feared Contender
         </motion.p>
+
+        {/* Live Stats Pills */}
+        {(stats || holdersCount > 0) && (
+          <motion.div
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.9, duration: 0.8 }}
+            className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap mb-6 md:mb-8"
+          >
+            {stats && (
+              <>
+                <span className="inline-flex items-center gap-1.5 bg-[#1a1a1a]/80 backdrop-blur border border-orange-900/40 rounded-full px-3 py-1 text-orange-400 text-xs sm:text-sm font-mono">
+                  📈 {formatAvax(stats.price)} AVAX
+                </span>
+                <span className="inline-flex items-center gap-1.5 bg-[#1a1a1a]/80 backdrop-blur border border-[#2a2a2a] rounded-full px-3 py-1 text-white text-xs sm:text-sm font-mono">
+                  💰 MC {formatAvax(stats.marketCap)}
+                </span>
+              </>
+            )}
+            {holdersCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 bg-[#1a1a1a]/80 backdrop-blur border border-[#2a2a2a] rounded-full px-3 py-1 text-red-400 text-xs sm:text-sm font-mono">
+                🐺 {holdersCount} holders
+              </span>
+            )}
+            {stats && (
+              <span className="inline-flex items-center gap-1.5 bg-[#1a1a1a]/80 backdrop-blur border border-[#2a2a2a] rounded-full px-3 py-1 text-green-400 text-xs sm:text-sm font-mono">
+                ✅ {stats.buys} buys
+              </span>
+            )}
+          </motion.div>
+        )}
 
         {/* Buttons */}
         <motion.div
@@ -94,12 +164,12 @@ export function HeroSection() {
         >
           <BloodSplash className="w-full sm:w-auto">
             <a
-              href={arenaTokenUrl}
+              href={ARENA_TOKEN_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center w-full sm:w-auto px-8 sm:px-10 md:px-12 py-4 md:py-5 text-base sm:text-lg md:text-xl font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transition-all duration-300 animate-breathing-glow"
             >
-              {tokenLive ? "BUY $DOOMHOUND" : "🔥 LAUNCHING TONIGHT"}
+              🔥 BUY $DOOMHOUND
             </a>
           </BloodSplash>
           <BloodSplash className="w-full sm:w-auto">
@@ -120,21 +190,19 @@ export function HeroSection() {
           className="flex items-center justify-center gap-3 bg-[#1a1a1a]/80 backdrop-blur border border-[#2a2a2a] rounded-xl px-5 py-3 mx-auto max-w-xs sm:max-w-sm md:max-w-md"
         >
           <code className="text-xs sm:text-sm md:text-base text-gray-400 font-mono truncate">
-            {contractAddress}
+            {fullAddress}
           </code>
-          {fullAddress && (
-            <button
-              onClick={handleCopy}
-              className="p-1.5 hover:text-red-400 transition-colors flex-shrink-0"
-              aria-label="Copy contract address"
-            >
-              {copied ? (
-                <Check className="w-4 h-4 text-green-500" />
-              ) : (
-                <Copy className="w-4 h-4 text-gray-400" />
-              )}
-            </button>
-          )}
+          <button
+            onClick={handleCopy}
+            className="p-1.5 hover:text-red-400 transition-colors flex-shrink-0"
+            aria-label="Copy contract address"
+          >
+            {copied ? (
+              <Check className="w-4 h-4 text-green-500" />
+            ) : (
+              <Copy className="w-4 h-4 text-gray-400" />
+            )}
+          </button>
         </motion.div>
       </div>
 

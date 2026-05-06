@@ -4,6 +4,8 @@ import { Swords } from "lucide-react";
 import { ScrollReveal } from "./scroll-reveal";
 import { BloodSplash } from "./blood-splash";
 
+const ARENA_TOKEN_URL = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb?ref=Toff083249361";
+
 export function CommunitySection() {
   return (
     <section
@@ -20,7 +22,7 @@ export function CommunitySection() {
         <ScrollReveal delay={0.1}>
           <BloodSplash>
             <a
-              href="https://arena.social/home"
+              href={ARENA_TOKEN_URL}
               className="block bg-[#1a1a1a] border border-[#2a2a2a] hover:border-red-500/50 rounded-xl p-8 sm:p-12 md:p-16 text-center transition-all duration-300 animate-red-glow-pulse group hover:shadow-[0_0_25px_rgba(220,38,38,0.3)] max-w-md mx-auto"
               target="_blank"
               rel="noopener noreferrer"
@@ -33,7 +35,7 @@ export function CommunitySection() {
               </h3>
               <p className="text-gray-500 text-base sm:text-lg md:text-xl">arena.social</p>
               <p className="text-gray-600 text-xs sm:text-sm md:text-base mt-3 sm:mt-4">
-                Find $DOOMHOUND on the battlefield
+                Buy $DOOMHOUND on the battlefield
               </p>
             </a>
           </BloodSplash>
