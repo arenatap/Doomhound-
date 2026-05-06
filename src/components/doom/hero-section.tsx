@@ -7,12 +7,13 @@ import { BloodSplash } from "./blood-splash";
 
 const fullAddress = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
 const ARENA_TOKEN_URL = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb?ref=Toff083249361";
-const GRADUATION_MCAP_AVAX = 503;
+const GRADUATION_LIQUIDITY_AVAX = 503;
 const ARENA_PER_AVAX = 4274.28; // from Arena production source: 2,149,963.74 $ARENA / 503 AVAX
 
 interface ArenaStats {
   price: number;
   marketCap: number;
+  liquidity: number;
   buys: number;
   sells: number;
 }
@@ -43,6 +44,10 @@ export function HeroSection() {
       if (arenaData.connected && arenaData.stats) {
         setStats(arenaData.stats);
       }
+      if (arenaData.community?.bondingCurveProgress != null) {
+        // Arena provides direct progress — use it
+        setStats(prev => prev ? { ...prev, _apiProgress: arenaData.community.bondingCurveProgress } as any : prev);
+      }
       if (holderData.holderCount) {
         setHoldersCount(holderData.holderCount);
       }
@@ -60,6 +65,14 @@ export function HeroSection() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // Calculate graduation progress based on liquidity (not market cap)
+  const liquidity = stats?.liquidity || 0;
+  const apiProgress = (stats as any)?._apiProgress;
+  const gradProgress = apiProgress != null && apiProgress > 0
+    ? Math.min(100, apiProgress)
+    : Math.min(100, (liquidity / GRADUATION_LIQUIDITY_AVAX) * 100);
+  const gradArenaK = ((liquidity || stats?.marketCap || 0) * ARENA_PER_AVAX / 1000);
 
   return (
     <section
@@ -173,7 +186,7 @@ export function HeroSection() {
                   💰 MC {formatAvax(stats.marketCap)}
                 </span>
                 <span className="inline-flex items-center gap-1.5 bg-[#1a1a1a]/80 backdrop-blur border border-red-900/40 rounded-full px-3 py-1 text-red-300 text-xs sm:text-sm font-mono">
-                  📊 {Math.min(100, (stats.marketCap / GRADUATION_MCAP_AVAX) * 100).toFixed(1)}% to grad · {(stats.marketCap * ARENA_PER_AVAX / 1000).toFixed(0)}K $ARENA
+                  📊 {gradProgress.toFixed(1)}% to grad · {gradArenaK.toFixed(0)}K $ARENA
                 </span>
               </>
             )}

@@ -22,16 +22,22 @@ interface ArenaCommunity {
   name: string;
   ticker: string;
   tokenName: string;
+  bondingCurveProgress?: number | null;
 }
 
 // Arena bonding curve graduation thresholds (from Arena production source code)
 // TOKEN_PHASE_LIQUIDITY_THRESHOLD = 503 AVAX
 // ARENA_TOKEN_PHASE_LIQUIDITY_THRESHOLD = 2,149,963.74 $ARENA
 // 1 AVAX = 4,274.28 $ARENA (Arena internal rate)
-// Note: The Arena UI shows "Bonding Curve Progress" calculated via a parametric
-// formula (calculateCostScaledParametric) which differs from simple marketCap/threshold.
-// Our progress shows "Market Cap Progress" based on live API data.
-const GRADUATION_MCAP_AVAX = 503;
+//
+// IMPORTANT: The graduation threshold is a LIQUIDITY threshold, not a market cap threshold.
+// Progress should be calculated using `liquidity` (total AVAX deposited into the bonding curve),
+// NOT `marketCap` (price × supply). Market cap can be significantly higher than liquidity
+// due to the bonding curve premium. Using marketCap overstates progress.
+//
+// The Arena UI may also provide a direct `bondingCurveProgress` field via the API.
+// If available, we use that for maximum accuracy.
+const GRADUATION_LIQUIDITY_AVAX = 503;
 const GRADUATION_MCAP_ARENA = 2_149_963.74;
 const ARENA_PER_AVAX = 4274.28;
 
@@ -86,14 +92,25 @@ export function BondingCurveSection() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  // Calculate progress from LIVE market cap
+  // Calculate progress from LIVE data
   // The API marketCap is in AVAX (price × supply, both in 18-decimal units)
+  // The API liquidity is in AVAX (total AVAX deposited into the bonding curve)
+  //
+  // Graduation threshold = 503 AVAX of LIQUIDITY (not market cap)
+  // Using marketCap overstates progress because marketCap > liquidity in a bonding curve
   const marketCap = stats?.marketCap || 0; // in AVAX
+  const liquidity = stats?.liquidity || 0; // in AVAX — this is the correct metric for progress
   const marketCapArena = marketCap * ARENA_PER_AVAX; // convert to $ARENA
-  const progress = Math.min(100, (marketCap / GRADUATION_MCAP_AVAX) * 100);
+  const liquidityArena = liquidity * ARENA_PER_AVAX; // convert to $ARENA
+
+  // Use Arena's direct bondingCurveProgress if available, otherwise calculate from liquidity
+  const apiProgress = community?.bondingCurveProgress;
+  const calculatedProgress = Math.min(100, (liquidity / GRADUATION_LIQUIDITY_AVAX) * 100);
+  const progress = apiProgress != null && apiProgress > 0 ? Math.min(100, apiProgress) : calculatedProgress;
+
   const isGraduated = (community?.tokenPhase ?? 1) > 1 || progress >= 100;
-  const remainingAvax = Math.max(0, GRADUATION_MCAP_AVAX - marketCap);
-  const remainingArena = Math.max(0, GRADUATION_MCAP_ARENA - marketCapArena);
+  const remainingAvax = Math.max(0, GRADUATION_LIQUIDITY_AVAX - liquidity);
+  const remainingArena = Math.max(0, GRADUATION_MCAP_ARENA - liquidityArena);
   const price = stats?.price || 0; // in AVAX
   const priceArena = price * ARENA_PER_AVAX; // in $ARENA
 
@@ -145,7 +162,7 @@ export function BondingCurveSection() {
                 {progress.toFixed(1)}%
               </motion.span>
               <p className="text-gray-500 text-xs sm:text-sm mt-1 uppercase tracking-wider">
-                {isGraduated ? "Graduated from bonding curve!" : "Market Cap to Graduation"}
+                {isGraduated ? "Graduated from bonding curve!" : "Liquidity to Graduation"}
               </p>
               {!isGraduated && (
                 <p className="text-gray-600 text-[10px] sm:text-xs mt-1">
@@ -185,9 +202,16 @@ export function BondingCurveSection() {
             </div>
 
             {/* Live Stats row */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4 mb-5">
               {connected && stats ? (
                 <>
+                  <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
+                    <p className="text-cyan-400 font-bold text-sm sm:text-base font-mono">
+                      {formatAvax(liquidity)}
+                      <span className="text-gray-500 text-[9px] ml-1">AVAX</span>
+                    </p>
+                    <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Liquidity (Curve)</p>
+                  </div>
                   <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
                     <p className={`font-bold text-sm sm:text-base font-mono ${isGrowing ? "text-green-400" : "text-white"}`}>
                       {formatAvax(marketCap)}

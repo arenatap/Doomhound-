@@ -105,6 +105,13 @@ export async function GET(request: NextRequest) {
                 paymentToken: community.paymentToken,
                 isLP: community.isLP || false,
                 bcGroupId: community.bcGroupId || null,
+                // Bonding curve progress — Arena may provide this directly
+                bondingCurveProgress: community.bondingCurveProgress ?? community.progress ?? community.bondingCurvePercent ?? null,
+                // Additional stats fields for bonding curve accuracy
+                totalSupplyRaw: stats?.totalSupply ?? null,
+                liquidityRaw: stats?.liquidity ?? null,
+                priceRaw: stats?.price ?? null,
+                marketCapRaw: stats?.marketCap ?? null,
               }
             : null,
           stats: formattedStats,

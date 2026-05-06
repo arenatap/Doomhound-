@@ -17,18 +17,21 @@ interface ArenaStats {
 
 interface ArenaCommunity {
   tokenPhase: number;
+  bondingCurveProgress?: number | null;
 }
 
 // ===== MILESTONES =====
-// Graduation at 503 AVAX / 2,149,963.74 $ARENA (from Arena production source)
+// Graduation at 503 AVAX liquidity / 2,149,963.74 $ARENA (from Arena production source)
 // 1 AVAX = 4,274.28 $ARENA
+// IMPORTANT: Milestones are based on LIQUIDITY (AVAX deposited into bonding curve),
+// not market cap. Market cap overstates progress.
 const ARENA_PER_AVAX = 4274.28;
 const MILESTONES = [
   { mcap: 50, label: "Pup Phase", desc: "The hound awakens", emoji: "🐶" },
   { mcap: 100, label: "Shadow Fang", desc: "Gaining speed", emoji: "🐺" },
   { mcap: 200, label: "Hellfire", desc: "The pack is united", emoji: "🔥" },
   { mcap: 350, label: "Alpha Hound", desc: "Unstoppable force", emoji: "💀" },
-  { mcap: 503, label: "GRADUATION", desc: "Liquidity locked forever! 2.15M $ARENA reached!", emoji: "🎓", isGraduation: true },
+  { mcap: 503, label: "GRADUATION", desc: "Liquidity locked forever! 503 AVAX / 2.15M $ARENA reached!", emoji: "🎓", isGraduation: true },
 ];
 
 const ARENA_TOKEN_URL = "https://arena.social/community/0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb?ref=Toff083249361";
@@ -82,12 +85,14 @@ export function MilestoneSection() {
   }, [fetchData]);
 
   const marketCap = stats?.marketCap || 0;
+  const liquidity = stats?.liquidity || 0; // Use liquidity for milestone progress
   const isGraduated = (community?.tokenPhase ?? 1) > 1;
 
   // Determine which milestone index is the "current" one (first not yet achieved)
+  // Use LIQUIDITY (not market cap) since milestones are based on bonding curve liquidity
   let currentMilestoneIdx = MILESTONES.length - 1;
   for (let i = 0; i < MILESTONES.length; i++) {
-    if (marketCap < MILESTONES[i].mcap) {
+    if (liquidity < MILESTONES[i].mcap) {
       currentMilestoneIdx = i;
       break;
     }
@@ -97,7 +102,7 @@ export function MilestoneSection() {
   const currentMilestone = MILESTONES[currentMilestoneIdx];
   const prevMilestoneMcap = currentMilestoneIdx > 0 ? MILESTONES[currentMilestoneIdx - 1].mcap : 0;
   const progressToNext = currentMilestone
-    ? Math.min(100, ((marketCap - prevMilestoneMcap) / (currentMilestone.mcap - prevMilestoneMcap)) * 100)
+    ? Math.min(100, ((liquidity - prevMilestoneMcap) / (currentMilestone.mcap - prevMilestoneMcap)) * 100)
     : 100;
 
   return (
@@ -118,22 +123,23 @@ export function MilestoneSection() {
         {/* Current Market Cap Display */}
         <ScrollReveal delay={0.1}>
           <div className="text-center mb-8 sm:mb-12">
-            <p className="text-gray-500 text-xs sm:text-sm uppercase tracking-widest mb-2">Current Market Cap</p>
+            <p className="text-gray-500 text-xs sm:text-sm uppercase tracking-widest mb-2">Current Liquidity (Bonding Curve)</p>
             <motion.p
-              key={Math.round(marketCap)}
+              key={Math.round(liquidity)}
               initial={{ scale: 1.1, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="font-creepster text-4xl sm:text-6xl md:text-7xl text-orange-400"
             >
-              {connected ? `${formatAvax(marketCap)} AVAX` : "Loading..."}
+              {connected ? `${formatAvax(liquidity)} AVAX` : "Loading..."}
             </motion.p>
+            <p className="text-gray-600 text-xs mt-1">Liquidity (Bonding Curve)</p>
           </div>
         </ScrollReveal>
 
         {/* Milestones List */}
         <div className="space-y-4 sm:space-y-5">
           {MILESTONES.map((milestone, i) => {
-            const isAchieved = marketCap >= milestone.mcap || isGraduated;
+            const isAchieved = liquidity >= milestone.mcap || isGraduated;
             const isCurrent = i === currentMilestoneIdx && !isAchieved;
             const isFuture = !isAchieved && !isCurrent;
             const status: MilestoneStatus = isAchieved ? "achieved" : isCurrent ? "current" : "future";
@@ -219,7 +225,7 @@ export function MilestoneSection() {
                         <div className="mt-3">
                           <div className="flex items-center justify-between text-[10px] sm:text-xs mb-1.5">
                             <span className="text-orange-400 font-mono">
-                              {formatAvax(marketCap)} AVAX
+                              {formatAvax(liquidity)} AVAX
                             </span>
                             <span className="text-orange-400/70 font-mono">
                               {progressToNext.toFixed(1)}% to {milestone.mcap} AVAX
