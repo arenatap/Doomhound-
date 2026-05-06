@@ -11,6 +11,7 @@ const memes = [
   { src: "/images/doomhound-meme3.png", alt: "Hound in sports car", label: "Lambo When" },
   { src: "/images/doomhound-meme4.png", alt: "Hound as scientist", label: "Mad Scientist" },
   { src: "/images/doomhound-meme5.png", alt: "Doomhound Mascot", label: "The Mascot" },
+  { src: "/images/doomhound-meme6.png", alt: "Doomhound Inferno", label: "Inferno" },
 ];
 
 export function MemeWallSection() {
