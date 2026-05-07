@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$DOOMHOUND — Wheel of Doom</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0a;
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Fire background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(220,38,38,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 20px;
+  }
+
+  h1 {
+    font-family: 'Creepster', cursive;
+    font-size: clamp(2rem, 6vw, 4rem);
+    color: #f97316;
+    text-shadow: 0 0 20px rgba(249,115,22,0.5), 0 0 40px rgba(220,38,38,0.3);
+    margin-bottom: 8px;
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from { text-shadow: 0 0 20px rgba(249,115,22,0.5), 0 0 40px rgba(220,38,38,0.3); }
+    to { text-shadow: 0 0 30px rgba(249,115,22,0.8), 0 0 60px rgba(220,38,38,0.5); }
+  }
+
+  .subtitle {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+  }
+
+  /* Wheel Container */
+  .wheel-wrapper {
+    position: relative;
+    width: clamp(280px, 70vw, 420px);
+    height: clamp(280px, 70vw, 420px);
+    margin: 0 auto 30px;
+  }
+
+  /* Pointer / Arrow */
+  .pointer {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    width: 0;
+    height: 0;
+    border-left: 18px solid transparent;
+    border-right: 18px solid transparent;
+    border-top: 35px solid #dc2626;
+    filter: drop-shadow(0 0 10px rgba(220,38,38,0.6));
+  }
+
+  .pointer::after {
+    content: '';
+    position: absolute;
+    top: -38px;
+    left: -10px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #ef4444;
+  }
+
+  /* Canvas Wheel */
+  canvas#wheelCanvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 4px solid #333;
+    box-shadow: 0 0 30px rgba(249,115,22,0.2), 0 0 60px rgba(220,38,38,0.1), inset 0 0 30px rgba(0,0,0,0.5);
+    transition: box-shadow 0.3s;
+  }
+
+  canvas#wheelCanvas.spinning {
+    box-shadow: 0 0 50px rgba(249,115,22,0.5), 0 0 100px rgba(220,38,38,0.3), inset 0 0 30px rgba(0,0,0,0.5);
+  }
+
+  /* Center hub */
+  .center-hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #1a1a1a 0%, #0a0a0a 100%);
+    border: 3px solid #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    box-shadow: 0 0 15px rgba(0,0,0,0.8);
+  }
+
+  .center-hub span {
+    font-size: 1.5rem;
+  }
+
+  /* Spin Button */
+  .spin-btn {
+    font-family: 'Creepster', cursive;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    color: #fff;
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    border: none;
+    padding: 14px 50px;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 0 25px rgba(220,38,38,0.4);
+    transition: all 0.3s;
+    letter-spacing: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .spin-btn:hover:not(:disabled) {
+    box-shadow: 0 0 40px rgba(220,38,38,0.6);
+    transform: scale(1.05);
+  }
+
+  .spin-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .spin-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(transparent, rgba(255,255,255,0.1), transparent);
+    transform: rotate(45deg);
+    animation: shimmer 3s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) rotate(45deg); }
+  }
+
+  /* Spins left counter */
+  .spins-left {
+    color: #f97316;
+    font-family: 'Creepster', cursive;
+    font-size: 1.2rem;
+    margin-top: 15px;
+  }
+
+  /* Result Modal */
+  .result-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(5px);
+  }
+
+  .result-overlay.show {
+    display: flex;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .result-card {
+    background: #1a1a1a;
+    border: 2px solid #f97316;
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 0 60px rgba(249,115,22,0.3);
+    animation: popIn 0.4s ease;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .result-card .prize-emoji {
+    font-size: 3rem;
+    margin-bottom: 10px;
+  }
+
+  .result-card h2 {
+    font-family: 'Creepster', cursive;
+    font-size: 1.8rem;
+    color: #f97316;
+    margin-bottom: 8px;
+  }
+
+  .result-card .prize-amount {
+    font-family: 'Creepster', cursive;
+    font-size: 2.5rem;
+    color: #4ade80;
+    text-shadow: 0 0 20px rgba(74,222,128,0.4);
+    margin: 10px 0;
+  }
+
+  .result-card .prize-sub {
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
+
+  .result-card .claim-note {
+    color: #f97316;
+    font-size: 0.8rem;
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(249,115,22,0.1);
+    border-radius: 8px;
+  }
+
+  .result-card button {
+    font-family: 'Creepster', cursive;
+    font-size: 1.2rem;
+    color: #fff;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    border: none;
+    padding: 12px 35px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .result-card button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(249,115,22,0.4);
+  }
+
+  /* No prize style */
+  .result-card.no-prize h2 { color: #666; }
+  .result-card.no-prize .prize-amount { color: #dc2626; text-shadow: 0 0 20px rgba(220,38,38,0.4); }
+
+  /* Burn animation */
+  .burn-anim {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+  }
+
+  /* Footer */
+  .footer-note {
+    color: #444;
+    font-size: 0.7rem;
+    margin-top: 25px;
+    max-width: 400px;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🎡 WHEEL OF DOOM</h1>
+  <p class="subtitle">Spin the wheel. Win $DOOMHOUND. No mercy.</p>
+
+  <div class="wheel-wrapper">
+    <div class="pointer"></div>
+    <canvas id="wheelCanvas" width="600" height="600"></canvas>
+    <div class="center-hub"><span>🐺</span></div>
+  </div>
+
+  <button class="spin-btn" id="spinBtn" onclick="spin()">
+    🔥 SPIN THE WHEEL
+  </button>
+  <div class="spins-left" id="spinsLeft">1 free spin today</div>
+
+  <p class="footer-note">
+    ⚠️ This is a test version. Prizes are simulated. In the live version, you'll connect your Arena handle and wins will be sent on-chain. One free spin per day. The hound decides your fate.
+  </p>
+</div>
+
+<!-- Result Modal -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card" id="resultCard">
+    <div class="prize-emoji" id="prizeEmoji">🔥</div>
+    <h2 id="prizeTitle">YOU WON!</h2>
+    <div class="prize-amount" id="prizeAmount">5M</div>
+    <p class="prize-sub" id="prizeSub">$DOOMHOUND tokens</p>
+    <button onclick="closeResult()">HOWL! 🐺</button>
+    <div class="claim-note" id="claimNote">
+      In the live version, this will be sent directly to your wallet!
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== WHEEL SEGMENTS =====
+const segments = [
+  { label: '100K', value: 100000,     color: '#1c1c1c', textColor: '#f97316', emoji: '🦴',  weight: 25 },
+  { label: '500K', value: 500000,     color: '#2a1a1a', textColor: '#fb923c', emoji: '🔥',  weight: 20 },
+  { label: '1M',   value: 1000000,    color: '#1c1c1c', textColor: '#fbbf24', emoji: '💀',  weight: 18 },
+  { label: '2M',   value: 2000000,    color: '#2a1a1a', textColor: '#facc15', emoji: '⚔️',  weight: 12 },
+  { label: '5M',   value: 5000000,    color: '#1c1c1c', textColor: '#4ade80', emoji: '🐺',  weight: 8 },
+  { label: '10M',  value: 10000000,   color: '#2a1a1a', textColor: '#22c55e', emoji: '👑',  weight: 4 },
+  { label: 'BURN', value: 0,          color: '#3b0000', textColor: '#ef4444', emoji: '🔥',  weight: 8 },
+  { label: 'AGAIN',value: -1,         color: '#1a1a2a', textColor: '#a78bfa', emoji: '🔄',  weight: 5 },
+];
+
+const totalWeight = segments.reduce((s, seg) => s + seg.weight, 0);
+
+// ===== DRAW WHEEL =====
+const canvas = document.getElementById('wheelCanvas');
+const ctx = canvas.getContext('2d');
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+const radius = canvas.width / 2 - 10;
+
+let currentRotation = 0;
+let isSpinning = false;
+let spinsRemaining = 1;
+
+function drawWheel(rotation = 0) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.rotate(rotation);
+
+  let startAngle = 0;
+  segments.forEach((seg, i) => {
+    const sliceAngle = (seg.weight / totalWeight) * 2 * Math.PI;
+    const endAngle = startAngle + sliceAngle;
+
+    // Draw slice
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, radius, startAngle, endAngle);
+    ctx.closePath();
+    ctx.fillStyle = seg.color;
+    ctx.fill();
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw text
+    ctx.save();
+    ctx.rotate(startAngle + sliceAngle / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = seg.textColor;
+    ctx.font = 'bold 28px Creepster, sans-serif';
+    ctx.shadowColor = seg.textColor;
+    ctx.shadowBlur = 8;
+    ctx.fillText(seg.emoji + ' ' + seg.label, radius - 25, 8);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
+    startAngle = endAngle;
+  });
+
+  // Outer ring glow
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(249,115,22,0.3)';
+  ctx.lineWidth = 6;
+  ctx.stroke();
+
+  // Tick marks
+  startAngle = 0;
+  segments.forEach((seg, i) => {
+    const sliceAngle = (seg.weight / totalWeight) * 2 * Math.PI;
+    ctx.save();
+    ctx.rotate(startAngle);
+    ctx.beginPath();
+    ctx.moveTo(radius - 10, 0);
+    ctx.lineTo(radius + 5, 0);
+    ctx.strokeStyle = '#555';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+    startAngle += sliceAngle;
+  });
+
+  ctx.restore();
+}
+
+// ===== WEIGHTED RANDOM =====
+function getWinningSegment() {
+  let rand = Math.random() * totalWeight;
+  for (let i = 0; i < segments.length; i++) {
+    rand -= segments[i].weight;
+    if (rand <= 0) return i;
+  }
+  return segments.length - 1;
+}
+
+// ===== SPIN =====
+function spin() {
+  if (isSpinning || spinsRemaining <= 0) return;
+  isSpinning = true;
+  spinsRemaining--;
+  document.getElementById('spinsLeft').textContent = spinsRemaining > 0 ? `${spinsRemaining} spin${spinsRemaining > 1 ? 's' : ''} left today` : 'No spins left today — come back tomorrow!';
+  document.getElementById('spinBtn').disabled = true;
+  canvas.classList.add('spinning');
+
+  const winIndex = getWinningSegment();
+  
+  // Calculate target angle: winning segment should be at the top (pointer position)
+  // The pointer is at the top (270 degrees / -PI/2)
+  let startAngle = 0;
+  for (let i = 0; i < winIndex; i++) {
+    startAngle += (segments[i].weight / totalWeight) * 2 * Math.PI;
+  }
+  const sliceAngle = (segments[winIndex].weight / totalWeight) * 2 * Math.PI;
+  const sliceMiddle = startAngle + sliceAngle / 2;
+  
+  // We want sliceMiddle to be at the top = -PI/2 (or 3PI/2)
+  // Target rotation = multiple full spins + offset to land on winning segment
+  const fullSpins = 5 + Math.floor(Math.random() * 3); // 5-7 full rotations
+  const targetRotation = currentRotation + (fullSpins * 2 * Math.PI) + (2 * Math.PI - sliceMiddle + Math.PI / 2);
+  
+  const duration = 4000 + Math.random() * 1000; // 4-5 seconds
+  const startTime = performance.now();
+  const startRotation = currentRotation;
+  const totalRotation = targetRotation - startRotation;
+
+  function animate(time) {
+    const elapsed = time - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    
+    // Easing: cubic ease-out for natural deceleration
+    const eased = 1 - Math.pow(1 - progress, 3);
+    
+    currentRotation = startRotation + totalRotation * eased;
+    drawWheel(currentRotation);
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      // Spin complete
+      isSpinning = false;
+      canvas.classList.remove('spinning');
+      showResult(segments[winIndex]);
+
+      // If "AGAIN" (free spin), give another spin
+      if (segments[winIndex].value === -1) {
+        spinsRemaining++;
+        document.getElementById('spinsLeft').textContent = `${spinsRemaining} free spin! 🔄`;
+        document.getElementById('spinBtn').disabled = false;
+      }
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+// ===== SHOW RESULT =====
+function showResult(segment) {
+  const overlay = document.getElementById('resultOverlay');
+  const card = document.getElementById('resultCard');
+  const emoji = document.getElementById('prizeEmoji');
+  const title = document.getElementById('prizeTitle');
+  const amount = document.getElementById('prizeAmount');
+  const sub = document.getElementById('prizeSub');
+  const claimNote = document.getElementById('claimNote');
+
+  if (segment.value === 0) {
+    // BURN - no prize
+    card.className = 'result-card no-prize';
+    emoji.textContent = '🔥';
+    title.textContent = 'BURNED!';
+    amount.textContent = '0';
+    sub.textContent = 'The hound ate your spin. 🔥';
+    claimNote.textContent = 'Better luck next time. The hound is hungry.';
+  } else if (segment.value === -1) {
+    // Free spin
+    card.className = 'result-card';
+    emoji.textContent = '🔄';
+    title.textContent = 'SPIN AGAIN!';
+    amount.textContent = 'FREE';
+    sub.textContent = 'You get another spin!';
+    claimNote.textContent = 'The hound gives you a second chance. Use it wisely.';
+  } else {
+    // Prize won!
+    card.className = 'result-card';
+    emoji.textContent = segment.emoji;
+    title.textContent = 'YOU WON!';
+    amount.textContent = segment.label;
+    sub.textContent = '$DOOMHOUND tokens';
+    claimNote.textContent = 'In the live version, this will be sent directly to your wallet!';
+  }
+
+  overlay.classList.add('show');
+}
+
+function closeResult() {
+  document.getElementById('resultOverlay').classList.remove('show');
+  if (spinsRemaining > 0) {
+    document.getElementById('spinBtn').disabled = false;
+  }
+}
+
+// ===== INIT =====
+drawWheel(0);
+</script>
+
+</body>
+</html>
