@@ -325,42 +325,62 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
         ctx.stroke();
       }
 
-      // Center hub — dark with glow
-      const hubRadius = innerRadius * 0.2;
+      // Center hub — large prominent logo area
+      const hubRadius = innerRadius * 0.28;
+
+      // Outer hub ring — bright orange glow
+      ctx.beginPath();
+      ctx.arc(0, 0, hubRadius + 3, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(249,115,22,0.6)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Hub background — dark circle with gradient
       const hubGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, hubRadius);
       hubGrad.addColorStop(0, "#1a1a1a");
-      hubGrad.addColorStop(0.7, "#0d0d0d");
+      hubGrad.addColorStop(0.6, "#0d0d0d");
       hubGrad.addColorStop(1, "#050505");
       ctx.beginPath();
       ctx.arc(0, 0, hubRadius, 0, Math.PI * 2);
       ctx.fillStyle = hubGrad;
       ctx.fill();
       ctx.strokeStyle = "#f97316";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.5;
       ctx.stroke();
 
-      // Inner hub ring
+      // Inner decorative ring
       ctx.beginPath();
-      ctx.arc(0, 0, hubRadius * 0.7, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(249,115,22,0.3)";
+      ctx.arc(0, 0, hubRadius * 0.82, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(249,115,22,0.25)";
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      // Center logo (rotates WITH the wheel)
+      // Center logo (rotates WITH the wheel — inside the rotated ctx context)
       const logo = logoRef.current;
       if (logo && logoLoaded) {
+        // Make logo fill most of the hub area
         const logoSize = hubRadius * 1.5;
+        // Clip to circle so logo doesn't overflow
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(0, 0, hubRadius - 3, 0, Math.PI * 2);
+        ctx.clip();
         ctx.drawImage(logo, -logoSize / 2, -logoSize / 2, logoSize, logoSize);
+        ctx.restore();
       } else {
-        // Fallback text if logo hasn't loaded
+        // Fallback text if logo hasn't loaded — "$DOOMHOUND" styled text
         ctx.fillStyle = "#f97316";
-        ctx.font = `bold ${size < 350 ? 9 : 11}px monospace`;
+        ctx.font = `bold ${size < 350 ? 10 : 13}px monospace`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("DOOM", 0, -3);
+        ctx.fillText("DOOM", 0, -5);
         ctx.fillStyle = "#dc2626";
-        ctx.font = `bold ${size < 350 ? 7 : 9}px monospace`;
+        ctx.font = `bold ${size < 350 ? 8 : 11}px monospace`;
         ctx.fillText("HOUND", 0, 7);
+        // Dollar sign accent
+        ctx.fillStyle = "#fbbf24";
+        ctx.font = `bold ${size < 350 ? 6 : 8}px monospace`;
+        ctx.fillText("$", 0, -16);
       }
 
       ctx.restore();
@@ -421,30 +441,55 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
 
       const spinResult: SpinResult = data.result;
 
-      // Calculate target angle
-      // Segments are drawn at: i * segmentAngle - PI/2 (in rotated frame)
-      // The pointer is at -PI/2 in canvas frame
-      // In rotated frame, pointer is at: -PI/2 - currentAngle
-      // For pointer to land on middle of segment i:
-      //   -PI/2 - currentAngle = i * segmentAngle - PI/2 + segmentAngle/2
-      //   currentAngle = -(i * segmentAngle + segmentAngle/2)
-      //   currentAngle = -(i + 0.5) * segmentAngle
-      const segmentAngle = (Math.PI * 2) / WHEEL_SEGMENTS.length;
-      const baseTargetAngle = -(spinResult.segmentIndex + 0.5) * segmentAngle;
-      const fullRotations = (4 + Math.floor(Math.random() * 3)) * Math.PI * 2;
-      const finalTargetAngle = baseTargetAngle - fullRotations;
+      // ===== ROBUST TARGET ANGLE CALCULATION =====
+      // Segments are drawn at: startAngle_i = i * segmentAngle - PI/2 (in rotated frame)
+      // The pointer is at -PI/2 in canvas frame (top of wheel)
+      // In the rotated frame, the pointer appears at angle: -PI/2 - currentAngle
+      // For the pointer to land in segment i, we need:
+      //   i * segmentAngle <= (-currentAngle mod 2PI) < (i+1) * segmentAngle
+      // We aim for the middle of the segment plus a small random offset for variety:
+      //   -currentAngle mod 2PI = (i + 0.5) * segmentAngle + smallRandom
+      // Therefore: currentAngle mod 2PI = 2PI - (i + 0.5) * segmentAngle - smallRandom
+      const numSegments = WHEEL_SEGMENTS.length;
+      const segmentAngle = (Math.PI * 2) / numSegments;
+
+      // Small random offset within the segment (avoid exact center for realism)
+      // Stay within the middle 60% of the segment to avoid edge cases
+      const segmentOffset = (0.2 + Math.random() * 0.6) * segmentAngle;
+
+      // The desired final angle modulo 2PI:
+      // We want: -finalAngle mod 2PI = spinResult.segmentIndex * segmentAngle + segmentOffset
+      // So: finalAngle mod 2PI = -(spinResult.segmentIndex * segmentAngle + segmentOffset) mod 2PI
+      const desiredAngleMod2PI = (2 * Math.PI) - (spinResult.segmentIndex * segmentAngle + segmentOffset);
+
+      // Calculate how much we need to rotate FROM the current position
       const startAngle = spinStateRef.current.currentAngle;
+      const startMod2PI = ((startAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+
+      // Base rotation: from start position to the desired position
+      let baseRotation = desiredAngleMod2PI - startMod2PI;
+      // Ensure we always rotate in the negative direction (clockwise visually)
+      if (baseRotation > 0) baseRotation -= 2 * Math.PI;
+
+      // Add full rotations (5-7 full spins for dramatic effect)
+      const extraRotations = (5 + Math.floor(Math.random() * 3)) * 2 * Math.PI;
+      const totalRotation = baseRotation - extraRotations;
+
+      const finalTargetAngle = startAngle + totalRotation;
 
       spinStateRef.current = {
         spinning: true,
         currentAngle: startAngle,
-        targetAngle: startAngle + (finalTargetAngle - startAngle),
+        targetAngle: finalTargetAngle,
         startTime: Date.now(),
-        duration: 5000 + Math.random() * 1000,
+        duration: 5500 + Math.random() * 1500,
         result: spinResult,
       };
 
       // Easing animation with realistic deceleration
+      const animStartAngle = startAngle;
+      const animTotalDelta = totalRotation;
+
       const animate = () => {
         const state = spinStateRef.current;
         if (!state.spinning) return;
@@ -453,9 +498,10 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
         const progress = Math.min(elapsed / state.duration, 1);
 
         // Custom easing: fast start, long dramatic slowdown
-        const eased = 1 - Math.pow(1 - progress, 3);
+        // Using ease-out quartic for smoother deceleration
+        const eased = 1 - Math.pow(1 - progress, 4);
 
-        state.currentAngle = startAngle + (state.targetAngle - startAngle) * eased;
+        state.currentAngle = animStartAngle + animTotalDelta * eased;
 
         if (progress >= 1) {
           state.currentAngle = state.targetAngle;
