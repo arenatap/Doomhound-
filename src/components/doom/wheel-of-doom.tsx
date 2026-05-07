@@ -55,10 +55,10 @@ interface WheelOfDoomProps {
 
 // ===== WHEEL SEGMENTS (dark, premium style) =====
 const WHEEL_SEGMENTS = [
-  { label: "1M",      amount: 1_000_000, weight: 20, color: "#0f0f0f", textColor: "#fcd34d", borderColor: "#d97706", emoji: "💀", accentGlow: "rgba(217,119,6,0.4)" },
-  { label: "500K",    amount: 500_000,   weight: 15, color: "#12100d", textColor: "#fdba74", borderColor: "#ea580c", emoji: "🔥", accentGlow: "rgba(234,88,12,0.4)" },
+  { label: "1M",      amount: 1_000_000, weight: 8,  color: "#0f0f0f", textColor: "#fcd34d", borderColor: "#d97706", emoji: "💀", accentGlow: "rgba(217,119,6,0.4)" },
+  { label: "500K",    amount: 500_000,   weight: 12, color: "#12100d", textColor: "#fdba74", borderColor: "#ea580c", emoji: "🔥", accentGlow: "rgba(234,88,12,0.4)" },
   { label: "250K",    amount: 250_000,   weight: 15, color: "#0f0d12", textColor: "#93c5fd", borderColor: "#2563eb", emoji: "🦴", accentGlow: "rgba(37,99,235,0.3)" },
-  { label: "NOTHING", amount: 0,         weight: 45, color: "#0d0d0d", textColor: "#444",    borderColor: "#222",    emoji: "💀", accentGlow: "none",        type: "nothing" },
+  { label: "NOTHING", amount: 0,         weight: 60, color: "#0d0d0d", textColor: "#444",    borderColor: "#222",    emoji: "💀", accentGlow: "none",        type: "nothing" },
   { label: "RE-SPIN", amount: 0,         weight: 5,  color: "#0f0d14", textColor: "#a78bfa", borderColor: "#7c3aed", emoji: "🔄", accentGlow: "rgba(124,58,237,0.4)", type: "respin" },
 ];
 

@@ -97,10 +97,10 @@ const RANK_TIERS = [
   { title: "Lost Soul", minPoints: 0, emoji: "👻", color: "text-gray-500" },
 ];
 
-// ===== SESSION MANAGEMENT (via Supabase-backed cookie) =====
-// The session is stored as an httpOnly cookie set by the server.
-// The cookie contains a sessionToken that maps to a PackMember in the DB.
-// This is more reliable than localStorage and persists across browser restarts.
+// ===== SESSION MANAGEMENT (Supabase-backed with localStorage fallback) =====
+// Primary: httpOnly cookie with sessionToken → lookup in PackMember DB
+// Fallback: localStorage handle → /api/pack?action=restore_session → DB lookup + new cookie
+// Once a user registers (handle is in the DB), they are ALWAYS recognized on return visits.
 
 // ===== HELPERS =====
 function formatBalance(b: number): string {
@@ -174,23 +174,55 @@ export function ArenaGameSection() {
   const [memeVerifying, setMemeVerifying] = useState(false);
   const [wheelResult, setWheelResult] = useState<{ label: string; amount: number; won: boolean; respin: boolean } | null>(null);
 
-  // Restore session on mount — uses server-side cookie (Supabase-backed)
+  // Restore session on mount — uses cookie first, then Supabase DB fallback
   useEffect(() => {
     const restoreSession = async () => {
+      // Step 1: Try cookie-based session restore
       try {
-        // session_login reads the httpOnly cookie server-side
-        // and looks up the member by sessionToken in the DB
         const res = await fetch("/api/pack?action=session_login");
         if (res.ok) {
           const data = await res.json();
           if (data.member) {
             setMember(data.member);
+            // Save handle to localStorage as backup
+            if (typeof window !== "undefined") {
+              localStorage.setItem("doomhound_handle", data.member.handle);
+            }
+            setSessionLoading(false);
+            loadLeaderboard();
+            return;
           }
         }
-        // If session_login fails, user just sees the registration form — no big deal
       } catch {
-        // Network error — silent, show registration form
+        // Cookie method failed — try fallback below
       }
+
+      // Step 2: Cookie failed — try localStorage + Supabase DB lookup
+      if (typeof window !== "undefined") {
+        const savedHandle = localStorage.getItem("doomhound_handle");
+        if (savedHandle) {
+          try {
+            const res = await fetch(`/api/pack?action=restore_session&handle=${encodeURIComponent(savedHandle)}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.member) {
+                setMember(data.member);
+                setSessionLoading(false);
+                loadLeaderboard();
+                return;
+              }
+            }
+          } catch {
+            // DB lookup also failed — will show registration form
+          }
+          // Handle saved but user not found in DB — clear stale localStorage
+          if (savedHandle) {
+            localStorage.removeItem("doomhound_handle");
+          }
+        }
+      }
+
+      // No session found — show registration form
       setSessionLoading(false);
       loadLeaderboard();
     };
@@ -252,7 +284,10 @@ export function ArenaGameSection() {
       if (data.error) { setError(data.error); }
       else if (data.member) {
         setMember(data.member);
-        // Session cookie is set server-side — no need for localStorage
+        // Save handle to localStorage for persistent login
+        if (typeof window !== "undefined") {
+          localStorage.setItem("doomhound_handle", data.member.handle);
+        }
         loadLeaderboard();
         setShowRegister(false);
       }
@@ -360,6 +395,10 @@ export function ArenaGameSection() {
         body: JSON.stringify({ action: "logout", handle: "x" }),
       });
     } catch { /* silent */ }
+    // Clear localStorage handle
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("doomhound_handle");
+    }
     setMember(null); setHandle(""); setVerifyResult(null); setWheelResult(null);
   }, []);
 

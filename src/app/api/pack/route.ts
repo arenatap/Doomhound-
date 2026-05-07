@@ -249,7 +249,7 @@ const COOKIE_MAX_AGE = 365 * 24 * 60 * 60; // 1 year
 function setSessionCookie(response: NextResponse, token: string) {
   response.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge: COOKIE_MAX_AGE,
@@ -259,7 +259,7 @@ function setSessionCookie(response: NextResponse, token: string) {
 function clearSessionCookie(response: NextResponse) {
   response.cookies.set(SESSION_COOKIE, "", {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge: 0,
@@ -340,10 +340,41 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ member });
       }
 
+      case "restore_session": {
+        // Restore session by handle (from localStorage fallback)
+        // This is the Supabase-backed approach: once registered, always recognized
+        const handleParam = searchParams.get("handle");
+        if (!handleParam) {
+          return NextResponse.json({ error: "handle is required" }, { status: 400 });
+        }
+        const cleanH = handleParam.replace("@", "").trim().toLowerCase();
+        const member = await db.packMember.findUnique({
+          where: { handle: cleanH },
+          include: {
+            activities: {
+              orderBy: { createdAt: "desc" },
+              take: 20,
+            },
+          },
+        });
+        if (!member) {
+          return NextResponse.json({ error: "Not registered" }, { status: 404 });
+        }
+        // Generate a new session token and set cookie for next visit
+        const newToken = randomUUID();
+        await db.packMember.update({
+          where: { handle: cleanH },
+          data: { sessionToken: newToken },
+        });
+        const res = NextResponse.json({ member });
+        setSessionCookie(res, newToken);
+        return res;
+      }
+
       default:
         return NextResponse.json({
           error: "Unknown action",
-          availableActions: ["leaderboard", "profile", "wheel_history", "session_login"],
+          availableActions: ["leaderboard", "profile", "wheel_history", "session_login", "restore_session"],
         }, { status: 400 });
     }
   } catch (error: any) {
@@ -1026,10 +1057,10 @@ export async function POST(request: NextRequest) {
 
         // Determine result based on weighted probabilities
         const WHEEL_SEGMENTS = [
-          { label: "1M", amount: 1_000_000, weight: 20, color: "#FFD700" },
-          { label: "500K", amount: 500_000, weight: 15, color: "#FF6B00" },
+          { label: "1M", amount: 1_000_000, weight: 8, color: "#FFD700" },
+          { label: "500K", amount: 500_000, weight: 12, color: "#FF6B00" },
           { label: "250K", amount: 250_000, weight: 15, color: "#DC2626" },
-          { label: "NOTHING", amount: 0, weight: 45, color: "#1a1a1a" },
+          { label: "NOTHING", amount: 0, weight: 60, color: "#1a1a1a" },
           { label: "RE-SPIN", amount: 0, weight: 5, color: "#7C3AED", respin: true },
         ];
 
