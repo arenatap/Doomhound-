@@ -97,21 +97,10 @@ const RANK_TIERS = [
   { title: "Lost Soul", minPoints: 0, emoji: "👻", color: "text-gray-500" },
 ];
 
-// ===== LOCAL STORAGE (just for "remember me") =====
-const SESSION_KEY = "doomhound_session";
-
-function getStoredHandle(): string | null {
-  if (typeof window === "undefined") return null;
-  try { return localStorage.getItem(SESSION_KEY); } catch { return null; }
-}
-function saveSession(handle: string) {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(SESSION_KEY, handle);
-}
-function clearSession() {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(SESSION_KEY);
-}
+// ===== SESSION MANAGEMENT (via Supabase-backed cookie) =====
+// The session is stored as an httpOnly cookie set by the server.
+// The cookie contains a sessionToken that maps to a PackMember in the DB.
+// This is more reliable than localStorage and persists across browser restarts.
 
 // ===== HELPERS =====
 function formatBalance(b: number): string {
@@ -185,22 +174,22 @@ export function ArenaGameSection() {
   const [memeVerifying, setMemeVerifying] = useState(false);
   const [wheelResult, setWheelResult] = useState<{ label: string; amount: number; won: boolean; respin: boolean } | null>(null);
 
-  // Load session on mount
+  // Restore session on mount — uses server-side cookie (Supabase-backed)
   useEffect(() => {
     const restoreSession = async () => {
-      const stored = getStoredHandle();
-      if (stored) {
-        try {
-          const res = await fetch(`/api/pack?action=profile&handle=${encodeURIComponent(stored)}`);
+      try {
+        // session_login reads the httpOnly cookie server-side
+        // and looks up the member by sessionToken in the DB
+        const res = await fetch("/api/pack?action=session_login");
+        if (res.ok) {
           const data = await res.json();
           if (data.member) {
             setMember(data.member);
-            saveSession(stored);
           }
-          // DON'T clearSession on failure — keep it for retry next visit
-        } catch {
-          // Network error — DON'T clear session, just leave it for next attempt
         }
+        // If session_login fails, user just sees the registration form — no big deal
+      } catch {
+        // Network error — silent, show registration form
       }
       setSessionLoading(false);
       loadLeaderboard();
@@ -221,9 +210,8 @@ export function ArenaGameSection() {
     try {
       const res = await fetch(`/api/pack?action=profile&handle=${encodeURIComponent(h)}`);
       const data = await res.json();
-      if (data.member) { setMember(data.member); saveSession(h); }
-      // Don't clear session on failure — keep for retry
-    } catch { /* don't clear session on network error */ }
+      if (data.member) { setMember(data.member); }
+    } catch { /* silent */ }
   }, []);
 
   const loadLeaderboard = useCallback(async () => {
@@ -264,7 +252,7 @@ export function ArenaGameSection() {
       if (data.error) { setError(data.error); }
       else if (data.member) {
         setMember(data.member);
-        saveSession(cleanHandle);
+        // Session cookie is set server-side — no need for localStorage
         loadLeaderboard();
         setShowRegister(false);
       }
@@ -363,8 +351,16 @@ export function ArenaGameSection() {
   }, [member, loadLeaderboard, memePostUrl]);
 
   // ===== LOGOUT =====
-  const logout = useCallback(() => {
-    clearSession(); setMember(null); setHandle(""); setVerifyResult(null); setWheelResult(null);
+  const logout = useCallback(async () => {
+    try {
+      // Clear session on server (DB + cookie)
+      await fetch("/api/pack", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "logout", handle: "x" }),
+      });
+    } catch { /* silent */ }
+    setMember(null); setHandle(""); setVerifyResult(null); setWheelResult(null);
   }, []);
 
   // ===== DERIVED STATE =====
@@ -400,7 +396,7 @@ export function ArenaGameSection() {
               <div className="absolute inset-0 rounded-full border-2 border-red-600/30" />
               <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-red-500 animate-spin" />
             </div>
-            <p className="text-gray-500 text-sm font-creepster tracking-wider animate-pulse">Restoring your pack...</p>
+            <p className="text-gray-500 text-sm font-creepster tracking-wider animate-pulse">Summoning your profile...</p>
           </div>
         ) : member ? (
           <ScrollReveal delay={0.1}>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { randomUUID } from "crypto";
 
 // ===== POINTS CONFIG =====
 const POINTS_CONFIG: Record<string, { value: number; label: string }> = {
@@ -241,7 +242,31 @@ function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
-// ===== GET: Leaderboard + Profile =====
+// ===== COOKIE HELPERS =====
+const SESSION_COOKIE = "doomhound_session";
+const COOKIE_MAX_AGE = 365 * 24 * 60 * 60; // 1 year
+
+function setSessionCookie(response: NextResponse, token: string) {
+  response.cookies.set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: COOKIE_MAX_AGE,
+  });
+}
+
+function clearSessionCookie(response: NextResponse) {
+  response.cookies.set(SESSION_COOKIE, "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+}
+
+// ===== GET: Leaderboard + Profile + Session Login =====
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get("action");
@@ -292,10 +317,33 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ history: wheelActivities });
       }
 
+      case "session_login": {
+        // Restore session from cookie (server-side)
+        const token = request.cookies.get(SESSION_COOKIE)?.value;
+        if (!token) {
+          return NextResponse.json({ error: "No session" }, { status: 401 });
+        }
+        const member = await db.packMember.findUnique({
+          where: { sessionToken: token },
+          include: {
+            activities: {
+              orderBy: { createdAt: "desc" },
+              take: 20,
+            },
+          },
+        });
+        if (!member) {
+          const res = NextResponse.json({ error: "Invalid session" }, { status: 401 });
+          clearSessionCookie(res);
+          return res;
+        }
+        return NextResponse.json({ member });
+      }
+
       default:
         return NextResponse.json({
           error: "Unknown action",
-          availableActions: ["leaderboard", "profile", "wheel_history"],
+          availableActions: ["leaderboard", "profile", "wheel_history", "session_login"],
         }, { status: 400 });
     }
   } catch (error: any) {
@@ -325,7 +373,17 @@ export async function POST(request: NextRequest) {
             where: { handle: cleanHandle },
             include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
           });
-          return NextResponse.json({ member, alreadyRegistered: true });
+          // Generate/update session token for existing member too
+          const token = existing.sessionToken || randomUUID();
+          if (!existing.sessionToken) {
+            await db.packMember.update({
+              where: { handle: cleanHandle },
+              data: { sessionToken: token },
+            });
+          }
+          const res = NextResponse.json({ member, alreadyRegistered: true, sessionToken: token });
+          setSessionCookie(res, token);
+          return res;
         }
 
         // Verify handle on Arena
@@ -344,6 +402,7 @@ export async function POST(request: NextRequest) {
         const walletAddress = profile.address || null;
         const threadCount = profile.threadCount || 0;
         const followerCount = profile.followerCount || 0;
+        const sessionToken = randomUUID();
 
         const member = await db.packMember.create({
           data: {
@@ -356,6 +415,7 @@ export async function POST(request: NextRequest) {
             lastThreadCount: threadCount,
             lastFollowerCount: followerCount,
             lastVerifiedAt: new Date(),
+            sessionToken,
           },
         });
 
@@ -405,13 +465,16 @@ export async function POST(request: NextRequest) {
           include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
         });
 
-        return NextResponse.json({
+        const res = NextResponse.json({
           member: fullMember,
           alreadyRegistered: false,
           balanceBonus,
           balanceTierLabel,
           newAchievements,
+          sessionToken,
         });
+        setSessionCookie(res, sessionToken);
+        return res;
       }
 
       // ===== DAILY CHECK-IN =====
@@ -896,6 +959,21 @@ export async function POST(request: NextRequest) {
           include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
         });
         return NextResponse.json({ member: updated, newAchievements, verificationDetail });
+      }
+
+      // ===== LOGOUT =====
+      case "logout": {
+        // Clear session token from DB + cookie
+        const token = request.cookies.get(SESSION_COOKIE)?.value;
+        if (token) {
+          await db.packMember.updateMany({
+            where: { sessionToken: token },
+            data: { sessionToken: null },
+          });
+        }
+        const res = NextResponse.json({ success: true });
+        clearSessionCookie(res);
+        return res;
       }
 
       // ===== WHEEL OF DOOM SPIN =====

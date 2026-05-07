@@ -39,6 +39,9 @@ model PackMember {
   totalWheelWinnings Float   @default(0) // Total $DOOMHOUND won from wheel
   prizeSent        Boolean   @default(false) // Whether last prize was sent
 
+  // Session (persistent login via cookie + DB)
+  sessionToken     String?   @unique    // UUID token for cookie-based session
+
   // Referral
   referredBy       String?
 
