@@ -5,109 +5,177 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>$DOOMHOUND — Wheel of Doom</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Inter:wght@400;600;700&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  :root {
+    --fire: #f97316;
+    --blood: #dc2626;
+    --gold: #fbbf24;
+    --green: #4ade80;
+    --purple: #a78bfa;
+    --bg: #050505;
+  }
+
   body {
-    background: #050505;
+    background: var(--bg);
     color: #fff;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Inter', sans-serif;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     overflow-x: hidden;
   }
 
-  /* Animated fire background */
+  /* === ANIMATED FIRE BACKGROUND === */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background: 
-      radial-gradient(ellipse at 50% 100%, rgba(220,38,38,0.12) 0%, transparent 60%),
-      radial-gradient(ellipse at 20% 80%, rgba(249,115,22,0.06) 0%, transparent 40%),
-      radial-gradient(ellipse at 80% 80%, rgba(249,115,22,0.06) 0%, transparent 40%);
+    background:
+      radial-gradient(ellipse at 50% 110%, rgba(220,38,38,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 20% 90%, rgba(249,115,22,0.08) 0%, transparent 35%),
+      radial-gradient(ellipse at 80% 90%, rgba(249,115,22,0.08) 0%, transparent 35%),
+      radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0) 0%, var(--bg) 100%);
     pointer-events: none;
     z-index: 0;
-    animation: fireBg 3s ease-in-out infinite alternate;
+    animation: firePulse 2s ease-in-out infinite alternate;
   }
 
-  @keyframes fireBg {
-    from { opacity: 0.8; }
+  @keyframes firePulse {
+    from { opacity: 0.85; }
     to { opacity: 1; }
   }
 
-  /* Floating embers */
+  /* === EMBER PARTICLES === */
   .ember {
     position: fixed;
-    width: 4px;
-    height: 4px;
-    background: #f97316;
     border-radius: 50%;
     pointer-events: none;
     z-index: 0;
-    animation: floatUp linear infinite;
-    box-shadow: 0 0 6px #f97316, 0 0 12px rgba(249,115,22,0.3);
+    animation: emberFloat linear infinite;
   }
 
-  @keyframes floatUp {
-    0% { transform: translateY(100vh) scale(1); opacity: 1; }
-    50% { opacity: 0.8; }
-    100% { transform: translateY(-20vh) scale(0); opacity: 0; }
+  @keyframes emberFloat {
+    0% { transform: translateY(100vh) translateX(0) scale(1); opacity: 0; }
+    10% { opacity: 1; }
+    50% { transform: translateY(40vh) translateX(20px) scale(0.8); opacity: 0.7; }
+    100% { transform: translateY(-10vh) translateX(-10px) scale(0); opacity: 0; }
   }
 
+  /* === MAIN CONTAINER === */
   .container {
     position: relative;
     z-index: 1;
     text-align: center;
-    padding: 20px;
-    max-width: 500px;
+    padding: 30px 20px;
+    max-width: 520px;
+    width: 100%;
   }
 
+  /* === TITLE === */
   h1 {
     font-family: 'Creepster', cursive;
-    font-size: clamp(2.5rem, 8vw, 4.5rem);
-    background: linear-gradient(180deg, #fbbf24, #f97316, #dc2626);
+    font-size: clamp(2.8rem, 9vw, 5rem);
+    background: linear-gradient(180deg, #fde047 0%, #f97316 40%, #dc2626 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 0 20px rgba(249,115,22,0.5));
-    margin-bottom: 4px;
-    animation: titlePulse 2s ease-in-out infinite alternate;
+    filter: drop-shadow(0 0 25px rgba(249,115,22,0.6));
+    margin-bottom: 2px;
+    line-height: 1;
+    animation: titleGlow 2s ease-in-out infinite alternate;
   }
 
-  @keyframes titlePulse {
-    from { filter: drop-shadow(0 0 20px rgba(249,115,22,0.5)); transform: scale(1); }
-    to { filter: drop-shadow(0 0 35px rgba(249,115,22,0.8)); transform: scale(1.02); }
+  @keyframes titleGlow {
+    from { filter: drop-shadow(0 0 25px rgba(249,115,22,0.6)); transform: scale(1); }
+    to { filter: drop-shadow(0 0 40px rgba(220,38,38,0.8)); transform: scale(1.03); }
   }
 
   .subtitle {
-    color: #777;
-    font-size: 0.95rem;
-    margin-bottom: 25px;
-    letter-spacing: 3px;
+    color: #555;
+    font-size: 0.8rem;
+    letter-spacing: 6px;
     text-transform: uppercase;
+    margin-bottom: 8px;
   }
 
-  /* Outer glow ring */
-  .wheel-outer-ring {
+  /* === PRIZE POOL DISPLAY === */
+  .prize-pool-bar {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 20px;
+    padding: 12px 20px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(249,115,22,0.15);
+    border-radius: 12px;
+  }
+
+  .pool-stat {
+    text-align: center;
+  }
+
+  .pool-stat .label {
+    font-size: 0.6rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .pool-stat .value {
+    font-family: 'Creepster', cursive;
+    font-size: 1.3rem;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(251,191,36,0.3);
+  }
+
+  .pool-stat .value.green { color: var(--green); text-shadow: 0 0 10px rgba(74,222,128,0.3); }
+  .pool-stat .value.red { color: var(--blood); text-shadow: 0 0 10px rgba(220,38,38,0.3); }
+
+  /* === WHEEL AREA === */
+  .wheel-stage {
     position: relative;
-    width: clamp(300px, 75vw, 440px);
-    height: clamp(300px, 75vw, 440px);
+    width: clamp(310px, 78vw, 450px);
+    height: clamp(310px, 78vw, 450px);
     margin: 0 auto 25px;
-    border-radius: 50%;
-    padding: 8px;
-    background: conic-gradient(from 0deg, #dc2626, #f97316, #fbbf24, #f97316, #dc2626, #f97316, #fbbf24, #f97316, #dc2626);
-    animation: ringRotate 8s linear infinite;
-    box-shadow: 0 0 40px rgba(249,115,22,0.3), 0 0 80px rgba(220,38,38,0.15);
   }
 
-  @keyframes ringRotate {
-    from { filter: hue-rotate(0deg); }
-    to { filter: hue-rotate(30deg); }
+  /* Triple glow rings */
+  .glow-ring {
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .glow-ring.ring1 {
+    background: conic-gradient(from 0deg, transparent, rgba(249,115,22,0.2), transparent, rgba(220,38,38,0.2), transparent);
+    animation: ring1Spin 6s linear infinite;
+    filter: blur(4px);
+  }
+
+  .glow-ring.ring2 {
+    inset: -6px;
+    background: conic-gradient(from 120deg, transparent, rgba(251,191,36,0.15), transparent, rgba(249,115,22,0.15), transparent);
+    animation: ring2Spin 4s linear infinite reverse;
+    filter: blur(3px);
+  }
+
+  .glow-ring.ring3 {
+    inset: 0px;
+    border: 2px solid rgba(249,115,22,0.3);
+    box-shadow: 0 0 30px rgba(249,115,22,0.15), inset 0 0 30px rgba(249,115,22,0.05);
+    animation: ring3Pulse 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes ring1Spin { to { transform: rotate(360deg); } }
+  @keyframes ring2Spin { to { transform: rotate(-360deg); } }
+  @keyframes ring3Pulse {
+    from { box-shadow: 0 0 30px rgba(249,115,22,0.15), inset 0 0 30px rgba(249,115,22,0.05); }
+    to { box-shadow: 0 0 50px rgba(249,115,22,0.25), inset 0 0 50px rgba(249,115,22,0.1); }
   }
 
   .wheel-wrapper {
@@ -117,21 +185,32 @@
     border-radius: 50%;
     overflow: hidden;
     background: #0a0a0a;
+    z-index: 2;
   }
 
   /* Pointer */
   .pointer {
     position: absolute;
-    top: -5px;
+    top: -12px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 10;
+    z-index: 15;
+    filter: drop-shadow(0 0 15px rgba(220,38,38,0.9)) drop-shadow(0 4px 10px rgba(0,0,0,0.6));
+    transition: transform 0.15s;
+  }
+
+  .pointer.bounce {
+    animation: pointerBounce 0.12s ease;
+  }
+
+  @keyframes pointerBounce {
+    0%, 100% { transform: translateX(-50%) rotate(0); }
+    50% { transform: translateX(-50%) rotate(8deg); }
   }
 
   .pointer svg {
-    width: 40px;
-    height: 50px;
-    filter: drop-shadow(0 0 12px rgba(220,38,38,0.8)) drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+    width: 44px;
+    height: 54px;
   }
 
   /* Canvas */
@@ -147,52 +226,86 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 70px;
-    height: 70px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-    background: radial-gradient(circle, #222 0%, #0a0a0a 70%);
-    border: 3px solid #444;
+    background: radial-gradient(circle at 40% 35%, #333 0%, #111 50%, #050505 100%);
+    border: 3px solid #333;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 5;
-    box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 15px rgba(249,115,22,0.1);
+    box-shadow: 0 0 25px rgba(0,0,0,0.9), inset 0 0 20px rgba(249,115,22,0.15), 0 0 60px rgba(0,0,0,0.5);
   }
 
   .center-hub span {
-    font-size: 1.8rem;
+    font-size: 2.2rem;
+    animation: hubPulse 1.5s ease-in-out infinite alternate;
   }
 
-  /* Spin Button */
+  @keyframes hubPulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.15); }
+  }
+
+  /* === SPIN COST BADGE === */
+  .spin-cost-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, rgba(249,115,22,0.1), rgba(220,38,38,0.1));
+    border: 1px solid rgba(249,115,22,0.3);
+    border-radius: 20px;
+    padding: 6px 16px;
+    margin-bottom: 12px;
+    font-size: 0.8rem;
+    color: #fb923c;
+  }
+
+  .spin-cost-badge .cost-amount {
+    font-family: 'Creepster', cursive;
+    font-size: 1rem;
+    color: var(--gold);
+  }
+
+  /* === SPIN BUTTON === */
   .spin-btn {
     font-family: 'Creepster', cursive;
-    font-size: clamp(1.4rem, 4vw, 2rem);
+    font-size: clamp(1.5rem, 4.5vw, 2.2rem);
     color: #fff;
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 40%, #7f1d1d 100%);
     border: 2px solid #ef4444;
-    padding: 16px 60px;
-    border-radius: 14px;
+    padding: 18px 70px;
+    border-radius: 16px;
     cursor: pointer;
-    box-shadow: 0 0 30px rgba(220,38,38,0.4), 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+    box-shadow:
+      0 0 40px rgba(220,38,38,0.4),
+      0 0 80px rgba(220,38,38,0.15),
+      0 6px 20px rgba(0,0,0,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.15);
     transition: all 0.3s;
-    letter-spacing: 3px;
+    letter-spacing: 4px;
     position: relative;
     overflow: hidden;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 0 2px 6px rgba(0,0,0,0.4);
   }
 
   .spin-btn:hover:not(:disabled) {
-    box-shadow: 0 0 50px rgba(220,38,38,0.6), 0 4px 20px rgba(0,0,0,0.4);
-    transform: translateY(-2px) scale(1.03);
+    box-shadow:
+      0 0 60px rgba(220,38,38,0.6),
+      0 0 120px rgba(220,38,38,0.2),
+      0 6px 25px rgba(0,0,0,0.5);
+    transform: translateY(-3px) scale(1.05);
     border-color: #f87171;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 40%, #991b1b 100%);
   }
 
   .spin-btn:active:not(:disabled) {
-    transform: translateY(0) scale(0.98);
+    transform: translateY(0) scale(0.97);
   }
 
   .spin-btn:disabled {
-    opacity: 0.4;
+    opacity: 0.3;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
@@ -203,36 +316,110 @@
     position: absolute;
     top: 0;
     left: -100%;
-    width: 100%;
+    width: 200%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-    animation: btnShimmer 2.5s infinite;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0.12) 55%, transparent 100%);
+    animation: btnShimmer 3s infinite;
   }
 
   @keyframes btnShimmer {
     0% { left: -100%; }
-    100% { left: 200%; }
+    100% { left: 100%; }
   }
 
-  /* Spins counter */
+  /* Spins left */
   .spins-left {
-    color: #f97316;
+    color: var(--fire);
     font-family: 'Creepster', cursive;
-    font-size: 1.1rem;
-    margin-top: 15px;
+    font-size: 1rem;
+    margin-top: 14px;
     text-shadow: 0 0 10px rgba(249,115,22,0.3);
   }
 
-  /* Result Overlay */
+  /* === PRIZE TABLE === */
+  .prize-table {
+    margin-top: 28px;
+    width: 100%;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+    background: rgba(255,255,255,0.015);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 18px 16px 14px;
+  }
+
+  .prize-table h3 {
+    font-family: 'Creepster', cursive;
+    color: var(--gold);
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+  }
+
+  .prize-row {
+    display: flex;
+    align-items: center;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    gap: 8px;
+    transition: background 0.2s;
+  }
+
+  .prize-row:hover { background: rgba(255,255,255,0.03); }
+
+  .prize-row .icon { width: 28px; text-align: center; font-size: 1.1rem; }
+  .prize-row .label { flex: 1; color: #bbb; font-weight: 600; }
+  .prize-row .pct { color: var(--fire); font-weight: 700; font-family: 'Creepster', cursive; font-size: 1rem; min-width: 40px; text-align: right; }
+  .prize-row .usd { color: #444; font-size: 0.7rem; min-width: 50px; text-align: right; }
+
+  .prize-row.burn-row .label { color: #ef4444; }
+  .prize-row.hodl-row .label { color: #666; }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(249,115,22,0.2), transparent);
+    margin: 8px 0;
+  }
+
+  /* === HOW IT WORKS === */
+  .how-it-works {
+    margin-top: 20px;
+    padding: 16px;
+    background: rgba(249,115,22,0.03);
+    border: 1px solid rgba(249,115,22,0.1);
+    border-radius: 12px;
+    text-align: left;
+  }
+
+  .how-it-works h4 {
+    font-family: 'Creepster', cursive;
+    color: var(--fire);
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+
+  .how-it-works p {
+    color: #777;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    margin-bottom: 4px;
+  }
+
+  .how-it-works p strong { color: #aaa; }
+
+  /* === RESULT OVERLAY === */
   .result-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.9);
+    background: rgba(0,0,0,0.92);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 100;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
   }
 
   .result-overlay.show {
@@ -246,15 +433,16 @@
   }
 
   .result-card {
-    background: linear-gradient(180deg, #1a1a1a 0%, #111 100%);
+    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
     border-radius: 24px;
-    padding: 45px 35px;
+    padding: 45px 35px 35px;
     text-align: center;
     max-width: 400px;
     width: 90%;
     animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.05);
   }
 
   .result-card::before {
@@ -263,166 +451,200 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
-    border-radius: 24px 24px 0 0;
+    height: 4px;
   }
 
-  .result-card.win::before { background: linear-gradient(90deg, #f97316, #4ade80, #f97316); }
-  .result-card.lose::before { background: linear-gradient(90deg, #dc2626, #991b1b, #dc2626); }
-  .result-card.respin::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa, #8b5cf6); }
+  .result-card.win::before { background: linear-gradient(90deg, var(--gold), var(--green), var(--gold)); box-shadow: 0 0 20px rgba(74,222,128,0.5); }
+  .result-card.lose::before { background: linear-gradient(90deg, var(--blood), #7f1d1d, var(--blood)); box-shadow: 0 0 20px rgba(220,38,38,0.5); }
+  .result-card.burn::before { background: linear-gradient(90deg, var(--fire), var(--blood), var(--fire)); box-shadow: 0 0 20px rgba(249,115,22,0.5); }
+  .result-card.respin::before { background: linear-gradient(90deg, var(--purple), #6d28d9, var(--purple)); box-shadow: 0 0 20px rgba(167,139,250,0.5); }
 
   @keyframes popIn {
-    from { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+    from { transform: scale(0.4) rotate(-8deg); opacity: 0; }
     to { transform: scale(1) rotate(0deg); opacity: 1; }
   }
 
   .result-card .prize-emoji {
-    font-size: 4rem;
-    margin-bottom: 10px;
+    font-size: 4.5rem;
+    margin-bottom: 8px;
     display: block;
-    animation: emojiBounce 0.6s ease 0.3s both;
+    animation: emojiSlam 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.2s both;
   }
 
-  @keyframes emojiBounce {
-    0% { transform: scale(0); }
-    50% { transform: scale(1.3); }
-    100% { transform: scale(1); }
+  @keyframes emojiSlam {
+    0% { transform: scale(3) rotate(-20deg); opacity: 0; }
+    60% { transform: scale(0.9) rotate(5deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); }
   }
 
   .result-card h2 {
     font-family: 'Creepster', cursive;
-    font-size: 2rem;
-    margin-bottom: 5px;
+    font-size: 2.2rem;
+    margin-bottom: 4px;
+    letter-spacing: 3px;
   }
 
-  .result-card.win h2 { color: #4ade80; text-shadow: 0 0 20px rgba(74,222,128,0.4); }
-  .result-card.lose h2 { color: #dc2626; text-shadow: 0 0 20px rgba(220,38,38,0.4); }
-  .result-card.respin h2 { color: #a78bfa; text-shadow: 0 0 20px rgba(167,139,250,0.4); }
+  .result-card.win h2 { color: var(--green); text-shadow: 0 0 25px rgba(74,222,128,0.5); }
+  .result-card.lose h2 { color: #666; text-shadow: none; }
+  .result-card.burn h2 { color: var(--fire); text-shadow: 0 0 25px rgba(249,115,22,0.5); }
+  .result-card.respin h2 { color: var(--purple); text-shadow: 0 0 25px rgba(167,139,250,0.5); }
 
   .result-card .prize-amount {
     font-family: 'Creepster', cursive;
-    font-size: 3rem;
-    margin: 10px 0;
+    font-size: 3.5rem;
+    margin: 8px 0;
+    line-height: 1;
   }
 
-  .result-card.win .prize-amount { color: #4ade80; text-shadow: 0 0 30px rgba(74,222,128,0.5); }
-  .result-card.lose .prize-amount { color: #ef4444; }
-  .result-card.respin .prize-amount { color: #a78bfa; text-shadow: 0 0 20px rgba(167,139,250,0.4); }
+  .result-card.win .prize-amount { color: var(--green); text-shadow: 0 0 40px rgba(74,222,128,0.6); }
+  .result-card.lose .prize-amount { color: #444; font-size: 2rem; }
+  .result-card.burn .prize-amount { color: var(--fire); text-shadow: 0 0 30px rgba(249,115,22,0.5); }
+  .result-card.respin .prize-amount { color: var(--purple); text-shadow: 0 0 30px rgba(167,139,250,0.5); }
 
   .result-card .prize-sub {
-    color: #888;
-    font-size: 0.95rem;
-    margin-bottom: 25px;
+    color: #777;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+
+  .result-card .prize-usd {
+    color: #555;
+    font-size: 0.8rem;
+    margin-bottom: 20px;
   }
 
   .result-card .claim-note {
-    color: #666;
-    font-size: 0.75rem;
-    margin-top: 18px;
-    padding: 10px 15px;
-    background: rgba(255,255,255,0.03);
+    color: #555;
+    font-size: 0.72rem;
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.02);
     border-radius: 8px;
-    border: 1px solid #222;
-    line-height: 1.4;
+    border: 1px solid #1a1a1a;
+    line-height: 1.5;
   }
 
   .result-card button {
     font-family: 'Creepster', cursive;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     color: #fff;
-    background: linear-gradient(135deg, #f97316, #ea580c);
+    background: linear-gradient(135deg, var(--fire), #ea580c);
     border: none;
-    padding: 14px 40px;
+    padding: 14px 45px;
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 0 20px rgba(249,115,22,0.3);
-    letter-spacing: 2px;
+    box-shadow: 0 0 25px rgba(249,115,22,0.3);
+    letter-spacing: 3px;
   }
 
   .result-card button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 30px rgba(249,115,22,0.5);
+    transform: scale(1.08);
+    box-shadow: 0 0 40px rgba(249,115,22,0.5);
   }
 
-  /* Prize table */
-  .prize-table {
-    margin-top: 30px;
-    width: 100%;
-    max-width: 400px;
+  /* === WIN CONFETTI PARTICLES === */
+  .confetti {
+    position: fixed;
+    pointer-events: none;
+    z-index: 99;
+    animation: confettiFall linear forwards;
   }
 
-  .prize-table h3 {
-    font-family: 'Creepster', cursive;
-    color: #f97316;
-    font-size: 1.2rem;
-    margin-bottom: 10px;
+  @keyframes confettiFall {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
   }
 
-  .prize-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-  }
-
-  .prize-row:nth-child(odd) { background: rgba(255,255,255,0.02); }
-  .prize-row .label { color: #ccc; }
-  .prize-row .pct { color: #f97316; font-weight: bold; }
-  .prize-row .cost { color: #555; font-size: 0.75rem; }
-
+  /* === FOOTER === */
   .footer-note {
-    color: #333;
-    font-size: 0.7rem;
+    color: #222;
+    font-size: 0.65rem;
     margin-top: 20px;
-    line-height: 1.4;
+    line-height: 1.5;
   }
 </style>
 </head>
 <body>
 
-<!-- Floating embers -->
+<!-- Floating embers container -->
 <div id="embers"></div>
 
 <div class="container">
   <h1>WHEEL OF DOOM</h1>
-  <p class="subtitle">Spin · Win · Burn · Repeat</p>
+  <p class="subtitle">Spin &middot; Win &middot; Burn &middot; Repeat</p>
 
-  <div class="wheel-outer-ring">
+  <!-- Prize Pool Info -->
+  <div class="prize-pool-bar">
+    <div class="pool-stat">
+      <div class="label">Prize Pool</div>
+      <div class="value" id="poolDisplay">10M</div>
+    </div>
+    <div class="pool-stat">
+      <div class="label">Spin Cost</div>
+      <div class="value red">500K</div>
+    </div>
+    <div class="pool-stat">
+      <div class="label">Max Win</div>
+      <div class="value green">2M</div>
+    </div>
+  </div>
+
+  <!-- Wheel -->
+  <div class="wheel-stage">
+    <div class="glow-ring ring1"></div>
+    <div class="glow-ring ring2"></div>
+    <div class="glow-ring ring3"></div>
     <div class="wheel-wrapper">
-      <div class="pointer">
-        <svg viewBox="0 0 40 50">
-          <polygon points="20,50 0,0 40,0" fill="#dc2626" stroke="#ef4444" stroke-width="1"/>
-          <polygon points="20,42 5,4 35,4" fill="#ef4444" opacity="0.5"/>
+      <div class="pointer" id="pointer">
+        <svg viewBox="0 0 44 54">
+          <defs>
+            <linearGradient id="pGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ef4444"/>
+              <stop offset="100%" stop-color="#7f1d1d"/>
+            </linearGradient>
+          </defs>
+          <polygon points="22,54 2,0 42,0" fill="url(#pGrad)" stroke="#f87171" stroke-width="1.5"/>
+          <polygon points="22,44 8,6 36,6" fill="#f87171" opacity="0.3"/>
         </svg>
       </div>
-      <canvas id="wheelCanvas" width="800" height="800"></canvas>
+      <canvas id="wheelCanvas" width="900" height="900"></canvas>
       <div class="center-hub"><span>🐺</span></div>
     </div>
+  </div>
+
+  <div class="spin-cost-badge">
+    🔥 Cost per spin: <span class="cost-amount">500K $DOOMHOUND</span>
   </div>
 
   <button class="spin-btn" id="spinBtn" onclick="spin()">
     🔥 SPIN
   </button>
-  <div class="spins-left" id="spinsLeft">1 free spin today</div>
+  <div class="spins-left" id="spinsLeft">1 free spin today — then 500K per spin</div>
 
   <!-- Prize Table -->
   <div class="prize-table">
-    <h3>💰 Prize Odds</h3>
-    <div class="prize-row"><span class="label">🦴 100K</span><span class="pct">25%</span><span class="cost">~$0.03</span></div>
-    <div class="prize-row"><span class="label">🔥 500K</span><span class="pct">20%</span><span class="cost">~$0.15</span></div>
-    <div class="prize-row"><span class="label">💀 1M</span><span class="pct">18%</span><span class="cost">~$0.30</span></div>
-    <div class="prize-row"><span class="label">⚔️ 2M</span><span class="pct">12%</span><span class="cost">~$0.61</span></div>
-    <div class="prize-row"><span class="label">🐺 5M</span><span class="pct">8%</span><span class="cost">~$1.52</span></div>
-    <div class="prize-row"><span class="label">👑 10M</span><span class="pct">4%</span><span class="cost">~$3.04</span></div>
-    <div class="prize-row"><span class="label">🔥 BURN</span><span class="pct">8%</span><span class="cost">$0</span></div>
-    <div class="prize-row"><span class="label">🔄 SPIN AGAIN</span><span class="pct">5%</span><span class="cost">$0</span></div>
+    <h3>🎰 PRIZE ODDS</h3>
+    <div class="prize-row"><span class="icon">🦴</span><span class="label">250K</span><span class="pct">22%</span><span class="usd">~$0.08</span></div>
+    <div class="prize-row"><span class="icon">🔥</span><span class="label">500K</span><span class="pct">20%</span><span class="usd">~$0.15</span></div>
+    <div class="prize-row"><span class="icon">💀</span><span class="label">1M</span><span class="pct">15%</span><span class="usd">~$0.30</span></div>
+    <div class="prize-row"><span class="icon">⚔️</span><span class="label">2M</span><span class="pct">6%</span><span class="usd">~$0.61</span></div>
+    <div class="divider"></div>
+    <div class="prize-row burn-row"><span class="icon">🔥</span><span class="label">BURN (your 500K burned)</span><span class="pct">12%</span><span class="usd">$0</span></div>
+    <div class="prize-row hodl-row"><span class="icon">🤝</span><span class="label">HODL (no prize)</span><span class="pct">20%</span><span class="usd">$0</span></div>
+    <div class="prize-row"><span class="icon">🔄</span><span class="label">SPIN AGAIN (free)</span><span class="pct">5%</span><span class="usd">$0</span></div>
+  </div>
+
+  <!-- How It Works -->
+  <div class="how-it-works">
+    <h4>📖 How It Works</h4>
+    <p><strong>1 spin/day free</strong> — then each spin costs 500K $DOOMHOUND from your wallet.</p>
+    <p><strong>Win</strong> = tokens sent to your wallet. <strong>BURN</strong> = your spin cost gets burned forever. <strong>HODL</strong> = the hound keeps it running.</p>
+    <p><strong>House edge ~30%</strong> keeps the prize pool alive and funds daily burns. No treasury drain — self-sustaining! 🐺🔥</p>
   </div>
 
   <p class="footer-note">
-    ⚠️ Test version. Prizes simulated. In the live version, connect your Arena handle and wins go on-chain. 1 free spin/day. Costs shown at current MC.
+    ⚠️ Test version — prizes simulated. Live version connects your Arena wallet. 1 free spin/day, then 500K $DOOMHOUND per spin.
   </p>
 </div>
 
@@ -431,43 +653,49 @@
   <div class="result-card" id="resultCard">
     <span class="prize-emoji" id="prizeEmoji">🔥</span>
     <h2 id="prizeTitle">YOU WON!</h2>
-    <div class="prize-amount" id="prizeAmount">5M</div>
+    <div class="prize-amount" id="prizeAmount">1M</div>
     <p class="prize-sub" id="prizeSub">$DOOMHOUND tokens</p>
+    <p class="prize-usd" id="prizeUsd">≈ $0.30</p>
     <button onclick="closeResult()">🐺 HOWL!</button>
     <div class="claim-note" id="claimNote">
-      Live version: sent to your wallet on Avalanche!
+      Live version: tokens sent directly to your wallet on Avalanche!
     </div>
   </div>
 </div>
 
 <script>
-// ===== FLOATING EMBERS =====
+// ===== EMBER PARTICLES =====
 function createEmbers() {
   const container = document.getElementById('embers');
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 20; i++) {
     const ember = document.createElement('div');
     ember.className = 'ember';
     ember.style.left = Math.random() * 100 + '%';
-    ember.style.animationDuration = (4 + Math.random() * 6) + 's';
-    ember.style.animationDelay = Math.random() * 5 + 's';
-    ember.style.opacity = 0.3 + Math.random() * 0.7;
-    ember.style.width = (2 + Math.random() * 4) + 'px';
-    ember.style.height = ember.style.width;
+    ember.style.animationDuration = (5 + Math.random() * 8) + 's';
+    ember.style.animationDelay = Math.random() * 6 + 's';
+    const size = (2 + Math.random() * 4) + 'px';
+    ember.style.width = size;
+    ember.style.height = size;
+    const hue = Math.random() > 0.5 ? '25' : '10';
+    ember.style.background = `hsl(${hue}, 100%, ${50 + Math.random() * 30}%)`;
+    ember.style.boxShadow = `0 0 ${6 + Math.random()*8}px hsl(${hue}, 100%, 50%)`;
     container.appendChild(ember);
   }
 }
 createEmbers();
 
-// ===== WHEEL SEGMENTS =====
+// ===== WHEEL SEGMENTS — SUSTAINABLE MODEL =====
+// Budget: 10M $DOOMHOUND | Cost per spin: 500K | Max payout: 2M
+// House edge ~30% keeps the pool alive
+// Avg payout per spin: ~350K → net +150K per spin to pool
 const segments = [
-  { label: '100K',  value: 100000,    color: '#141414', textColor: '#fb923c', borderColor: '#f97316', emoji: '🦴',  weight: 25 },
-  { label: '500K',  value: 500000,    color: '#1a1210', textColor: '#fdba74', borderColor: '#ea580c', emoji: '🔥',  weight: 20 },
-  { label: '1M',    value: 1000000,   color: '#141414', textColor: '#fcd34d', borderColor: '#d97706', emoji: '💀',  weight: 18 },
-  { label: '2M',    value: 2000000,   color: '#1a1210', textColor: '#fde047', borderColor: '#ca8a04', emoji: '⚔️',  weight: 12 },
-  { label: '5M',    value: 5000000,   color: '#141414', textColor: '#4ade80', borderColor: '#16a34a', emoji: '🐺',  weight: 8 },
-  { label: '10M',   value: 10000000,  color: '#1a1210', textColor: '#22c55e', borderColor: '#15803d', emoji: '👑',  weight: 4 },
-  { label: 'BURN',  value: 0,         color: '#1a0505', textColor: '#ef4444', borderColor: '#b91c1c', emoji: '🔥',  weight: 8 },
-  { label: 'RE-SPIN', value: -1,      color: '#14101a', textColor: '#a78bfa', borderColor: '#7c3aed', emoji: '🔄',  weight: 5 },
+  { label: '250K',   value: 250000,   color: '#0f0f0f', textColor: '#fb923c', borderColor: '#f97316', emoji: '🦴', weight: 22 },
+  { label: '500K',   value: 500000,   color: '#12100d', textColor: '#fdba74', borderColor: '#ea580c', emoji: '🔥', weight: 20 },
+  { label: '1M',     value: 1000000,  color: '#0f0f0f', textColor: '#fcd34d', borderColor: '#d97706', emoji: '💀', weight: 15 },
+  { label: '2M',     value: 2000000,  color: '#12100d', textColor: '#4ade80', borderColor: '#16a34a', emoji: '⚔️', weight: 6 },
+  { label: 'BURN',   value: 0,        color: '#140505', textColor: '#ef4444', borderColor: '#b91c1c', emoji: '🔥', weight: 12, type: 'burn' },
+  { label: 'HODL',   value: -2,       color: '#0d0d0d', textColor: '#555',    borderColor: '#333',    emoji: '🤝', weight: 20, type: 'hodl' },
+  { label: 'RE-SPIN', value: -1,      color: '#0f0d14', textColor: '#a78bfa', borderColor: '#7c3aed', emoji: '🔄', weight: 5, type: 'respin' },
 ];
 
 const totalWeight = segments.reduce((s, seg) => s + seg.weight, 0);
@@ -475,16 +703,18 @@ const totalWeight = segments.reduce((s, seg) => s + seg.weight, 0);
 // ===== DRAW WHEEL =====
 const canvas = document.getElementById('wheelCanvas');
 const ctx = canvas.getContext('2d');
-const centerX = canvas.width / 2;
-const centerY = canvas.height / 2;
-const radius = canvas.width / 2 - 15;
+const W = canvas.width;
+const H = canvas.height;
+const centerX = W / 2;
+const centerY = H / 2;
+const radius = W / 2 - 20;
 
 let currentRotation = 0;
 let isSpinning = false;
-let spinsRemaining = 1;
+let freeSpins = 1;
 
 function drawWheel(rotation = 0) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, W, H);
   ctx.save();
   ctx.translate(centerX, centerY);
   ctx.rotate(rotation);
@@ -494,12 +724,12 @@ function drawWheel(rotation = 0) {
     const sliceAngle = (seg.weight / totalWeight) * 2 * Math.PI;
     const endAngle = startAngle + sliceAngle;
 
-    // Gradient fill per segment
+    // Gradient fill
     const midAngle = startAngle + sliceAngle / 2;
-    const gx = Math.cos(midAngle) * radius * 0.5;
-    const gy = Math.sin(midAngle) * radius * 0.5;
-    const grad = ctx.createRadialGradient(0, 0, 20, gx, gy, radius);
-    grad.addColorStop(0, '#0d0d0d');
+    const gx = Math.cos(midAngle) * radius * 0.6;
+    const gy = Math.sin(midAngle) * radius * 0.6;
+    const grad = ctx.createRadialGradient(0, 0, 30, gx, gy, radius);
+    grad.addColorStop(0, '#080808');
     grad.addColorStop(1, seg.color);
 
     // Draw slice
@@ -510,79 +740,76 @@ function drawWheel(rotation = 0) {
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // Segment border with glow
-    ctx.strokeStyle = seg.borderColor + '60';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Outer glow per segment
+    // Inner glow line
     ctx.beginPath();
-    ctx.arc(0, 0, radius - 3, startAngle + 0.01, endAngle - 0.01);
-    ctx.strokeStyle = seg.borderColor + '25';
-    ctx.lineWidth = 6;
+    ctx.arc(0, 0, radius, startAngle + 0.005, endAngle - 0.005);
+    ctx.strokeStyle = seg.borderColor + '18';
+    ctx.lineWidth = 8;
     ctx.stroke();
 
-    // Draw text
+    // Segment border
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, radius, startAngle, endAngle);
+    ctx.closePath();
+    ctx.strokeStyle = seg.borderColor + '40';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Draw text & emoji
     ctx.save();
     ctx.rotate(startAngle + sliceAngle / 2);
     ctx.textAlign = 'right';
 
     // Emoji
-    ctx.font = '32px serif';
-    ctx.fillStyle = seg.textColor;
+    ctx.font = '36px serif';
     ctx.shadowColor = seg.textColor;
-    ctx.shadowBlur = 12;
-    ctx.fillText(seg.emoji, radius - 55, 5);
+    ctx.shadowBlur = 15;
+    ctx.fillStyle = seg.textColor;
+    ctx.fillText(seg.emoji, radius - 60, 6);
 
     // Label
-    ctx.font = 'bold 26px Creepster, sans-serif';
-    ctx.fillText(seg.label, radius - 20, 5);
+    ctx.font = 'bold 30px Creepster, sans-serif';
+    ctx.shadowBlur = 10;
+    ctx.fillText(seg.label, radius - 22, 6);
     ctx.shadowBlur = 0;
 
     ctx.restore();
-
     startAngle = endAngle;
   });
 
-  // Outer ring
-  ctx.beginPath();
-  ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-  ctx.strokeStyle = 'rgba(249,115,22,0.2)';
-  ctx.lineWidth = 4;
-  ctx.stroke();
+  // Outer decorative ring with dots
+  for (let angle = 0; angle < 2 * Math.PI; angle += Math.PI / 30) {
+    const dx = Math.cos(angle) * (radius - 8);
+    const dy = Math.sin(angle) * (radius - 8);
+    ctx.beginPath();
+    ctx.arc(dx, dy, 2.5, 0, 2 * Math.PI);
+    ctx.fillStyle = 'rgba(249,115,22,0.12)';
+    ctx.fill();
+  }
 
-  // Inner ring
+  // Inner decorative ring
   ctx.beginPath();
-  ctx.arc(0, 0, radius * 0.15, 0, 2 * Math.PI);
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.arc(0, 0, radius * 0.18, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(249,115,22,0.08)';
   ctx.lineWidth = 2;
   ctx.stroke();
 
   // Tick marks at segment boundaries
-  startAngle = 0;
-  segments.forEach((seg, i) => {
+  let tAngle = 0;
+  segments.forEach((seg) => {
     const sliceAngle = (seg.weight / totalWeight) * 2 * Math.PI;
     ctx.save();
-    ctx.rotate(startAngle);
+    ctx.rotate(tAngle);
     ctx.beginPath();
-    ctx.moveTo(radius - 15, 0);
-    ctx.lineTo(radius, 0);
-    ctx.strokeStyle = '#444';
+    ctx.moveTo(radius - 18, 0);
+    ctx.lineTo(radius + 2, 0);
+    ctx.strokeStyle = '#333';
     ctx.lineWidth = 3;
     ctx.stroke();
     ctx.restore();
-    startAngle += sliceAngle;
+    tAngle += sliceAngle;
   });
-
-  // Decorative dots on outer edge
-  for (let angle = 0; angle < 2 * Math.PI; angle += Math.PI / 20) {
-    const dx = Math.cos(angle) * (radius - 6);
-    const dy = Math.sin(angle) * (radius - 6);
-    ctx.beginPath();
-    ctx.arc(dx, dy, 2, 0, 2 * Math.PI);
-    ctx.fillStyle = 'rgba(249,115,22,0.15)';
-    ctx.fill();
-  }
 
   ctx.restore();
 }
@@ -597,51 +824,79 @@ function getWinningSegment() {
   return segments.length - 1;
 }
 
+// ===== APPROXIMATE USD VALUE =====
+// MC ~$1.5K, supply 4.69B → ~$0.00000032 per token
+function tokenToUsd(amount) {
+  const pricePerToken = 0.00000032;
+  const usd = amount * pricePerToken;
+  if (usd < 0.01) return '<$0.01';
+  return '~$' + usd.toFixed(2);
+}
+
 // ===== SPIN =====
 function spin() {
-  if (isSpinning || spinsRemaining <= 0) return;
+  if (isSpinning) return;
+  if (freeSpins <= 0) return; // In live version: check wallet balance >= 500K
   isSpinning = true;
-  spinsRemaining--;
-  document.getElementById('spinsLeft').textContent = spinsRemaining > 0 ? `${spinsRemaining} spin${spinsRemaining > 1 ? 's' : ''} left today` : 'No spins left — come back tomorrow 🔥';
+  freeSpins--;
+  updateSpinsDisplay();
   document.getElementById('spinBtn').disabled = true;
 
   const winIndex = getWinningSegment();
 
-  // Calculate target angle
+  // Calculate target angle so pointer (top center) lands on the winning segment
   let startAngle = 0;
   for (let i = 0; i < winIndex; i++) {
     startAngle += (segments[i].weight / totalWeight) * 2 * Math.PI;
   }
   const sliceAngle = (segments[winIndex].weight / totalWeight) * 2 * Math.PI;
+  // Pointer is at top (3π/2 or -π/2). We need the segment middle to be at top.
   const sliceMiddle = startAngle + sliceAngle / 2;
+  // Target: when rotation = targetRotation, the sliceMiddle should align with the top (3π/2)
+  const fullSpins = 6 + Math.floor(Math.random() * 4); // 6-9 full rotations for drama
+  const targetRotation = currentRotation + (fullSpins * 2 * Math.PI) + ((3 * Math.PI / 2) - sliceMiddle) - currentRotation % (2 * Math.PI);
 
-  const fullSpins = 5 + Math.floor(Math.random() * 3);
-  const targetRotation = currentRotation + (fullSpins * 2 * Math.PI) + (2 * Math.PI - sliceMiddle + Math.PI / 2);
-
-  const duration = 4500 + Math.random() * 1000;
+  const duration = 5000 + Math.random() * 1500; // 5-6.5s spin
   const startTime = performance.now();
   const startRotation = currentRotation;
   const totalRotation = targetRotation - startRotation;
 
-  // Audio-like visual tick effect
-  let lastTickAngle = startRotation;
+  // Pointer tick feedback
+  const pointer = document.getElementById('pointer');
+  let lastSegIndex = -1;
 
   function animate(time) {
     const elapsed = time - startTime;
     const progress = Math.min(elapsed / duration, 1);
 
-    // Custom easing: fast start, long deceleration with slight bounce
+    // Custom easing: explosive start, dramatic deceleration
     let eased;
-    if (progress < 0.2) {
-      eased = 2.5 * progress * progress; // Quadratic acceleration
+    if (progress < 0.15) {
+      eased = 3 * progress * progress; // Fast accel
     } else {
-      const p = (progress - 0.2) / 0.8;
-      eased = 1 - Math.pow(1 - p, 4); // Quartic ease-out
-      eased = 0.2 + eased * 0.8;
+      const p = (progress - 0.15) / 0.85;
+      // Quintic ease-out for dramatic slowdown
+      eased = 1 - Math.pow(1 - p, 5);
+      eased = 0.15 + eased * 0.85;
     }
 
     currentRotation = startRotation + totalRotation * eased;
     drawWheel(currentRotation);
+
+    // Pointer bounce on segment boundaries
+    const currentAngle = ((currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    let cumAngle = 0;
+    let currentSegIdx = 0;
+    for (let i = 0; i < segments.length; i++) {
+      cumAngle += (segments[i].weight / totalWeight) * 2 * Math.PI;
+      if (currentAngle < cumAngle) { currentSegIdx = i; break; }
+    }
+    if (currentSegIdx !== lastSegIndex && lastSegIndex !== -1) {
+      pointer.classList.remove('bounce');
+      void pointer.offsetWidth; // Force reflow
+      pointer.classList.add('bounce');
+    }
+    lastSegIndex = currentSegIdx;
 
     if (progress < 1) {
       requestAnimationFrame(animate);
@@ -649,15 +904,44 @@ function spin() {
       isSpinning = false;
       showResult(segments[winIndex]);
 
-      if (segments[winIndex].value === -1) {
-        spinsRemaining++;
-        document.getElementById('spinsLeft').textContent = '🎉 Free re-spin! Go again!';
+      if (segments[winIndex].type === 'respin') {
+        freeSpins++;
+        updateSpinsDisplay();
         document.getElementById('spinBtn').disabled = false;
       }
     }
   }
 
   requestAnimationFrame(animate);
+}
+
+function updateSpinsDisplay() {
+  const el = document.getElementById('spinsLeft');
+  if (freeSpins > 0) {
+    el.textContent = `${freeSpins} free spin${freeSpins > 1 ? 's' : ''} left today!`;
+    document.getElementById('spinBtn').disabled = false;
+  } else {
+    el.textContent = 'Free spin used — next spins cost 500K $DOOMHOUND';
+    document.getElementById('spinBtn').disabled = true;
+  }
+}
+
+// ===== CONFETTI =====
+function spawnConfetti() {
+  const colors = ['#4ade80', '#fbbf24', '#f97316', '#ef4444', '#a78bfa', '#22c55e'];
+  for (let i = 0; i < 40; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.width = (6 + Math.random() * 8) + 'px';
+    c.style.height = (6 + Math.random() * 8) + 'px';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    c.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+    c.style.animationDelay = (Math.random() * 0.5) + 's';
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 4000);
+  }
 }
 
 // ===== SHOW RESULT =====
@@ -668,29 +952,43 @@ function showResult(segment) {
   const title = document.getElementById('prizeTitle');
   const amount = document.getElementById('prizeAmount');
   const sub = document.getElementById('prizeSub');
+  const usd = document.getElementById('prizeUsd');
   const claimNote = document.getElementById('claimNote');
 
-  if (segment.value === 0) {
-    card.className = 'result-card lose';
+  if (segment.type === 'burn') {
+    card.className = 'result-card burn';
     emoji.textContent = '🔥';
     title.textContent = 'BURNED!';
+    amount.textContent = '500K';
+    sub.textContent = 'Your spin cost was burned forever!';
+    usd.textContent = tokenToUsd(500000) + ' sent to the fire';
+    claimNote.textContent = 'Your 500K went straight to the burn address. Deflation in action! 🔥🐺';
+    spawnConfetti();
+  } else if (segment.type === 'hodl') {
+    card.className = 'result-card lose';
+    emoji.textContent = '🤝';
+    title.textContent = 'HODL!';
     amount.textContent = '0';
-    sub.textContent = 'The hound ate your spin.';
-    claimNote.textContent = 'The hound is hungry. Better luck next time. 🔥';
-  } else if (segment.value === -1) {
+    sub.textContent = 'The hound says: patience, warrior.';
+    usd.textContent = 'No prize this time';
+    claimNote.textContent = 'HODL spins keep the wheel running for everyone. The pack thanks you. 🐺';
+  } else if (segment.type === 'respin') {
     card.className = 'result-card respin';
     emoji.textContent = '🔄';
     title.textContent = 'SPIN AGAIN!';
     amount.textContent = 'FREE';
-    sub.textContent = 'The hound gives you another chance!';
-    claimNote.textContent = 'You earned a free re-spin. Use it wisely. 🐺';
+    sub.textContent = 'The hound grants you another spin!';
+    usd.textContent = 'No cost — go again!';
+    claimNote.textContent = 'Lucky! You earned a free re-spin. Use it wisely. 🐺';
   } else {
     card.className = 'result-card win';
     emoji.textContent = segment.emoji;
     title.textContent = 'YOU WON!';
     amount.textContent = segment.label;
     sub.textContent = '$DOOMHOUND tokens';
+    usd.textContent = '≈ ' + tokenToUsd(segment.value);
     claimNote.textContent = 'Live version: tokens sent directly to your wallet on Avalanche! 🐺🔥';
+    spawnConfetti();
   }
 
   overlay.classList.add('show');
@@ -698,9 +996,7 @@ function showResult(segment) {
 
 function closeResult() {
   document.getElementById('resultOverlay').classList.remove('show');
-  if (spinsRemaining > 0) {
-    document.getElementById('spinBtn').disabled = false;
-  }
+  updateSpinsDisplay();
 }
 
 // ===== INIT =====
