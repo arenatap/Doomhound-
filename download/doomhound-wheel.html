@@ -226,21 +226,7 @@
 
   canvas#wheelCanvas { width: 100%; height: 100%; display: block; }
 
-  .center-hub {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 40% 35%, #333 0%, #111 50%, #050505 100%);
-    border: 3px solid #333;
-    display: flex; align-items: center; justify-content: center;
-    z-index: 5;
-    box-shadow: 0 0 25px rgba(0,0,0,0.9), inset 0 0 20px rgba(249,115,22,0.15);
-  }
-
-  .center-hub span { font-size: 2.2rem; animation: hubPulse 1.5s ease-in-out infinite alternate; }
-  @keyframes hubPulse { from { transform: scale(1); } to { transform: scale(1.15); } }
+  /* Center hub is drawn on canvas now — no HTML element needed */
 
   /* === SPIN BUTTONS === */
   .spin-buttons {
@@ -578,7 +564,7 @@
         </svg>
       </div>
       <canvas id="wheelCanvas" width="900" height="900"></canvas>
-      <div class="center-hub"><span>🐺</span></div>
+      <!-- Logo drawn on canvas, rotates with the wheel -->
     </div>
   </div>
 
@@ -695,6 +681,13 @@ const radius = W / 2 - 20;
 let currentRotation = 0;
 let isSpinning = false;
 
+// ===== LOAD CENTER LOGO =====
+const logoImg = new Image();
+logoImg.crossOrigin = 'anonymous';
+logoImg.src = 'doomhound-wheel-logo.png';
+let logoLoaded = false;
+logoImg.onload = () => { logoLoaded = true; drawWheel(currentRotation, currentSegments); };
+
 function drawWheel(rotation = 0, segs = currentSegments) {
   const totalWeight = getTotalWeight(segs);
   ctx.clearRect(0, 0, W, H);
@@ -782,6 +775,37 @@ function drawWheel(rotation = 0, segs = currentSegments) {
     ctx.restore();
     tAngle += sliceAngle;
   });
+
+  // Center logo — drawn on canvas so it rotates with the wheel
+  const logoSize = 110;
+  const logoX = -logoSize / 2;
+  const logoY = -logoSize / 2;
+
+  // Dark circle background for logo
+  ctx.beginPath();
+  ctx.arc(0, 0, logoSize / 2 + 8, 0, 2 * Math.PI);
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fill();
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Glow ring around logo
+  ctx.beginPath();
+  ctx.arc(0, 0, logoSize / 2 + 12, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(249,115,22,0.25)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Draw logo image
+  if (logoLoaded) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, logoSize / 2 + 4, 0, 2 * Math.PI);
+    ctx.clip();
+    ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+    ctx.restore();
+  }
 
   ctx.restore();
 }
