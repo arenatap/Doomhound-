@@ -168,6 +168,7 @@ export function ArenaGameSection() {
   const [leaderboard, setLeaderboard] = useState<PackMember[]>([]);
   const [handle, setHandle] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sessionLoading, setSessionLoading] = useState(true); // true while restoring session
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"game" | "leaderboard">("game");
   const [showRegister, setShowRegister] = useState(false);
@@ -186,9 +187,25 @@ export function ArenaGameSection() {
 
   // Load session on mount
   useEffect(() => {
-    const stored = getStoredHandle();
-    if (stored) loadProfile(stored);
-    loadLeaderboard();
+    const restoreSession = async () => {
+      const stored = getStoredHandle();
+      if (stored) {
+        try {
+          const res = await fetch(`/api/pack?action=profile&handle=${encodeURIComponent(stored)}`);
+          const data = await res.json();
+          if (data.member) {
+            setMember(data.member);
+            saveSession(stored);
+          }
+          // DON'T clearSession on failure — keep it for retry next visit
+        } catch {
+          // Network error — DON'T clear session, just leave it for next attempt
+        }
+      }
+      setSessionLoading(false);
+      loadLeaderboard();
+    };
+    restoreSession();
   }, []);
 
   // Check referral param
@@ -205,8 +222,8 @@ export function ArenaGameSection() {
       const res = await fetch(`/api/pack?action=profile&handle=${encodeURIComponent(h)}`);
       const data = await res.json();
       if (data.member) { setMember(data.member); saveSession(h); }
-      else clearSession();
-    } catch { clearSession(); }
+      // Don't clear session on failure — keep for retry
+    } catch { /* don't clear session on network error */ }
   }, []);
 
   const loadLeaderboard = useCallback(async () => {
@@ -377,7 +394,15 @@ export function ArenaGameSection() {
           </p>
         </ScrollReveal>
 
-        {member ? (
+        {sessionLoading ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-4">
+            <div className="relative w-12 h-12">
+              <div className="absolute inset-0 rounded-full border-2 border-red-600/30" />
+              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-red-500 animate-spin" />
+            </div>
+            <p className="text-gray-500 text-sm font-creepster tracking-wider animate-pulse">Restoring your pack...</p>
+          </div>
+        ) : member ? (
           <ScrollReveal delay={0.1}>
             <div className="space-y-5 sm:space-y-6">
               {/* User Card */}
