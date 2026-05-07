@@ -151,6 +151,20 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
     result: null,
   });
 
+  // Pre-load center logo image
+  const logoRef = useRef<HTMLImageElement | null>(null);
+  const [logoLoaded, setLogoLoaded] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = "/images/doomhound-logo.png";
+    img.onload = () => {
+      logoRef.current = img;
+      setLogoLoaded(true);
+    };
+  }, []);
+
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<SpinResult | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -209,6 +223,7 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
     const cy = rect.height / 2;
     const outerRadius = size / 2 - 8;
     const innerRadius = outerRadius - 6;
+    const segmentAngle = (Math.PI * 2) / WHEEL_SEGMENTS.length;
 
     const draw = () => {
       ctx.clearRect(0, 0, rect.width, rect.height);
@@ -216,8 +231,6 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
       const currentAngle = spinStateRef.current.currentAngle;
 
       // Draw segments
-      const segmentAngle = (Math.PI * 2) / WHEEL_SEGMENTS.length;
-
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(currentAngle);
@@ -333,16 +346,22 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      // Center text (counter-rotated)
-      ctx.rotate(-currentAngle);
-      ctx.fillStyle = "#f97316";
-      ctx.font = `bold ${size < 350 ? 9 : 11}px monospace`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("DOOM", 0, -3);
-      ctx.fillStyle = "#dc2626";
-      ctx.font = `bold ${size < 350 ? 7 : 9}px monospace`;
-      ctx.fillText("HOUND", 0, 7);
+      // Center logo (rotates WITH the wheel)
+      const logo = logoRef.current;
+      if (logo && logoLoaded) {
+        const logoSize = hubRadius * 1.5;
+        ctx.drawImage(logo, -logoSize / 2, -logoSize / 2, logoSize, logoSize);
+      } else {
+        // Fallback text if logo hasn't loaded
+        ctx.fillStyle = "#f97316";
+        ctx.font = `bold ${size < 350 ? 9 : 11}px monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("DOOM", 0, -3);
+        ctx.fillStyle = "#dc2626";
+        ctx.font = `bold ${size < 350 ? 7 : 9}px monospace`;
+        ctx.fillText("HOUND", 0, 7);
+      }
 
       ctx.restore();
 
@@ -368,7 +387,7 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
         cancelAnimationFrame(animFrameRef.current);
       }
     };
-  }, [spinning]);
+  }, [spinning, logoLoaded]);
 
   // ===== SPIN ACTION =====
   const doSpin = useCallback(async () => {
@@ -403,9 +422,15 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
       const spinResult: SpinResult = data.result;
 
       // Calculate target angle
+      // Segments are drawn at: i * segmentAngle - PI/2 (in rotated frame)
+      // The pointer is at -PI/2 in canvas frame
+      // In rotated frame, pointer is at: -PI/2 - currentAngle
+      // For pointer to land on middle of segment i:
+      //   -PI/2 - currentAngle = i * segmentAngle - PI/2 + segmentAngle/2
+      //   currentAngle = -(i * segmentAngle + segmentAngle/2)
+      //   currentAngle = -(i + 0.5) * segmentAngle
       const segmentAngle = (Math.PI * 2) / WHEEL_SEGMENTS.length;
-      const targetSegmentAngle = spinResult.segmentIndex * segmentAngle + segmentAngle / 2;
-      const baseTargetAngle = -Math.PI / 2 - targetSegmentAngle;
+      const baseTargetAngle = -(spinResult.segmentIndex + 0.5) * segmentAngle;
       const fullRotations = (4 + Math.floor(Math.random() * 3)) * Math.PI * 2;
       const finalTargetAngle = baseTargetAngle - fullRotations;
       const startAngle = spinStateRef.current.currentAngle;
@@ -428,7 +453,7 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
         const progress = Math.min(elapsed / state.duration, 1);
 
         // Custom easing: fast start, long dramatic slowdown
-        const eased = 1 - Math.pow(1 - progress, 4);
+        const eased = 1 - Math.pow(1 - progress, 3);
 
         state.currentAngle = startAngle + (state.targetAngle - startAngle) * eased;
 
