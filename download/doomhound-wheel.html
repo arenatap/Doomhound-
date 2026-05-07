@@ -344,6 +344,8 @@
   .prize-row.hodl-row .label { color: #666; }
   .prize-row.locked-row .label { color: #333; text-decoration: line-through; }
   .prize-row.locked-row .pct-free { color: #333; }
+  .prize-row.nothing-row .label { color: #444; }
+  .prize-row.nothing-row .pct-free { color: #555; }
 
   .divider {
     height: 1px;
@@ -597,23 +599,24 @@
       <span class="pct-paid pct-header" style="color:var(--fire)">PAID</span>
     </div>
     <div class="prize-row"><span class="icon">🦴</span><span class="label">250K</span><span class="pct-free">30%</span><span class="pct-paid">22%</span></div>
-    <div class="prize-row"><span class="icon">🔥</span><span class="label">500K</span><span class="pct-free">15%</span><span class="pct-paid">20%</span></div>
+    <div class="prize-row"><span class="icon">🔥</span><span class="label">500K</span><span class="pct-free">20%</span><span class="pct-paid">20%</span></div>
     <div class="divider"></div>
     <div class="prize-row locked-row"><span class="icon">💀</span><span class="label">1M</span><span class="pct-free">—</span><span class="pct-paid">15%</span></div>
     <div class="prize-row locked-row"><span class="icon">⚔️</span><span class="label">2M</span><span class="pct-free">—</span><span class="pct-paid">6%</span></div>
     <div class="divider"></div>
-    <div class="prize-row burn-row"><span class="icon">🔥</span><span class="label">BURN</span><span class="pct-free">15%</span><span class="pct-paid">12%</span></div>
-    <div class="prize-row hodl-row"><span class="icon">🤝</span><span class="label">HODL</span><span class="pct-free">35%</span><span class="pct-paid">20%</span></div>
+    <div class="prize-row nothing-row"><span class="icon">💀</span><span class="label">NOTHING</span><span class="pct-free">45%</span><span class="pct-paid">—</span></div>
+    <div class="prize-row burn-row"><span class="icon">🔥</span><span class="label">BURN (500K to dead)</span><span class="pct-free">—</span><span class="pct-paid">12%</span></div>
+    <div class="prize-row hodl-row"><span class="icon">🤝</span><span class="label">HODL (no prize)</span><span class="pct-free">—</span><span class="pct-paid">20%</span></div>
     <div class="prize-row"><span class="icon">🔄</span><span class="label">RE-SPIN</span><span class="pct-free">5%</span><span class="pct-paid">5%</span></div>
   </div>
 
   <!-- How It Works -->
   <div class="how-it-works">
     <h4>📖 How It Works</h4>
-    <p><strong>1 free spin/day</strong> — win up to 500K. 1M & 2M locked to paid spins only.</p>
-    <p><strong>Paid spins: 500K $DOOMHOUND</strong> — unlock the big prizes! 1M & 2M segments available.</p>
-    <p><strong>BURN</strong> = your 500K goes to the dead address 🔥 <strong>HODL</strong> = pool keeps it. Both sustain the game.</p>
-    <p><strong>House edge ~30%</strong> — pool grows with every paid spin. Self-sustaining! 🐺</p>
+    <p><strong>🆓 Free spin: 1/day</strong> — win 250K or 500K, or nothing. Simple as that. No tricks.</p>
+    <p><strong>💰 Paid spin: 500K $DOOMHOUND</strong> — unlock 1M & 2M jackpots + BURN & HODL mechanics.</p>
+    <p><strong>BURN</strong> = your 500K goes to the dead address 🔥 Deflation! <strong>HODL</strong> = pool keeps it.</p>
+    <p><strong>~30% house edge</strong> on paid spins — pool grows, game sustains itself. 🐺</p>
   </div>
 
   <p class="footer-note">
@@ -660,15 +663,11 @@ createEmbers();
 
 // ===== TWO TIER SEGMENTS =====
 const freeSegments = [
-  { label: '250K',   value: 250000,  color: '#0c0f14', textColor: '#7dd3fc', borderColor: '#0ea5e9', emoji: '🦴', weight: 30 },
-  { label: '500K',   value: 500000,  color: '#0f0d12', textColor: '#93c5fd', borderColor: '#2563eb', emoji: '🔥', weight: 15 },
-  { label: 'LOCKED', value: -3,      color: '#080808', textColor: '#333',    borderColor: '#222',    emoji: '🔒', weight: 15, type: 'locked' },
-  { label: 'LOCKED', value: -3,      color: '#080808', textColor: '#333',    borderColor: '#222',    emoji: '🔒', weight: 6,  type: 'locked' },
-  { label: 'BURN',   value: 0,       color: '#140505', textColor: '#ef4444', borderColor: '#b91c1c', emoji: '🔥', weight: 15, type: 'burn' },
-  { label: 'HODL',   value: -2,      color: '#0d0d0d', textColor: '#555',    borderColor: '#333',    emoji: '🤝', weight: 14, type: 'hodl' },
-  { label: 'HODL',   value: -2,      color: '#0d0d0d', textColor: '#444',    borderColor: '#222',    emoji: '🤝', weight: 0  }, // padding for visual balance
-  { label: 'RE-SPIN', value: -1,     color: '#0f0d14', textColor: '#a78bfa', borderColor: '#7c3aed', emoji: '🔄', weight: 5,  type: 'respin' },
-].filter(s => s.weight > 0); // Remove 0-weight padding
+  { label: '250K',    value: 250000,  color: '#0c0f14', textColor: '#7dd3fc', borderColor: '#0ea5e9', emoji: '🦴', weight: 30 },
+  { label: '500K',    value: 500000,  color: '#0f0d12', textColor: '#93c5fd', borderColor: '#2563eb', emoji: '🔥', weight: 20 },
+  { label: 'NOTHING', value: -2,      color: '#0d0d0d', textColor: '#444',    borderColor: '#222',    emoji: '💀', weight: 45, type: 'nothing' },
+  { label: 'RE-SPIN', value: -1,      color: '#0f0d14', textColor: '#a78bfa', borderColor: '#7c3aed', emoji: '🔄', weight: 5,  type: 'respin' },
+];
 
 const paidSegments = [
   { label: '250K',   value: 250000,   color: '#0f0f0f', textColor: '#fb923c', borderColor: '#f97316', emoji: '🦴', weight: 22 },
@@ -961,30 +960,22 @@ function showResult(segment, tier) {
   tierBadge.textContent = tier === 'free' ? 'FREE SPIN' : '500K PAID SPIN';
   tierBadge.className = tier === 'free' ? 'tier-badge free-badge' : 'tier-badge paid-badge';
 
-  if (segment.type === 'locked') {
-    // Should not happen since locked segments are excluded, but just in case
+  if (segment.type === 'nothing') {
     card.className = 'result-card lose';
-    emoji.textContent = '🔒';
-    title.textContent = 'LOCKED!';
-    amount.textContent = '—';
-    sub.textContent = 'Pay 500K to unlock big prizes!';
-    usd.textContent = '';
-    claimNote.textContent = '1M and 2M prizes only available on paid spins. 🐺';
+    emoji.textContent = '💀';
+    title.textContent = 'NOTHING!';
+    amount.textContent = '0';
+    sub.textContent = 'The hound is silent today.';
+    usd.textContent = 'Better luck next time';
+    claimNote.textContent = 'Free spin, no risk! Try a paid spin to unlock 1M & 2M prizes + BURN deflation. 🐺';
   } else if (segment.type === 'burn') {
     card.className = 'result-card burn';
     emoji.textContent = '🔥';
     title.textContent = 'BURNED!';
-    if (tier === 'paid') {
-      amount.textContent = '500K';
-      sub.textContent = 'Your spin cost was burned forever!';
-      usd.textContent = tokenToUsd(500000) + ' sent to the fire';
-      claimNote.textContent = 'Your 500K went to the dead address. Supply decreases — all holders win! 🔥🐺';
-    } else {
-      amount.textContent = '0';
-      sub.textContent = 'The hound demands a sacrifice!';
-      usd.textContent = '';
-      claimNote.textContent = 'On paid spins, your 500K gets burned for real deflation! 🔥';
-    }
+    amount.textContent = '500K';
+    sub.textContent = 'Your spin cost was burned forever!';
+    usd.textContent = tokenToUsd(500000) + ' sent to the fire';
+    claimNote.textContent = 'Your 500K went to the dead address. Supply decreases — all holders win! 🔥🐺';
     spawnConfetti();
   } else if (segment.type === 'hodl') {
     card.className = 'result-card lose';
