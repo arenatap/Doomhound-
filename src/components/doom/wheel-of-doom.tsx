@@ -53,13 +53,13 @@ interface WheelOfDoomProps {
   onSpinComplete: (result: SpinResult) => void;
 }
 
-// ===== WHEEL SEGMENTS =====
+// ===== WHEEL SEGMENTS (dark, premium style) =====
 const WHEEL_SEGMENTS = [
-  { label: "1M", amount: 1_000_000, weight: 20, color: "#FFD700", textColor: "#000" },
-  { label: "500K", amount: 500_000, weight: 15, color: "#FF6B00", textColor: "#000" },
-  { label: "250K", amount: 250_000, weight: 15, color: "#DC2626", textColor: "#fff" },
-  { label: "NOTHING", amount: 0, weight: 45, color: "#1a1a1a", textColor: "#666" },
-  { label: "RE-SPIN", amount: 0, weight: 5, color: "#7C3AED", textColor: "#fff" },
+  { label: "1M",      amount: 1_000_000, weight: 20, color: "#0f0f0f", textColor: "#fcd34d", borderColor: "#d97706", emoji: "💀", accentGlow: "rgba(217,119,6,0.4)" },
+  { label: "500K",    amount: 500_000,   weight: 15, color: "#12100d", textColor: "#fdba74", borderColor: "#ea580c", emoji: "🔥", accentGlow: "rgba(234,88,12,0.4)" },
+  { label: "250K",    amount: 250_000,   weight: 15, color: "#0f0d12", textColor: "#93c5fd", borderColor: "#2563eb", emoji: "🦴", accentGlow: "rgba(37,99,235,0.3)" },
+  { label: "NOTHING", amount: 0,         weight: 45, color: "#0d0d0d", textColor: "#444",    borderColor: "#222",    emoji: "💀", accentGlow: "none",        type: "nothing" },
+  { label: "RE-SPIN", amount: 0,         weight: 5,  color: "#0f0d14", textColor: "#a78bfa", borderColor: "#7c3aed", emoji: "🔄", accentGlow: "rgba(124,58,237,0.4)", type: "respin" },
 ];
 
 interface WheelHistoryItem {
@@ -97,7 +97,6 @@ function canSpinWheel(member: PackMember): { allowed: boolean; reason: string } 
     return { allowed: true, reason: "" };
   }
 
-  // Check weekly cooldown — same logic as server
   const now = new Date();
   const romeTz = "Europe/Rome";
   const getMondayMidnight = (d: Date) => {
@@ -121,30 +120,15 @@ function canSpinWheel(member: PackMember): { allowed: boolean; reason: string } 
   return { allowed: true, reason: "" };
 }
 
-// ===== FIRE PARTICLE =====
-interface FireParticle {
+// ===== EMBER PARTICLE =====
+interface EmberParticle {
+  id: number;
   x: number;
   y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  maxLife: number;
+  delay: number;
+  duration: number;
   size: number;
   hue: number;
-}
-
-// ===== CONFETTI PARTICLE =====
-interface ConfettiParticle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  maxLife: number;
-  size: number;
-  color: string;
-  rotation: number;
-  rotationSpeed: number;
 }
 
 // ===== COMPONENT =====
@@ -167,17 +151,29 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
     result: null,
   });
 
-  const fireParticlesRef = useRef<FireParticle[]>([]);
-  const confettiParticlesRef = useRef<ConfettiParticle[]>([]);
-
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<SpinResult | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [history, setHistory] = useState<WheelHistoryItem[]>([]);
   const [spinError, setSpinError] = useState<string | null>(null);
+  const [pointerBounce, setPointerBounce] = useState(false);
+  const lastSegmentRef = useRef<number>(-1);
 
   const spinCheck = canSpinWheel(member);
   const canSpin = spinCheck.allowed;
+
+  // Generate ember particles
+  const [embers] = useState<EmberParticle[]>(() =>
+    Array.from({ length: 14 }, (_, i) => ({
+      id: i,
+      x: 10 + Math.random() * 80,
+      y: 100,
+      delay: Math.random() * 6,
+      duration: 5 + Math.random() * 8,
+      size: 2 + Math.random() * 4,
+      hue: Math.random() > 0.5 ? 25 : 10,
+    }))
+  );
 
   // Load wheel history on mount
   useEffect(() => {
@@ -189,11 +185,11 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
       } catch { /* silent */ }
     };
     loadHistory();
-    const interval = setInterval(loadHistory, 30000); // refresh every 30s
+    const interval = setInterval(loadHistory, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Canvas setup and drawing
+  // Canvas drawing
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -211,35 +207,16 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
     const size = Math.min(rect.width, rect.height);
     const cx = rect.width / 2;
     const cy = rect.height / 2;
-    const outerRadius = size / 2 - 12;
-    const innerRadius = outerRadius - 8;
+    const outerRadius = size / 2 - 8;
+    const innerRadius = outerRadius - 6;
 
     const draw = () => {
       ctx.clearRect(0, 0, rect.width, rect.height);
 
       const currentAngle = spinStateRef.current.currentAngle;
 
-      // Outer glow ring
-      const glowIntensity = spinning ? 0.6 + 0.4 * Math.sin(Date.now() / 200) : 0.3;
-      const gradient = ctx.createRadialGradient(cx, cy, innerRadius, cx, cy, outerRadius + 15);
-      gradient.addColorStop(0, `rgba(220, 38, 38, ${glowIntensity * 0.3})`);
-      gradient.addColorStop(0.5, `rgba(255, 107, 0, ${glowIntensity * 0.5})`);
-      gradient.addColorStop(1, "transparent");
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.arc(cx, cy, outerRadius + 15, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Outer ring
-      ctx.beginPath();
-      ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
-      ctx.strokeStyle = spinning ? "#DC2626" : "#2a2a2a";
-      ctx.lineWidth = 4;
-      ctx.stroke();
-
       // Draw segments
       const segmentAngle = (Math.PI * 2) / WHEEL_SEGMENTS.length;
-      const totalWeight = WHEEL_SEGMENTS.reduce((sum, s) => sum + s.weight, 0);
 
       ctx.save();
       ctx.translate(cx, cy);
@@ -249,25 +226,56 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
         const seg = WHEEL_SEGMENTS[i];
         const startAngle = i * segmentAngle - Math.PI / 2;
         const endAngle = (i + 1) * segmentAngle - Math.PI / 2;
+        const midAngle = startAngle + segmentAngle / 2;
 
-        // Fill segment
+        // Segment fill — dark with subtle gradient
+        const segGrad = ctx.createRadialGradient(0, 0, innerRadius * 0.1, 0, 0, innerRadius - 4);
+        segGrad.addColorStop(0, seg.color);
+        segGrad.addColorStop(1, adjustBrightness(seg.color, -10));
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.arc(0, 0, innerRadius - 4, startAngle, endAngle);
         ctx.closePath();
-        ctx.fillStyle = seg.color;
+        ctx.fillStyle = segGrad;
         ctx.fill();
 
-        // Segment border
-        ctx.strokeStyle = "#0a0a0a";
-        ctx.lineWidth = 2;
+        // Segment accent border (colored arc on the outer edge)
+        ctx.beginPath();
+        ctx.arc(0, 0, innerRadius - 4, startAngle, endAngle);
+        ctx.strokeStyle = seg.borderColor;
+        ctx.lineWidth = 3;
         ctx.stroke();
 
-        // Segment weight label
-        const midAngle = startAngle + segmentAngle / 2;
-        const weightPct = Math.round((seg.weight / totalWeight) * 100);
-        const labelR = innerRadius * 0.62;
+        // Inner glow for winning segments
+        if (seg.accentGlow !== "none") {
+          const glowGrad = ctx.createRadialGradient(
+            Math.cos(midAngle) * innerRadius * 0.6,
+            Math.sin(midAngle) * innerRadius * 0.6,
+            0,
+            Math.cos(midAngle) * innerRadius * 0.6,
+            Math.sin(midAngle) * innerRadius * 0.6,
+            innerRadius * 0.35
+          );
+          glowGrad.addColorStop(0, seg.accentGlow);
+          glowGrad.addColorStop(1, "transparent");
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.arc(0, 0, innerRadius - 4, startAngle, endAngle);
+          ctx.closePath();
+          ctx.fillStyle = glowGrad;
+          ctx.fill();
+        }
 
+        // Segment divider lines
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(startAngle) * (innerRadius - 4), Math.sin(startAngle) * (innerRadius - 4));
+        ctx.strokeStyle = "rgba(255,255,255,0.06)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Label text
+        const labelR = innerRadius * 0.58;
         ctx.save();
         ctx.translate(
           Math.cos(midAngle) * labelR,
@@ -275,78 +283,79 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
         );
         ctx.rotate(midAngle + Math.PI / 2);
 
-        // Label text
-        ctx.fillStyle = seg.textColor;
-        ctx.font = `bold ${size < 350 ? 11 : 14}px monospace`;
+        // Emoji
+        ctx.font = `${size < 350 ? 14 : 18}px serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(seg.label, 0, -6);
+        ctx.fillText(seg.emoji, 0, -10);
 
-        // Weight percentage
-        ctx.font = `${size < 350 ? 8 : 10}px monospace`;
-        ctx.globalAlpha = 0.7;
-        ctx.fillText(`${weightPct}%`, 0, 8);
-        ctx.globalAlpha = 1;
+        // Prize label
+        ctx.fillStyle = seg.textColor;
+        ctx.font = `bold ${size < 350 ? 12 : 15}px monospace`;
+        ctx.fillText(seg.label, 0, 8);
 
         ctx.restore();
       }
 
-      // Center circle
+      // Decorative tick marks on outer ring
+      for (let i = 0; i < 40; i++) {
+        const tickAngle = (i / 40) * Math.PI * 2;
+        const isMajor = i % 8 === 0;
+        const tickInner = innerRadius - (isMajor ? 18 : 12);
+        const tickOuter = innerRadius - 4;
+
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(tickAngle) * tickInner, Math.sin(tickAngle) * tickInner);
+        ctx.lineTo(Math.cos(tickAngle) * tickOuter, Math.sin(tickAngle) * tickOuter);
+        ctx.strokeStyle = isMajor ? "rgba(249,115,22,0.5)" : "rgba(255,255,255,0.1)";
+        ctx.lineWidth = isMajor ? 2 : 1;
+        ctx.stroke();
+      }
+
+      // Center hub — dark with glow
+      const hubRadius = innerRadius * 0.2;
+      const hubGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, hubRadius);
+      hubGrad.addColorStop(0, "#1a1a1a");
+      hubGrad.addColorStop(0.7, "#0d0d0d");
+      hubGrad.addColorStop(1, "#050505");
       ctx.beginPath();
-      ctx.arc(0, 0, innerRadius * 0.22, 0, Math.PI * 2);
-      ctx.fillStyle = "#0a0a0a";
+      ctx.arc(0, 0, hubRadius, 0, Math.PI * 2);
+      ctx.fillStyle = hubGrad;
       ctx.fill();
-      ctx.strokeStyle = "#DC2626";
+      ctx.strokeStyle = "#f97316";
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Center text
-      ctx.fillStyle = "#DC2626";
-      ctx.font = `bold ${size < 350 ? 8 : 10}px monospace`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.rotate(-currentAngle); // Counter-rotate so text stays upright
-      ctx.fillText("DOOM", 0, -3);
-      ctx.font = `${size < 350 ? 6 : 8}px monospace`;
-      ctx.fillStyle = "#FF6B00";
-      ctx.fillText("SPIN", 0, 7);
-
-      ctx.restore();
-
-      // Pointer (top triangle) — stays still
+      // Inner hub ring
       ctx.beginPath();
-      ctx.moveTo(cx, cy - innerRadius - 2);
-      ctx.lineTo(cx - 10, cy - innerRadius - 22);
-      ctx.lineTo(cx + 10, cy - innerRadius - 22);
-      ctx.closePath();
-      ctx.fillStyle = "#DC2626";
-      ctx.fill();
-      ctx.strokeStyle = "#FF6B00";
+      ctx.arc(0, 0, hubRadius * 0.7, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(249,115,22,0.3)";
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      // Fire particles (when spinning)
-      if (spinning && fireParticlesRef.current.length > 0) {
-        for (const p of fireParticlesRef.current) {
-          const alpha = p.life / p.maxLife;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${p.hue}, 100%, 60%, ${alpha})`;
-          ctx.fill();
-        }
-      }
+      // Center text (counter-rotated)
+      ctx.rotate(-currentAngle);
+      ctx.fillStyle = "#f97316";
+      ctx.font = `bold ${size < 350 ? 9 : 11}px monospace`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("DOOM", 0, -3);
+      ctx.fillStyle = "#dc2626";
+      ctx.font = `bold ${size < 350 ? 7 : 9}px monospace`;
+      ctx.fillText("HOUND", 0, 7);
 
-      // Confetti particles (when won)
-      if (confettiParticlesRef.current.length > 0) {
-        for (const p of confettiParticlesRef.current) {
-          const alpha = p.life / p.maxLife;
-          ctx.save();
-          ctx.translate(p.x, p.y);
-          ctx.rotate(p.rotation);
-          ctx.fillStyle = p.color.replace("1)", `${alpha})`);
-          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
-          ctx.restore();
+      ctx.restore();
+
+      // Pointer bounce detection during spin
+      if (spinStateRef.current.spinning) {
+        const normalizedAngle = ((currentAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const pointerAngle = ((Math.PI * 2) - normalizedAngle + Math.PI / 2) % (Math.PI * 2);
+        const currentSegment = Math.floor(pointerAngle / segmentAngle) % WHEEL_SEGMENTS.length;
+        if (currentSegment !== lastSegmentRef.current && lastSegmentRef.current !== -1) {
+          setPointerBounce(true);
+          setTimeout(() => setPointerBounce(false), 120);
         }
+        lastSegmentRef.current = currentSegment;
       }
 
       animFrameRef.current = requestAnimationFrame(draw);
@@ -361,103 +370,6 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
     };
   }, [spinning]);
 
-  // Fire particles animation loop
-  useEffect(() => {
-    if (!spinning) return;
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const cx = rect.width / 2;
-    const cy = rect.height / 2;
-    const size = Math.min(rect.width, rect.height);
-    const radius = size / 2 - 16;
-
-    const interval = setInterval(() => {
-      // Spawn new fire particles around the wheel
-      for (let i = 0; i < 3; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        fireParticlesRef.current.push({
-          x: cx + Math.cos(angle) * radius,
-          y: cy + Math.sin(angle) * radius,
-          vx: (Math.random() - 0.5) * 2,
-          vy: -Math.random() * 3 - 1,
-          life: 30 + Math.random() * 20,
-          maxLife: 50,
-          size: 3 + Math.random() * 4,
-          hue: Math.random() * 40 + 10, // Orange to yellow
-        });
-      }
-
-      // Update particles
-      fireParticlesRef.current = fireParticlesRef.current
-        .map((p) => ({
-          ...p,
-          x: p.x + p.vx,
-          y: p.y + p.vy,
-          life: p.life - 1,
-        }))
-        .filter((p) => p.life > 0);
-    }, 50);
-
-    return () => clearInterval(interval);
-  }, [spinning]);
-
-  // Confetti animation
-  useEffect(() => {
-    if (!result || !result.won) {
-      confettiParticlesRef.current = [];
-      return;
-    }
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const cx = rect.width / 2;
-
-    // Spawn confetti burst
-    const colors = [
-      "rgba(255, 215, 0, 1)",
-      "rgba(255, 107, 0, 1)",
-      "rgba(220, 38, 38, 1)",
-      "rgba(124, 58, 237, 1)",
-      "rgba(0, 255, 136, 1)",
-    ];
-
-    for (let i = 0; i < 60; i++) {
-      confettiParticlesRef.current.push({
-        x: cx,
-        y: rect.height / 2,
-        vx: (Math.random() - 0.5) * 12,
-        vy: -Math.random() * 10 - 2,
-        life: 60 + Math.random() * 40,
-        maxLife: 100,
-        size: 4 + Math.random() * 6,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        rotation: Math.random() * Math.PI * 2,
-        rotationSpeed: (Math.random() - 0.5) * 0.3,
-      });
-    }
-
-    const interval = setInterval(() => {
-      confettiParticlesRef.current = confettiParticlesRef.current
-        .map((p) => ({
-          ...p,
-          x: p.x + p.vx,
-          y: p.y + p.vy,
-          vy: p.vy + 0.15, // gravity
-          vx: p.vx * 0.99,
-          life: p.life - 1,
-          rotation: p.rotation + p.rotationSpeed,
-        }))
-        .filter((p) => p.life > 0);
-    }, 30);
-
-    return () => clearInterval(interval);
-  }, [result]);
-
   // ===== SPIN ACTION =====
   const doSpin = useCallback(async () => {
     if (spinning || !canSpin) return;
@@ -466,8 +378,7 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
     setResult(null);
     setShowResult(false);
     setSpinError(null);
-    fireParticlesRef.current = [];
-    confettiParticlesRef.current = [];
+    lastSegmentRef.current = -1;
 
     try {
       const res = await fetch("/api/pack", {
@@ -491,42 +402,24 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
 
       const spinResult: SpinResult = data.result;
 
-      // Calculate target angle for the animation
+      // Calculate target angle
       const segmentAngle = (Math.PI * 2) / WHEEL_SEGMENTS.length;
       const targetSegmentAngle = spinResult.segmentIndex * segmentAngle + segmentAngle / 2;
-
-      // We want the pointer (at the top, -PI/2) to land on this segment
-      // The wheel rotates, so we need the target segment to be at the top
-      // When the wheel is at angle A, the segment at the top is the one at angle (-A - PI/2)
-      // So to land on targetSegmentAngle: finalAngle = -(targetSegmentAngle + PI/2)
-      // But we also want the pointer at the top, which corresponds to -PI/2 on the wheel
-
-      // The pointer is at the top. When we draw segment i, it starts at i*segmentAngle - PI/2.
-      // The pointer points at angle -PI/2 in the canvas frame.
-      // When the wheel is rotated by angle R, the pointer points at angle -PI/2 - R in the wheel frame.
-      // We need -PI/2 - R = targetSegmentAngle (the middle of the target segment)
-      // So R = -PI/2 - targetSegmentAngle
-
       const baseTargetAngle = -Math.PI / 2 - targetSegmentAngle;
-
-      // Add 3-5 full rotations for dramatic effect
-      const fullRotations = (3 + Math.floor(Math.random() * 3)) * Math.PI * 2;
+      const fullRotations = (4 + Math.floor(Math.random() * 3)) * Math.PI * 2;
       const finalTargetAngle = baseTargetAngle - fullRotations;
-
-      // Start from current angle
       const startAngle = spinStateRef.current.currentAngle;
 
-      // Make sure we're going in the right direction (decreasing = clockwise visually)
       spinStateRef.current = {
         spinning: true,
         currentAngle: startAngle,
         targetAngle: startAngle + (finalTargetAngle - startAngle),
         startTime: Date.now(),
-        duration: 4500 + Math.random() * 500,
+        duration: 5000 + Math.random() * 1000,
         result: spinResult,
       };
 
-      // Easing animation
+      // Easing animation with realistic deceleration
       const animate = () => {
         const state = spinStateRef.current;
         if (!state.spinning) return;
@@ -534,8 +427,8 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
         const elapsed = Date.now() - state.startTime;
         const progress = Math.min(elapsed / state.duration, 1);
 
-        // Ease out cubic for smooth deceleration
-        const eased = 1 - Math.pow(1 - progress, 3);
+        // Custom easing: fast start, long dramatic slowdown
+        const eased = 1 - Math.pow(1 - progress, 4);
 
         state.currentAngle = startAngle + (state.targetAngle - startAngle) * eased;
 
@@ -561,32 +454,126 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
 
   return (
     <div className="flex flex-col items-center">
-      {/* Canvas Wheel */}
-      <div className="relative w-[280px] h-[280px] sm:w-[360px] sm:h-[360px] md:w-[400px] md:h-[400px]">
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full"
-          style={{ display: "block" }}
+      {/* Ember Particles */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        {embers.map((e) => (
+          <div
+            key={e.id}
+            className="absolute rounded-full"
+            style={{
+              left: `${e.x}%`,
+              bottom: "-10px",
+              width: `${e.size}px`,
+              height: `${e.size}px`,
+              background: `hsl(${e.hue}, 100%, ${50 + Math.random() * 30}%)`,
+              boxShadow: `0 0 ${6 + e.size}px hsl(${e.hue}, 100%, 50%)`,
+              animation: `ember-rise ${e.duration}s linear ${e.delay}s infinite`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Wheel Stage */}
+      <div className="relative w-[280px] h-[310px] sm:w-[360px] sm:h-[390px] md:w-[400px] md:h-[430px]">
+        {/* Glow Ring 1 — spinning conic gradient */}
+        <div
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            inset: "-12px",
+            background: "conic-gradient(from 0deg, transparent, rgba(249,115,22,0.2), transparent, rgba(220,38,38,0.2), transparent)",
+            animation: "wheel-glow-ring1 6s linear infinite",
+            filter: "blur(4px)",
+          }}
         />
+
+        {/* Glow Ring 2 — reverse spinning */}
+        <div
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            inset: "-6px",
+            background: "conic-gradient(from 120deg, transparent, rgba(251,191,36,0.15), transparent, rgba(249,115,22,0.15), transparent)",
+            animation: "wheel-glow-ring2 4s linear infinite reverse",
+            filter: "blur(3px)",
+          }}
+        />
+
+        {/* Glow Ring 3 — pulsing border */}
+        <div
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            inset: "0px",
+            border: "2px solid rgba(249,115,22,0.3)",
+            boxShadow: "0 0 30px rgba(249,115,22,0.15), inset 0 0 30px rgba(249,115,22,0.05)",
+            animation: "wheel-glow-ring3 2s ease-in-out infinite alternate",
+          }}
+        />
+
+        {/* Pointer SVG */}
+        <div
+          className="absolute top-0 left-1/2 z-20"
+          style={{
+            transform: `translateX(-50%) ${pointerBounce ? "rotate(8deg)" : "rotate(0)"}`,
+            transition: "transform 0.12s ease",
+            filter: "drop-shadow(0 0 15px rgba(220,38,38,0.9)) drop-shadow(0 4px 10px rgba(0,0,0,0.6))",
+            marginTop: "-8px",
+          }}
+        >
+          <svg width="36" height="46" viewBox="0 0 44 54">
+            <defs>
+              <linearGradient id="pGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ef4444" />
+                <stop offset="100%" stopColor="#7f1d1d" />
+              </linearGradient>
+            </defs>
+            <polygon points="22,54 2,0 42,0" fill="url(#pGrad)" stroke="#f87171" strokeWidth="1.5" />
+            <polygon points="22,44 8,6 36,6" fill="#f87171" opacity="0.3" />
+          </svg>
+        </div>
+
+        {/* Canvas */}
+        <div className="relative w-full h-full rounded-full overflow-hidden bg-[#0a0a0a] z-10">
+          <canvas
+            ref={canvasRef}
+            className="w-full h-full"
+            style={{ display: "block" }}
+          />
+        </div>
       </div>
 
       {/* Spin Button */}
-      <div className="mt-4 sm:mt-5 w-full max-w-xs sm:max-w-sm">
+      <div className="mt-5 w-full max-w-xs sm:max-w-sm">
         <button
           onClick={doSpin}
           disabled={!canSpin || spinning}
-          className={`w-full py-3 sm:py-4 text-sm sm:text-lg font-bold rounded-xl transition-all uppercase tracking-wider ${
+          className={`w-full py-3.5 font-creepster text-xl sm:text-2xl rounded-xl transition-all uppercase tracking-wider relative overflow-hidden ${
             canSpin && !spinning
-              ? "bg-red-600 hover:bg-red-700 text-white shadow-[0_0_20px_rgba(220,38,38,0.5)] hover:shadow-[0_0_30px_rgba(220,38,38,0.7)] active:scale-95"
-              : "bg-[#2a2a2a] text-gray-600 cursor-not-allowed"
+              ? "text-white border-2 border-[#ef4444] hover:scale-[1.04] active:scale-95"
+              : "bg-[#1a1a1a] text-gray-600 border-2 border-[#2a2a2a] cursor-not-allowed"
           }`}
+          style={
+            canSpin && !spinning
+              ? {
+                  background: "linear-gradient(135deg, #dc2626 0%, #b91c1c 40%, #7f1d1d 100%)",
+                  boxShadow: "0 0 30px rgba(220,38,38,0.4), 0 4px 15px rgba(0,0,0,0.3)",
+                }
+              : undefined
+          }
         >
-          {spinning ? "🎡 SPINNING..." : canSpin ? "🎡 SPIN THE WHEEL" : "🔒 LOCKED"}
+          {canSpin && !spinning && (
+            <span
+              className="absolute inset-0 block"
+              style={{
+                background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0.12) 55%, transparent 100%)",
+                animation: "btn-shimmer 3s infinite",
+              }}
+            />
+          )}
+          {spinning ? "🎰 SPINNING..." : canSpin ? "🔥 SPIN THE WHEEL" : "🔒 LOCKED"}
         </button>
       </div>
 
       {/* Status Message */}
-      <div className="mt-3 text-center">
+      <div className="mt-2 text-center">
         {!canSpin && !spinning && (
           <p className="text-gray-500 text-[10px] sm:text-xs">
             {member.doomhoundBalance < 10_000_000
@@ -599,69 +586,172 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
         )}
       </div>
 
+      {/* Prize Odds Table */}
+      <div className="mt-5 w-full max-w-xs sm:max-w-sm bg-white/[0.015] border border-white/5 rounded-2xl p-4">
+        <h4 className="font-creepster text-[#fbbf24] text-sm mb-2.5 tracking-wider text-center">
+          🎰 PRIZE ODDS
+        </h4>
+        <div className="space-y-1.5">
+          {WHEEL_SEGMENTS.map((seg) => {
+            const totalWeight = WHEEL_SEGMENTS.reduce((s, w) => s + w.weight, 0);
+            const pct = Math.round((seg.weight / totalWeight) * 100);
+            return (
+              <div key={seg.label} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/[0.03] transition-colors">
+                <span className="text-base w-6 text-center">{seg.emoji}</span>
+                <span
+                  className="flex-1 text-xs font-semibold"
+                  style={{ color: seg.textColor === "#444" ? "#555" : seg.textColor }}
+                >
+                  {seg.label}
+                </span>
+                <span
+                  className="font-creepster text-sm font-bold"
+                  style={{ color: seg.textColor === "#444" ? "#555" : seg.textColor }}
+                >
+                  {pct}%
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* How It Works */}
+      <div className="mt-3 w-full max-w-xs sm:max-w-sm p-3.5 bg-orange-500/[0.03] border border-orange-500/10 rounded-xl text-left">
+        <h4 className="font-creepster text-[#f97316] text-xs mb-2 tracking-wider">
+          📖 How It Works
+        </h4>
+        <p className="text-gray-500 text-[11px] leading-relaxed mb-1">
+          <strong className="text-gray-400">Hold 10M $DOOMHOUND</strong> = 1 free spin per week (resets Monday midnight CET)
+        </p>
+        <p className="text-gray-500 text-[11px] leading-relaxed mb-1">
+          <strong className="text-gray-400">Win</strong> = tokens sent to your wallet within 24h!
+        </p>
+        <p className="text-gray-500 text-[11px] leading-relaxed">
+          <strong className="text-gray-400">RE-SPIN</strong> = free extra spin next week!
+        </p>
+      </div>
+
       {/* Result Overlay */}
       <AnimatePresence>
         {showResult && result && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            transition={{ type: "spring", damping: 15 }}
-            className={`mt-4 p-4 sm:p-5 rounded-xl border text-center max-w-xs sm:max-w-sm ${
-              result.won
-                ? "bg-gradient-to-b from-yellow-900/20 to-[#1a1a1a] border-yellow-600/40"
-                : result.respin
-                  ? "bg-gradient-to-b from-purple-900/20 to-[#1a1a1a] border-purple-600/40"
-                  : "bg-[#1a1a1a] border-[#2a2a2a]"
-            }`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/92 backdrop-blur-md flex items-center justify-center z-50"
+            onClick={() => setShowResult(false)}
           >
-            {result.won ? (
-              <>
-                <p className="text-2xl sm:text-3xl mb-1">🎉</p>
-                <p className="text-yellow-400 font-bold text-lg sm:text-xl font-creepster">
-                  YOU WON!
-                </p>
-                <p className="text-white font-bold text-xl sm:text-2xl font-mono mt-1">
-                  {formatBalance(result.amount)} $DOOMHOUND
-                </p>
-                <p className="text-gray-400 text-[10px] sm:text-xs mt-2">
-                  Prize sent within 24h to your wallet!
-                </p>
-              </>
-            ) : result.respin ? (
-              <>
-                <p className="text-2xl sm:text-3xl mb-1">🔄</p>
-                <p className="text-purple-400 font-bold text-lg sm:text-xl font-creepster">
-                  RE-SPIN!
-                </p>
-                <p className="text-gray-300 text-xs sm:text-sm mt-1">
-                  You get a free spin next week!
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-2xl sm:text-3xl mb-1">💀</p>
-                <p className="text-gray-400 font-bold text-lg sm:text-xl font-creepster">
-                  NOTHING!
-                </p>
-                <p className="text-gray-500 text-xs sm:text-sm mt-1">
-                  Better luck next week!
-                </p>
-              </>
-            )}
-            <button
-              onClick={() => setShowResult(false)}
-              className="mt-3 px-4 py-1.5 text-xs bg-[#2a2a2a] hover:bg-red-900/30 text-gray-400 hover:text-red-400 rounded-lg transition-colors"
+            <motion.div
+              initial={{ scale: 0.4, rotate: -8, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", damping: 12, stiffness: 200 }}
+              onClick={(e) => e.stopPropagation()}
+              className={`relative rounded-3xl p-8 sm:p-10 text-center max-w-sm w-[90%] overflow-hidden border border-white/5 ${
+                result.won
+                  ? "bg-gradient-to-b from-[#1a1a1a] to-[#0d0d0d]"
+                  : result.respin
+                    ? "bg-gradient-to-b from-[#1a1a1a] to-[#0d0d0d]"
+                    : "bg-gradient-to-b from-[#1a1a1a] to-[#0d0d0d]"
+              }`}
             >
-              CLOSE
-            </button>
+              {/* Top bar accent */}
+              <div
+                className="absolute top-0 left-0 right-0 h-1"
+                style={{
+                  background: result.won
+                    ? "linear-gradient(90deg, #fbbf24, #4ade80, #fbbf24)"
+                    : result.respin
+                      ? "linear-gradient(90deg, #a78bfa, #6d28d9, #a78bfa)"
+                      : "linear-gradient(90deg, #333, #1a1a1a, #333)",
+                  boxShadow: result.won
+                    ? "0 0 20px rgba(74,222,128,0.5)"
+                    : result.respin
+                      ? "0 0 20px rgba(167,139,250,0.5)"
+                      : "none",
+                }}
+              />
+
+              {/* Emoji slam */}
+              <motion.span
+                className="text-5xl sm:text-6xl block mb-2"
+                initial={{ scale: 3, rotate: -20, opacity: 0 }}
+                animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                transition={{ delay: 0.2, type: "spring", damping: 8 }}
+              >
+                {result.won ? "🎉" : result.respin ? "🔄" : "💀"}
+              </motion.span>
+
+              {/* Title */}
+              <h2
+                className="font-creepster text-3xl sm:text-4xl tracking-wider mb-1"
+                style={{
+                  color: result.won ? "#4ade80" : result.respin ? "#a78bfa" : "#555",
+                  textShadow: result.won
+                    ? "0 0 25px rgba(74,222,128,0.5)"
+                    : result.respin
+                      ? "0 0 25px rgba(167,139,250,0.5)"
+                      : "none",
+                }}
+              >
+                {result.won ? "YOU WON!" : result.respin ? "RE-SPIN!" : "NOTHING!"}
+              </h2>
+
+              {/* Amount */}
+              {result.won && (
+                <motion.div
+                  className="font-creepster text-4xl sm:text-5xl mt-2"
+                  style={{
+                    color: "#4ade80",
+                    textShadow: "0 0 40px rgba(74,222,128,0.6)",
+                  }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.4, type: "spring", damping: 10 }}
+                >
+                  {formatBalance(result.amount)}
+                </motion.div>
+              )}
+
+              {/* Subtitle */}
+              <p className="text-gray-500 text-sm mt-2">
+                {result.won
+                  ? "$DOOMHOUND tokens"
+                  : result.respin
+                    ? "You get a free spin next week!"
+                    : "Better luck next week!"}
+              </p>
+
+              {/* Prize delivery note */}
+              {result.won && (
+                <div className="mt-4 p-3 bg-white/[0.02] rounded-lg border border-[#1a1a1a]">
+                  <p className="text-gray-500 text-[11px] leading-relaxed">
+                    Prize sent within 24h to your wallet!
+                  </p>
+                </div>
+              )}
+
+              {/* Close button */}
+              <button
+                onClick={() => setShowResult(false)}
+                className="mt-5 font-creepster text-xl text-white border-none px-8 py-3 rounded-xl cursor-pointer transition-all hover:scale-105"
+                style={{
+                  background: "linear-gradient(135deg, #f97316, #ea580c)",
+                  boxShadow: "0 0 25px rgba(249,115,22,0.3)",
+                  letterSpacing: "3px",
+                }}
+              >
+                🐺 HOWL!
+              </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Recent Wins Feed */}
       {history.length > 0 && (
-        <div className="mt-5 sm:mt-6 w-full max-w-xs sm:max-w-sm">
+        <div className="mt-5 w-full max-w-xs sm:max-w-sm">
           <h4 className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mb-2 text-center">
             Recent Wins
           </h4>
@@ -669,7 +759,7 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
             {history.slice(0, 10).map((item) => (
               <div
                 key={item.id}
-                className="flex items-center gap-2 text-[10px] sm:text-xs bg-[#0a0a0a] rounded-lg px-3 py-2 border border-[#2a2a2a]"
+                className="flex items-center gap-2 text-[10px] sm:text-xs bg-[#0a0a0a] rounded-lg px-3 py-2 border border-[#1a1a1a]"
               >
                 <span>🐺</span>
                 <span className="text-yellow-400 font-bold">@{item.member.handle}</span>
@@ -700,4 +790,13 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
       </div>
     </div>
   );
+}
+
+// ===== UTILITY =====
+function adjustBrightness(hex: string, amount: number): string {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const r = Math.max(0, Math.min(255, ((num >> 16) & 0xff) + amount));
+  const g = Math.max(0, Math.min(255, ((num >> 8) & 0xff) + amount));
+  const b = Math.max(0, Math.min(255, (num & 0xff) + amount));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 }
