@@ -32,6 +32,13 @@ model PackMember {
   lastStreakAt     DateTime?
   achievements     String    @default("[]")   // JSON array: [{"id":"first_blood","name":"First Blood","emoji":"🩸","awardedAt":"..."}]
 
+  // Wheel of Doom
+  lastWheelSpin    DateTime?             // Last wheel spin timestamp
+  pendingWinnings  Float     @default(0) // $DOOMHOUND won but not yet sent
+  totalWheelSpins  Int       @default(0) // Total spins ever
+  totalWheelWinnings Float   @default(0) // Total $DOOMHOUND won from wheel
+  prizeSent        Boolean   @default(false) // Whether last prize was sent
+
   // Referral
   referredBy       String?
 
@@ -47,7 +54,7 @@ model PackMember {
 model ActivityLog {
   id           String   @id @default(cuid())
   memberHandle String             // Arena handle (FK)
-  type         String              // register, daily_checkin, arena_post, arena_follower, trending_mention, meme_generated, referral, doomhound_holder
+  type         String              // register, daily_checkin, arena_post, arena_follower, trending_mention, meme_generated, referral, doomhound_holder, wheel_spin
   description  String
   points       Int
   createdAt    DateTime @default(now())

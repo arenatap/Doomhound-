@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScrollReveal } from "./scroll-reveal";
 import { BloodSplash } from "./blood-splash";
+import { WheelOfDoom } from "./wheel-of-doom";
+import type { SpinResult } from "./wheel-of-doom";
 
 // ===== TYPES =====
 interface ActivityLog {
@@ -35,6 +37,11 @@ interface PackMember {
   lastVerifiedAt: string | null;
   doomhoundBalance: number;
   balanceCheckedAt: string | null;
+  lastWheelSpin: string | null;
+  pendingWinnings: number;
+  totalWheelSpins: number;
+  totalWheelWinnings: number;
+  prizeSent: boolean;
   referredBy: string | null;
   createdAt: string;
   streakCount: number;
@@ -69,6 +76,7 @@ const POINTS: Record<string, { value: number; label: string; icon: string }> = {
   meme_generated: { value: 30, label: "Arena Post Verified", icon: "🎨" },
   referral: { value: 75, label: "Pack Recruit", icon: "⛓️" },
   doomhound_holder: { value: 0, label: "HODL Bonus", icon: "💰" },
+  wheel_spin: { value: 0, label: "Wheel of Doom", icon: "🎡" },
 };
 
 // ===== $DOOMHOUND BALANCE TIERS =====
@@ -174,6 +182,7 @@ export function ArenaGameSection() {
   const [checkingBalance, setCheckingBalance] = useState(false);
   const [memePostUrl, setMemePostUrl] = useState("");
   const [memeVerifying, setMemeVerifying] = useState(false);
+  const [wheelResult, setWheelResult] = useState<{ label: string; amount: number; won: boolean; respin: boolean } | null>(null);
 
   // Load session on mount
   useEffect(() => {
@@ -338,7 +347,7 @@ export function ArenaGameSection() {
 
   // ===== LOGOUT =====
   const logout = useCallback(() => {
-    clearSession(); setMember(null); setHandle(""); setVerifyResult(null);
+    clearSession(); setMember(null); setHandle(""); setVerifyResult(null); setWheelResult(null);
   }, []);
 
   // ===== DERIVED STATE =====
@@ -583,6 +592,27 @@ export function ArenaGameSection() {
                         <div className="h-full progress-fire rounded-full transition-all duration-700"
                           style={{ width: `${Math.min(100, (member.points / (nextRank.needed + member.points)) * 100)}%` }} />
                       </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Wheel of Doom */}
+              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden animate-flame-border">
+                <div className="p-5 sm:p-6 md:p-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-creepster text-2xl sm:text-3xl text-red-500">WHEEL OF DOOM</h3>
+                    <span className="text-gray-600 text-[10px] sm:text-xs">Hold 10M $DOOMHOUND = 1 spin/week</span>
+                  </div>
+                  <WheelOfDoom member={member} onSpinComplete={(result: SpinResult) => {
+                    setWheelResult(result);
+                    refreshMember();
+                  }} />
+                  {member.pendingWinnings > 0 && (
+                    <div className="mt-4 bg-green-900/20 border border-green-600/40 rounded-lg p-3 text-center">
+                      <p className="text-green-400 text-xs sm:text-sm font-bold">
+                        🎉 Pending: {formatBalance(member.pendingWinnings)} $DOOMHOUND — prizes sent within 24h!
+                      </p>
                     </div>
                   )}
                 </div>

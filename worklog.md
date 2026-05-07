@@ -106,3 +106,26 @@ Stage Summary:
 - Bonding curve now shows real-time live data from Arena API (34% → updates as market cap grows)
 - Arena post verification now also checks community page posts (not just profile posts)
 - All changes pushed to GitHub for Render auto-deploy
+
+---
+Task ID: wheel-implementation
+Agent: full-stack-developer
+Task: Implement Wheel of Doom feature
+
+Work Log:
+- Updated Prisma schema (prisma/schema.prisma): Added 5 new fields to PackMember model (lastWheelSpin, pendingWinnings, totalWheelSpins, totalWheelWinnings, prizeSent) and added "wheel_spin" to activity type comment in ActivityLog
+- Changed Prisma provider from postgresql to sqlite to match existing .env DATABASE_URL
+- Updated API route (src/app/api/pack/route.ts): Added wheel_spin to POINTS_CONFIG, added wheel_spin POST action with balance check (10M minimum), weekly cooldown (Monday 00:00 Europe/Rome), weighted random segment selection, and member/activity updates; added wheel_history GET action for recent wins feed
+- Created Wheel of Doom component (src/components/doom/wheel-of-doom.tsx): Canvas-based spinning wheel with 5 segments (1M 20%, 500K 15%, 250K 15%, NOTHING 45%, RE-SPIN 5%), smooth spinning animation with ease-out cubic, fire particles while spinning, confetti explosion on win, result overlay, recent wins feed, spin stats display, responsive design
+- Updated Arena Game Section (src/components/doom/arena-game-section.tsx): Added WheelOfDoom import and SpinResult type, extended PackMember interface with wheel fields, added wheel_spin to POINTS config, added wheelResult state, integrated WheelOfDoom component between User Card and Tab Switcher with pending winnings display
+- Ran prisma db push successfully to sync schema
+- Verified dev server compiles and serves pages correctly (HTTP 200, 108KB response)
+
+Stage Summary:
+- Wheel of Doom mini-game fully implemented with server-side probability determination
+- Balance check uses existing checkDoomhoundBalance function
+- Weekly reset based on Monday 00:00 Europe/Rome timezone
+- Canvas wheel with smooth animations, fire particles, and confetti effects
+- Recent wins feed showing other players' winnings
+- Pending winnings display with 24h prize claim notice
+- All new code is TypeScript-typed and follows existing patterns

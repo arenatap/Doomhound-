@@ -11,6 +11,7 @@ const POINTS_CONFIG: Record<string, { value: number; label: string }> = {
   meme_generated: { value: 30, label: "Meme Forge" },
   referral: { value: 75, label: "Pack Recruit" },
   doomhound_holder: { value: 0, label: "HODL Bonus" },     // Dynamic
+  wheel_spin: { value: 0, label: "Wheel of Doom" },
 };
 
 // ===== RANK SYSTEM =====
@@ -281,10 +282,20 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ member });
       }
 
+      case "wheel_history": {
+        const wheelActivities = await db.activityLog.findMany({
+          where: { type: "wheel_spin", description: { contains: "Won" } },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+          include: { member: { select: { handle: true, userName: true, profilePic: true } } },
+        });
+        return NextResponse.json({ history: wheelActivities });
+      }
+
       default:
         return NextResponse.json({
           error: "Unknown action",
-          availableActions: ["leaderboard", "profile"],
+          availableActions: ["leaderboard", "profile", "wheel_history"],
         }, { status: 400 });
     }
   } catch (error: any) {
@@ -885,6 +896,120 @@ export async function POST(request: NextRequest) {
           include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
         });
         return NextResponse.json({ member: updated, newAchievements, verificationDetail });
+      }
+
+      // ===== WHEEL OF DOOM SPIN =====
+      case "wheel_spin": {
+        const member = await db.packMember.findUnique({
+          where: { handle: cleanHandle },
+          include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
+        });
+        if (!member) return NextResponse.json({ error: "Not registered" }, { status: 404 });
+
+        // Check wallet
+        if (!member.walletAddress) {
+          return NextResponse.json({ error: "No wallet linked. Connect a wallet on The Arena first!" }, { status: 400 });
+        }
+
+        // Check balance >= 10M using existing checkDoomhoundBalance function
+        const balanceResult = await checkDoomhoundBalance(member.walletAddress);
+        if (balanceResult.balance < 10_000_000) {
+          return NextResponse.json({
+            error: `Hold at least 10M $DOOMHOUND to spin! Current: ${formatBalance(balanceResult.balance)}`,
+            balance: balanceResult.balance,
+          }, { status: 400 });
+        }
+
+        // Check weekly cooldown - last spin must be before this Monday 00:00 Rome time
+        const now = new Date();
+        const romeTz = "Europe/Rome";
+        const getMondayMidnight = (d: Date) => {
+          const romeDate = new Date(d.toLocaleString("en-US", { timeZone: romeTz }));
+          const day = romeDate.getDay();
+          const diff = romeDate.getDate() - day + (day === 0 ? -6 : 1); // Monday
+          const monday = new Date(romeDate);
+          monday.setDate(diff);
+          monday.setHours(0, 0, 0, 0);
+          return monday;
+        };
+        const thisMonday = getMondayMidnight(now);
+
+        if (member.lastWheelSpin && new Date(member.lastWheelSpin) >= thisMonday) {
+          // Calculate next Monday
+          const nextMonday = new Date(thisMonday);
+          nextMonday.setDate(nextMonday.getDate() + 7);
+          const daysLeft = Math.ceil((nextMonday.getTime() - now.getTime()) / 86400000);
+          return NextResponse.json({
+            error: `Already spun this week! Next spin in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}`,
+            lastSpin: member.lastWheelSpin,
+            nextSpin: nextMonday.toISOString(),
+          }, { status: 400 });
+        }
+
+        // Determine result based on weighted probabilities
+        const WHEEL_SEGMENTS = [
+          { label: "1M", amount: 1_000_000, weight: 20, color: "#FFD700" },
+          { label: "500K", amount: 500_000, weight: 15, color: "#FF6B00" },
+          { label: "250K", amount: 250_000, weight: 15, color: "#DC2626" },
+          { label: "NOTHING", amount: 0, weight: 45, color: "#1a1a1a" },
+          { label: "RE-SPIN", amount: 0, weight: 5, color: "#7C3AED", respin: true },
+        ];
+
+        const totalWeight = WHEEL_SEGMENTS.reduce((sum, s) => sum + s.weight, 0);
+        let random = Math.random() * totalWeight;
+        let selectedSegment = WHEEL_SEGMENTS[0];
+        let selectedIndex = 0;
+        for (let i = 0; i < WHEEL_SEGMENTS.length; i++) {
+          random -= WHEEL_SEGMENTS[i].weight;
+          if (random <= 0) {
+            selectedSegment = WHEEL_SEGMENTS[i];
+            selectedIndex = i;
+            break;
+          }
+        }
+
+        // Update member
+        const won = selectedSegment.amount > 0;
+        await db.packMember.update({
+          where: { handle: cleanHandle },
+          data: {
+            lastWheelSpin: new Date(),
+            totalWheelSpins: { increment: 1 },
+            totalWheelWinnings: { increment: selectedSegment.amount },
+            pendingWinnings: won ? { increment: selectedSegment.amount } : member.pendingWinnings,
+            prizeSent: false,
+            doomhoundBalance: balanceResult.balance,
+            balanceCheckedAt: new Date(),
+          },
+        });
+
+        // Log activity
+        const desc = won
+          ? `Wheel of Doom: Won ${formatBalance(selectedSegment.amount)} $DOOMHOUND! 🎉`
+          : selectedSegment.respin
+            ? "Wheel of Doom: RE-SPIN! Spin again next week for free!"
+            : "Wheel of Doom: Nothing this time. Better luck next week!";
+        await addActivity(cleanHandle, "wheel_spin", desc, 0);
+
+        // Check achievements
+        await checkAndAwardAchievements(cleanHandle);
+
+        const updated = await db.packMember.findUnique({
+          where: { handle: cleanHandle },
+          include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
+        });
+
+        return NextResponse.json({
+          member: updated,
+          result: {
+            segmentIndex: selectedIndex,
+            label: selectedSegment.label,
+            amount: selectedSegment.amount,
+            color: selectedSegment.color,
+            respin: selectedSegment.respin || false,
+            won,
+          },
+        });
       }
 
       default:
