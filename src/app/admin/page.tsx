@@ -130,6 +130,7 @@ export default function AdminPage() {
     participants: number;
   } | null>(null);
   const [newRafflePrize, setNewRafflePrize] = useState("1000000"); // 1M default for first raffle
+  const [newRaffleTicketPrice, setNewRaffleTicketPrice] = useState("150"); // 150 pts per ticket
 
   // Restore session
   useEffect(() => {
@@ -495,15 +496,16 @@ export default function AdminPage() {
               onClick={async () => {
                 if (!storedPw) return;
                 const prize = parseInt(newRafflePrize) || 100000;
+                const ticketPrice = parseInt(newRaffleTicketPrice) || 150;
                 try {
                   const res = await fetch("/api/raffle", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ action: "create", adminPassword: storedPw, prizeAmount: prize, ticketPrice: 50 }),
+                    body: JSON.stringify({ action: "create", adminPassword: storedPw, prizeAmount: prize, ticketPrice }),
                   });
                   const data = await res.json();
                   if (data.raffle) {
-                    showToast(`✅ New raffle created! Prize: ${formatBalance(prize)} $DOOMHOUND`);
+                    showToast(`✅ New raffle! Prize: ${formatBalance(prize)} — Ticket: ${ticketPrice} pts`);
                   } else {
                     showToast(data.error || "Create failed");
                   }
@@ -516,32 +518,59 @@ export default function AdminPage() {
               ➕ NEW RAFFLE
             </button>
           </div>
-          {/* Prize Amount Input */}
-          <div className="mt-3 flex items-center gap-3">
-            <span className="text-gray-500 text-xs flex-shrink-0">Prize:</span>
-            <input
-              type="number"
-              value={newRafflePrize}
-              onChange={(e) => setNewRafflePrize(e.target.value)}
-              className="flex-1 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-red-600/50 focus:outline-none"
-              placeholder="1000000"
-            />
-            <span className="text-gray-500 text-xs flex-shrink-0">$DOOMHOUND</span>
-            {/* Quick presets */}
-            <div className="flex gap-1.5">
-              {[100000, 500000, 1000000, 5000000].map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setNewRafflePrize(String(v))}
-                  className={`px-2 py-1 text-[9px] font-bold rounded border transition-colors ${
-                    newRafflePrize === String(v)
-                      ? "bg-red-600/20 border-red-600/40 text-red-400"
-                      : "bg-[#0a0a0a] border-[#2a2a2a] text-gray-500 hover:text-gray-300"
-                  }`}
-                >
-                  {formatBalance(v)}
-                </button>
-              ))}
+          {/* Prize + Ticket Price Config */}
+          <div className="mt-3 space-y-2">
+            <div className="flex items-center gap-3">
+              <span className="text-gray-500 text-xs flex-shrink-0 w-16">Prize:</span>
+              <input
+                type="number"
+                value={newRafflePrize}
+                onChange={(e) => setNewRafflePrize(e.target.value)}
+                className="flex-1 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-red-600/50 focus:outline-none"
+                placeholder="1000000"
+              />
+              <span className="text-gray-500 text-xs flex-shrink-0">$DOOM</span>
+              <div className="flex gap-1.5">
+                {[100000, 500000, 1000000, 5000000].map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setNewRafflePrize(String(v))}
+                    className={`px-2 py-1 text-[9px] font-bold rounded border transition-colors ${
+                      newRafflePrize === String(v)
+                        ? "bg-red-600/20 border-red-600/40 text-red-400"
+                        : "bg-[#0a0a0a] border-[#2a2a2a] text-gray-500 hover:text-gray-300"
+                    }`}
+                  >
+                    {formatBalance(v)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-gray-500 text-xs flex-shrink-0 w-16">Ticket:</span>
+              <input
+                type="number"
+                value={newRaffleTicketPrice}
+                onChange={(e) => setNewRaffleTicketPrice(e.target.value)}
+                className="flex-1 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-red-600/50 focus:outline-none"
+                placeholder="150"
+              />
+              <span className="text-gray-500 text-xs flex-shrink-0">pts each</span>
+              <div className="flex gap-1.5">
+                {[100, 150, 200, 300].map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setNewRaffleTicketPrice(String(v))}
+                    className={`px-2 py-1 text-[9px] font-bold rounded border transition-colors ${
+                      newRaffleTicketPrice === String(v)
+                        ? "bg-orange-600/20 border-orange-600/40 text-orange-400"
+                        : "bg-[#0a0a0a] border-[#2a2a2a] text-gray-500 hover:text-gray-300"
+                    }`}
+                  >
+                    {v}pts
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
           <p className="text-gray-600 text-[10px] sm:text-xs mt-2">

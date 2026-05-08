@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 
 // ===== RAFFLE CONSTANTS =====
 const DEFAULT_PRIZE = 100_000; // 100K $DOOMHOUND per raffle
-const TICKET_PRICE = 50;       // 50 points per ticket
+const TICKET_PRICE = 150;       // 150 points per ticket
 const MAX_TICKETS_PER_PURCHASE = 10;
 
 // ===== GET: Current raffle info, user tickets, past winners =====
