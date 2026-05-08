@@ -129,6 +129,7 @@ export default function AdminPage() {
     totalTickets: number;
     participants: number;
   } | null>(null);
+  const [newRafflePrize, setNewRafflePrize] = useState("1000000"); // 1M default for first raffle
 
   // Restore session
   useEffect(() => {
@@ -493,15 +494,16 @@ export default function AdminPage() {
             <button
               onClick={async () => {
                 if (!storedPw) return;
+                const prize = parseInt(newRafflePrize) || 100000;
                 try {
                   const res = await fetch("/api/raffle", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ action: "create", adminPassword: storedPw, prizeAmount: 100000, ticketPrice: 50 }),
+                    body: JSON.stringify({ action: "create", adminPassword: storedPw, prizeAmount: prize, ticketPrice: 50 }),
                   });
                   const data = await res.json();
                   if (data.raffle) {
-                    showToast("✅ New raffle created!");
+                    showToast(`✅ New raffle created! Prize: ${formatBalance(prize)} $DOOMHOUND`);
                   } else {
                     showToast(data.error || "Create failed");
                   }
@@ -513,6 +515,34 @@ export default function AdminPage() {
             >
               ➕ NEW RAFFLE
             </button>
+          </div>
+          {/* Prize Amount Input */}
+          <div className="mt-3 flex items-center gap-3">
+            <span className="text-gray-500 text-xs flex-shrink-0">Prize:</span>
+            <input
+              type="number"
+              value={newRafflePrize}
+              onChange={(e) => setNewRafflePrize(e.target.value)}
+              className="flex-1 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-red-600/50 focus:outline-none"
+              placeholder="1000000"
+            />
+            <span className="text-gray-500 text-xs flex-shrink-0">$DOOMHOUND</span>
+            {/* Quick presets */}
+            <div className="flex gap-1.5">
+              {[100000, 500000, 1000000, 5000000].map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setNewRafflePrize(String(v))}
+                  className={`px-2 py-1 text-[9px] font-bold rounded border transition-colors ${
+                    newRafflePrize === String(v)
+                      ? "bg-red-600/20 border-red-600/40 text-red-400"
+                      : "bg-[#0a0a0a] border-[#2a2a2a] text-gray-500 hover:text-gray-300"
+                  }`}
+                >
+                  {formatBalance(v)}
+                </button>
+              ))}
+            </div>
           </div>
           <p className="text-gray-600 text-[10px] sm:text-xs mt-2">
             Draw closes the current raffle and picks a winner. New raffle auto-creates for next week.
