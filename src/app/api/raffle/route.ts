@@ -342,7 +342,7 @@ export async function POST(request: NextRequest) {
 
         const winner = await db.packMember.findUnique({
           where: { handle: winnerHandle },
-          select: { handle: true, userName: true, profilePic: true },
+          select: { handle: true, userName: true, profilePic: true, walletAddress: true },
         });
 
         return NextResponse.json({
@@ -350,6 +350,7 @@ export async function POST(request: NextRequest) {
           winnerHandle,
           winnerName: winner?.userName,
           winnerPic: winner?.profilePic,
+          winnerWallet: winner?.walletAddress || null,
           prizeAmount: raffle.prizeAmount,
           totalTickets,
           participants: new Set(raffle.tickets.map((t) => t.memberHandle)).size,

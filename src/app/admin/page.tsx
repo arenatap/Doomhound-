@@ -120,6 +120,15 @@ export default function AdminPage() {
   const [confirmMark, setConfirmMark] = useState<string | null>(null);
   const [confirmAll, setConfirmAll] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [raffleResult, setRaffleResult] = useState<{
+    winnerHandle: string;
+    winnerName: string;
+    winnerWallet: string | null;
+    winnerPic: string;
+    prizeAmount: number;
+    totalTickets: number;
+    participants: number;
+  } | null>(null);
 
   // Restore session
   useEffect(() => {
@@ -449,6 +458,7 @@ export default function AdminPage() {
             <button
               onClick={async () => {
                 if (!storedPw) return;
+                if (!confirm("Draw a winner for the current raffle? This cannot be undone.")) return;
                 try {
                   const res = await fetch("/api/raffle", {
                     method: "POST",
@@ -457,7 +467,16 @@ export default function AdminPage() {
                   });
                   const data = await res.json();
                   if (data.success) {
-                    showToast(`🎉 Winner: @${data.winnerHandle} — ${formatBalance(data.prizeAmount)} $DOOMHOUND!`);
+                    setRaffleResult({
+                      winnerHandle: data.winnerHandle,
+                      winnerName: data.winnerName,
+                      winnerWallet: data.winnerWallet,
+                      winnerPic: data.winnerPic,
+                      prizeAmount: data.prizeAmount,
+                      totalTickets: data.totalTickets,
+                      participants: data.participants,
+                    });
+                    showToast(`🎉 Winner: @${data.winnerHandle}!`);
                   } else if (data.message) {
                     showToast(data.message);
                   } else {
@@ -498,6 +517,57 @@ export default function AdminPage() {
           <p className="text-gray-600 text-[10px] sm:text-xs mt-2">
             Draw closes the current raffle and picks a winner. New raffle auto-creates for next week.
           </p>
+
+          {/* Raffle Draw Result */}
+          {raffleResult && (
+            <div className="mt-4 bg-gradient-to-br from-[#1a0a0a] to-[#0d0d0d] border border-yellow-600/40 rounded-xl p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-3xl">🎉</span>
+                <div>
+                  <h3 className="font-creepster text-xl text-[#fcd34d]">RAFFLE WINNER</h3>
+                  <p className="text-gray-500 text-xs">{raffleResult.totalTickets} tickets · {raffleResult.participants} participants</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 mb-3">
+                <img src={raffleResult.winnerPic} alt="" className="w-12 h-12 rounded-full border-2 border-yellow-600/50" />
+                <div>
+                  <p className="text-white font-bold text-lg">{raffleResult.winnerName}</p>
+                  <p className="text-gray-400 text-sm">@{raffleResult.winnerHandle}</p>
+                </div>
+                <div className="ml-auto text-right">
+                  <p className="font-creepster text-2xl text-[#fcd34d]">{formatBalance(raffleResult.prizeAmount)}</p>
+                  <p className="text-gray-500 text-[10px]">$DOOMHOUND</p>
+                </div>
+              </div>
+              <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg p-3 flex items-center gap-2">
+                <span className="text-gray-500 text-[10px] sm:text-xs flex-shrink-0">WALLET:</span>
+                {raffleResult.winnerWallet ? (
+                  <>
+                    <code className="text-green-400 text-[10px] sm:text-xs font-mono flex-1 truncate">{raffleResult.winnerWallet}</code>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(raffleResult.winnerWallet!);
+                          showToast("Wallet copied!");
+                        } catch { showToast("Copy failed"); }
+                      }}
+                      className="text-[10px] sm:text-xs font-bold bg-green-600/20 text-green-400 border border-green-600/30 px-2 py-1 rounded hover:bg-green-600/30 transition-colors flex-shrink-0"
+                    >
+                      COPY
+                    </button>
+                  </>
+                ) : (
+                  <code className="text-red-400 text-[10px] sm:text-xs">No wallet linked</code>
+                )}
+              </div>
+              <button
+                onClick={() => setRaffleResult(null)}
+                className="mt-3 text-gray-600 text-[10px] hover:text-gray-400 transition-colors"
+              >
+                ✕ Dismiss
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Mark All Confirmation */}
