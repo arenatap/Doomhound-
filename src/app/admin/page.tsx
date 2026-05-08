@@ -442,6 +442,64 @@ export default function AdminPage() {
           )}
         </div>
 
+        {/* Raffle Controls */}
+        <div className="mb-8">
+          <h2 className="font-creepster text-xl sm:text-2xl text-red-500 mb-3 sm:mb-4">🎟️ RAFFLE CONTROLS</h2>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <button
+              onClick={async () => {
+                if (!storedPw) return;
+                try {
+                  const res = await fetch("/api/raffle", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "draw", adminPassword: storedPw }),
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                    showToast(`🎉 Winner: @${data.winnerHandle} — ${formatBalance(data.prizeAmount)} $DOOMHOUND!`);
+                  } else if (data.message) {
+                    showToast(data.message);
+                  } else {
+                    showToast(data.error || "Draw failed");
+                  }
+                } catch {
+                  showToast("Draw failed");
+                }
+              }}
+              className="px-5 py-3 text-sm font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-[0_0_10px_rgba(220,38,38,0.3)] transition-all"
+            >
+              🎟️ DRAW WINNER
+            </button>
+            <button
+              onClick={async () => {
+                if (!storedPw) return;
+                try {
+                  const res = await fetch("/api/raffle", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "create", adminPassword: storedPw, prizeAmount: 100000, ticketPrice: 50 }),
+                  });
+                  const data = await res.json();
+                  if (data.raffle) {
+                    showToast("✅ New raffle created!");
+                  } else {
+                    showToast(data.error || "Create failed");
+                  }
+                } catch {
+                  showToast("Create failed");
+                }
+              }}
+              className="px-5 py-3 text-sm font-bold bg-[#1a1a1a] border border-red-600/40 text-red-400 rounded-xl hover:bg-red-600/10 transition-all"
+            >
+              ➕ NEW RAFFLE
+            </button>
+          </div>
+          <p className="text-gray-600 text-[10px] sm:text-xs mt-2">
+            Draw closes the current raffle and picks a winner. New raffle auto-creates for next week.
+          </p>
+        </div>
+
         {/* Mark All Confirmation */}
         <AnimatePresence>
           {confirmAll && (

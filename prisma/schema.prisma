@@ -49,6 +49,7 @@ model PackMember {
   updatedAt        DateTime  @updatedAt
 
   activities       ActivityLog[]
+  raffleTickets    RaffleTicket[]
 
   @@index([handle])
   @@index([points])
@@ -57,7 +58,7 @@ model PackMember {
 model ActivityLog {
   id           String   @id @default(cuid())
   memberHandle String             // Arena handle (FK)
-  type         String              // register, daily_checkin, arena_post, arena_follower, trending_mention, meme_generated, referral, doomhound_holder, wheel_spin
+  type         String              // register, daily_checkin, arena_post, arena_follower, trending_mention, meme_generated, referral, doomhound_holder, wheel_spin, raffle_ticket
   description  String
   points       Int
   createdAt    DateTime @default(now())
@@ -66,4 +67,39 @@ model ActivityLog {
 
   @@index([memberHandle])
   @@index([createdAt])
+}
+
+// ===== PACK RAFFLE =====
+model Raffle {
+  id            String   @id @default(cuid())
+  prizeAmount   Float    @default(100000)  // $DOOMHOUND prize for the winner
+  ticketPrice   Int      @default(50)      // Points per ticket
+  startDate     DateTime                   // When the raffle opens
+  endDate       DateTime                   // When the raffle closes (drawing time)
+  status        String   @default("open")  // open, closed, drawn
+  winnerHandle  String?                    // Arena handle of the winner
+  rolledOver    Boolean  @default(false)   // Whether prize was rolled over from previous
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tickets       RaffleTicket[]
+
+  @@index([status])
+  @@index([endDate])
+}
+
+model RaffleTicket {
+  id           String   @id @default(cuid())
+  raffleId     String                       // FK to Raffle
+  memberHandle String                       // Arena handle of buyer
+  quantity     Int      @default(1)         // Number of tickets in this purchase
+  pointsSpent  Int                          // Total points spent
+  createdAt    DateTime @default(now())
+
+  raffle       Raffle    @relation(fields: [raffleId], references: [id], onDelete: Cascade)
+  member       PackMember @relation(fields: [memberHandle], references: [handle], onDelete: Cascade)
+
+  @@index([raffleId])
+  @@index([memberHandle])
 }

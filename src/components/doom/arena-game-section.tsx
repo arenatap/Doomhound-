@@ -6,6 +6,7 @@ import { ScrollReveal } from "./scroll-reveal";
 import { BloodSplash } from "./blood-splash";
 import { WheelOfDoom } from "./wheel-of-doom";
 import type { SpinResult } from "./wheel-of-doom";
+import { RaffleSection } from "./raffle-section";
 
 // ===== TYPES =====
 interface ActivityLog {
@@ -677,6 +678,15 @@ export function ArenaGameSection() {
                   )}
                 </div>
               </div>
+
+              {/* Pack Raffle */}
+              <RaffleSection
+                memberHandle={member.handle}
+                memberPoints={member.points}
+                onPointsSpent={(newPoints) => {
+                  setMember({ ...member, points: newPoints });
+                }}
+              />
 
               {/* Tab Switcher */}
               <div className="flex gap-2">
