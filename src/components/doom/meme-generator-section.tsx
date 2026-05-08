@@ -20,6 +20,48 @@ export function MemeGeneratorSection() {
   const [generated, setGenerated] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  // Wrap text into lines that fit within maxWidth
+  const wrapText = useCallback((ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
+    const words = text.split(" ");
+    const lines: string[] = [];
+    let currentLine = "";
+
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+    return lines;
+  }, []);
+
+  // Find the largest font size where all text fits within the image
+  const findFittingFontSize = useCallback((
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    maxWidth: number,
+    maxLines: number,
+    lineHeight: number,
+    maxAvailableHeight: number,
+    startSize: number
+  ): number => {
+    let size = startSize;
+    while (size > 14) {
+      ctx.font = `bold ${size}px Impact, sans-serif`;
+      const lines = wrapText(ctx, text, maxWidth);
+      if (lines.length <= maxLines && lines.length * lineHeight <= maxAvailableHeight) {
+        return size;
+      }
+      size -= 2;
+    }
+    return 14;
+  }, [wrapText]);
+
   const generateMeme = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -36,28 +78,53 @@ export function MemeGeneratorSection() {
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
 
-      const fontSize = Math.max(30, img.width / 12);
-      ctx.font = `bold ${fontSize}px Impact, sans-serif`;
-      ctx.fillStyle = "white";
-      ctx.strokeStyle = "black";
-      ctx.lineWidth = fontSize / 10;
-      ctx.textAlign = "center";
+      const padding = img.width * 0.06; // 6% padding from edges
+      const maxWidth = img.width - padding * 2;
+      const startFontSize = Math.max(30, img.width / 12);
 
-      if (topText) {
-        const y = fontSize + 10;
-        ctx.strokeText(topText.toUpperCase(), canvas.width / 2, y);
-        ctx.fillText(topText.toUpperCase(), canvas.width / 2, y);
-      }
+      const drawMemeText = (text: string, startY: number, isTop: boolean) => {
+        if (!text) return;
 
-      if (bottomText) {
-        const y = canvas.height - 15;
-        ctx.strokeText(bottomText.toUpperCase(), canvas.width / 2, y);
-        ctx.fillText(bottomText.toUpperCase(), canvas.width / 2, y);
-      }
+        const upperText = text.toUpperCase();
+        const maxLines = 3;
+        const lineHeight = startFontSize * 1.15;
+        const maxAvailableHeight = img.height * 0.35; // max 35% of image height
+
+        // Find font size that fits
+        const fontSize = findFittingFontSize(ctx, upperText, maxWidth, maxLines, lineHeight, maxAvailableHeight, startFontSize);
+        const actualLineHeight = fontSize * 1.15;
+
+        ctx.font = `bold ${fontSize}px Impact, sans-serif`;
+        ctx.fillStyle = "white";
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = Math.max(2, fontSize / 12);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+
+        const lines = wrapText(ctx, upperText, maxWidth);
+
+        // Calculate total block height for centering
+        const totalBlockHeight = lines.length * actualLineHeight;
+        let y = isTop ? startY : startY - totalBlockHeight + actualLineHeight;
+
+        for (const line of lines) {
+          // Black outline for readability
+          ctx.strokeText(line, canvas.width / 2, y);
+          // White fill
+          ctx.fillText(line, canvas.width / 2, y);
+          y += actualLineHeight;
+        }
+      };
+
+      // Top text — starts near top with padding
+      drawMemeText(topText, padding + 5, true);
+
+      // Bottom text — anchored to bottom
+      drawMemeText(bottomText, canvas.height - padding - 5, false);
 
       setGenerated(true);
     };
-  }, [selectedTemplate, topText, bottomText]);
+  }, [selectedTemplate, topText, bottomText, wrapText, findFittingFontSize]);
 
   const downloadMeme = useCallback(() => {
     const canvas = canvasRef.current;
