@@ -11,6 +11,14 @@ const templates = [
   { src: "/images/doomhound-meme4.png", label: "Scientist" },
   { src: "/images/doomhound-meme5.png", label: "Mascot" },
   { src: "/images/doomhound-meme6.png", label: "Inferno" },
+  { src: "/images/doomhound-meme7.png", label: "Hell Hound" },
+  { src: "/images/doomhound-meme8.png", label: "Pack Alpha" },
+  { src: "/images/doomhound-meme9.png", label: "Burn It" },
+  { src: "/images/doomhound-meme10.png", label: "Demon Dog" },
+  { src: "/images/doomhound-meme11.png", label: "Moon Hound" },
+  { src: "/images/doomhound-meme12.png", label: "Fear It" },
+  { src: "/images/doomhound-meme13.png", label: "Unleashed" },
+  { src: "/images/doomhound-meme14.png", label: "Degen" },
 ];
 
 export function MemeGeneratorSection() {
@@ -157,7 +165,7 @@ export function MemeGeneratorSection() {
               <label className="text-xs sm:text-sm md:text-base uppercase tracking-wider text-gray-500 mb-3 sm:mb-4 block">
                 Choose Template
               </label>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+              <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 sm:gap-3 md:gap-4">
                 {templates.map((t, i) => (
                   <button
                     key={i}
