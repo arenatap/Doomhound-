@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import { ScrollReveal } from "./scroll-reveal";
 
 // ===== CONFIG =====
-// Token is LIVE — set to past to show unleashed state
-const LAUNCH_DATE = "2026-05-05T18:00:00Z";
+// Token is LIVE — date set to launch time so it shows "UNLEASHED"
+const LAUNCH_DATE = "2026-05-05T20:00:00Z"; // May 5, 2026 22:00 Rome (CEST) = 20:00 UTC
 
 interface TimeLeft {
   days: number;

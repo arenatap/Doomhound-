@@ -9,7 +9,7 @@ import { ScrollReveal } from "./scroll-reveal";
 // Burns are fetched on-chain from Snowtrace (transfers to 0xdead).
 
 const DEAD_ADDRESS = "0x000000000000000000000000000000000000dEaD";
-const TOTAL_SUPPLY = 4_692_471_068; // 4.69B $DOOM total circulating supply (from Snowtrace on-chain data)
+const TOTAL_SUPPLY_DEFAULT = 4_692_471_068; // 4.69B fallback — live value fetched from API
 const BURN_AMOUNT_DAILY = 10_000_000; // 10M per day
 const SNOWTRACE_TX = "https://snowtrace.io/tx/";
 
@@ -40,6 +40,7 @@ export function BurnArenaSection() {
   const [totalBurned, setTotalBurned] = useState<number>(0);
   const [burnHistory, setBurnHistory] = useState<BurnRecord[]>([]);
   const [burnCount, setBurnCount] = useState(0);
+  const [totalSupply, setTotalSupply] = useState<number>(TOTAL_SUPPLY_DEFAULT);
   const [loaded, setLoaded] = useState(false);
 
   // Countdown state
@@ -56,9 +57,24 @@ export function BurnArenaSection() {
       }
     } catch {
       // Silent — will show fallback
-    } finally {
-      setLoaded(true);
     }
+
+    // Fetch live total supply from Snowtrace
+    try {
+      const infoRes = await fetch("/api/snowtrace?action=info");
+      const infoData = await infoRes.json();
+      if (infoData.supply) {
+        // Supply is in wei-like format (18 decimals), convert to tokens
+        const supplyNum = parseFloat(infoData.supply) / 1e18;
+        if (supplyNum > 0) {
+          setTotalSupply(supplyNum);
+        }
+      }
+    } catch {
+      // Silent — will use default
+    }
+
+    setLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -107,8 +123,8 @@ export function BurnArenaSection() {
     return () => clearInterval(interval);
   }, []);
 
-  const burnPercentage = ((totalBurned / TOTAL_SUPPLY) * 100);
-  const remainingSupply = Math.max(0, TOTAL_SUPPLY - totalBurned);
+  const burnPercentage = ((totalBurned / totalSupply) * 100);
+  const remainingSupply = Math.max(0, totalSupply - totalBurned);
   const daysOfBurnsLeft = remainingSupply > 0 ? Math.ceil(remainingSupply / BURN_AMOUNT_DAILY) : 0;
 
   return (
@@ -234,7 +250,7 @@ export function BurnArenaSection() {
             </div>
             <div className="flex justify-between mt-2 text-[9px] sm:text-[10px] text-gray-600">
               <span>0</span>
-              <span>{formatBurnAmount(TOTAL_SUPPLY)} total supply</span>
+              <span>{formatBurnAmount(totalSupply)} total supply</span>
             </div>
           </div>
         </ScrollReveal>

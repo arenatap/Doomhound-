@@ -63,18 +63,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Token not found" }, { status: 404 });
       }
 
-      // Get total holder count (from tokenholderlist with large offset)
+      // Get total holder count (from tokenholderlist)
       case "holdercount": {
         const data = await snowtraceGet({
-          module: "token",
-          action: "tokenholderlist",
-          contractaddress: DOOMHOUND_CONTRACT,
-          page: "1",
-          offset: "1", // minimal data, we just want the count
-        });
-
-        // Snowtrace doesn't return total count directly, so we fetch a larger set
-        const fullData = await snowtraceGet({
           module: "token",
           action: "tokenholderlist",
           contractaddress: DOOMHOUND_CONTRACT,
@@ -82,9 +73,9 @@ export async function GET(request: NextRequest) {
           offset: "100",
         });
 
-        const holderCount = (fullData.status === "1" && Array.isArray(fullData.result))
-          ? fullData.result.length
-          : (data.status === "1" && Array.isArray(data.result) ? data.result.length : 0);
+        const holderCount = (data.status === "1" && Array.isArray(data.result))
+          ? data.result.length
+          : 0;
 
         return NextResponse.json({ holderCount });
       }
