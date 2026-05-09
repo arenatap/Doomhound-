@@ -8,7 +8,10 @@ import { motion, AnimatePresence } from "framer-motion";
 // ===== NAV LINKS =====
 const NAV_LINKS = [
   { href: "/", label: "Home", emoji: "🐺" },
-  { href: "/pack", label: "The Pack", emoji: "🏆" },
+  { href: "/stats", label: "Stats", emoji: "📊" },
+  { href: "/burns", label: "Burns", emoji: "🔥" },
+  { href: "/calculator", label: "ROI", emoji: "💰" },
+  { href: "/pack", label: "Pack", emoji: "🏆" },
   { href: "/memes", label: "Memes", emoji: "🎨" },
 ];
 
