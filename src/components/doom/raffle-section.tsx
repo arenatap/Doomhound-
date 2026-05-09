@@ -369,7 +369,7 @@ export function RaffleSection({ memberHandle, memberPoints, onPointsSpent }: Raf
             📖 How The Raffle Works
           </h4>
           <p className="text-gray-500 text-[11px] leading-relaxed mb-1">
-            <strong className="text-gray-400">50 points = 1 ticket.</strong> Buy up to 10 tickets at a time. More tickets = higher chance to win!
+            Buy up to 10 tickets at a time. More tickets = higher chance to win!
           </p>
           <p className="text-gray-500 text-[11px] leading-relaxed mb-1">
             <strong className="text-gray-400">Draw every Sunday 23:59 CET.</strong> One random winner gets the prize pot in $DOOMHOUND!
