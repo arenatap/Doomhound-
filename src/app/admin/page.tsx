@@ -274,8 +274,8 @@ export default function AdminPage() {
 
   // ===== DASHBOARD =====
   return (
-    <div className="min-h-screen bg-[#0a0a0a] p-4 sm:p-6 md:p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#0a0a0a] p-4 sm:p-6 md:p-8 overflow-x-hidden">
+      <div className="max-w-5xl mx-auto w-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 sm:mb-8">
           <div>
@@ -454,9 +454,9 @@ export default function AdminPage() {
         </div>
 
         {/* Raffle Controls */}
-        <div className="mb-8">
+        <div className="mb-8 overflow-hidden">
           <h2 className="font-creepster text-xl sm:text-2xl text-red-500 mb-3 sm:mb-4">🎟️ RAFFLE CONTROLS</h2>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={async () => {
                 if (!storedPw) return;
@@ -519,23 +519,26 @@ export default function AdminPage() {
             </button>
           </div>
           {/* Prize + Ticket Price Config */}
-          <div className="mt-3 space-y-2">
-            <div className="flex items-center gap-3">
-              <span className="text-gray-500 text-xs flex-shrink-0 w-16">Prize:</span>
-              <input
-                type="number"
-                value={newRafflePrize}
-                onChange={(e) => setNewRafflePrize(e.target.value)}
-                className="flex-1 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-red-600/50 focus:outline-none"
-                placeholder="1000000"
-              />
-              <span className="text-gray-500 text-xs flex-shrink-0">$DOOM</span>
-              <div className="flex gap-1.5">
+          <div className="mt-3 space-y-3">
+            {/* Prize Amount */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500 text-xs flex-shrink-0">Prize:</span>
+                <input
+                  type="number"
+                  value={newRafflePrize}
+                  onChange={(e) => setNewRafflePrize(e.target.value)}
+                  className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-red-600/50 focus:outline-none min-w-0"
+                  placeholder="1000000"
+                />
+                <span className="text-gray-500 text-xs flex-shrink-0">$DOOM</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
                 {[100000, 500000, 1000000, 5000000].map((v) => (
                   <button
                     key={v}
                     onClick={() => setNewRafflePrize(String(v))}
-                    className={`px-2 py-1 text-[9px] font-bold rounded border transition-colors ${
+                    className={`px-2.5 py-1 text-[10px] font-bold rounded border transition-colors ${
                       newRafflePrize === String(v)
                         ? "bg-red-600/20 border-red-600/40 text-red-400"
                         : "bg-[#0a0a0a] border-[#2a2a2a] text-gray-500 hover:text-gray-300"
@@ -546,22 +549,25 @@ export default function AdminPage() {
                 ))}
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-gray-500 text-xs flex-shrink-0 w-16">Ticket:</span>
-              <input
-                type="number"
-                value={newRaffleTicketPrice}
-                onChange={(e) => setNewRaffleTicketPrice(e.target.value)}
-                className="flex-1 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-red-600/50 focus:outline-none"
-                placeholder="150"
-              />
-              <span className="text-gray-500 text-xs flex-shrink-0">pts each</span>
-              <div className="flex gap-1.5">
+            {/* Ticket Price */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500 text-xs flex-shrink-0">Ticket:</span>
+                <input
+                  type="number"
+                  value={newRaffleTicketPrice}
+                  onChange={(e) => setNewRaffleTicketPrice(e.target.value)}
+                  className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-red-600/50 focus:outline-none min-w-0"
+                  placeholder="150"
+                />
+                <span className="text-gray-500 text-xs flex-shrink-0">pts each</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
                 {[100, 150, 200, 300].map((v) => (
                   <button
                     key={v}
                     onClick={() => setNewRaffleTicketPrice(String(v))}
-                    className={`px-2 py-1 text-[9px] font-bold rounded border transition-colors ${
+                    className={`px-2.5 py-1 text-[10px] font-bold rounded border transition-colors ${
                       newRaffleTicketPrice === String(v)
                         ? "bg-orange-600/20 border-orange-600/40 text-orange-400"
                         : "bg-[#0a0a0a] border-[#2a2a2a] text-gray-500 hover:text-gray-300"
