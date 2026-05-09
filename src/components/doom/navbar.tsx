@@ -1,44 +1,26 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ===== NAV LINKS =====
 const NAV_LINKS = [
-  { id: "hero", label: "Home", emoji: "🐺" },
-  { id: "countdown", label: "Launch", emoji: "⏰" },
-  { id: "tokenomics", label: "Tokenomics", emoji: "📊" },
-  { id: "live-data", label: "Arena", emoji: "📡" },
-  { id: "chart", label: "Chart", emoji: "📈" },
-  { id: "arena-game", label: "The Pack", emoji: "🏆" },
-  { id: "meme-generator", label: "Memes", emoji: "🎨" },
-  { id: "war-room", label: "War Room", emoji: "⚔️" },
-  { id: "roadmap", label: "Roadmap", emoji: "🔥" },
+  { href: "/", label: "Home", emoji: "🐺" },
+  { href: "/pack", label: "The Pack", emoji: "🏆" },
+  { href: "/memes", label: "Memes", emoji: "🎨" },
 ];
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState("hero");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
 
-  // Track scroll position for sticky style + active section
+  // Track scroll position for sticky style
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
-
-      // Find which section is in view
-      const sections = NAV_LINKS.map((l) => document.getElementById(l.id)).filter(
-        Boolean
-      ) as HTMLElement[];
-
-      let current = "hero";
-      for (const section of sections) {
-        const rect = section.getBoundingClientRect();
-        if (rect.top <= 120) {
-          current = section.id;
-        }
-      }
-      setActiveSection(current);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -58,18 +40,15 @@ export function Navbar() {
   // Lock body scroll when mobile menu is open
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [mobileOpen]);
 
-  const scrollTo = useCallback((id: string) => {
+  // Close mobile menu on route change
+  useEffect(() => {
     setMobileOpen(false);
-    const el = document.getElementById(id);
-    if (el) {
-      const offset = 60;
-      const top = el.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top, behavior: "smooth" });
-    }
-  }, []);
+  }, [pathname]);
 
   return (
     <>
@@ -82,8 +61,8 @@ export function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex items-center justify-between h-12 sm:h-14">
           {/* Logo */}
-          <button
-            onClick={() => scrollTo("hero")}
+          <Link
+            href="/"
             className="flex items-center gap-2 group"
           >
             <img
@@ -94,23 +73,23 @@ export function Navbar() {
             <span className="font-creepster text-base sm:text-lg text-red-500 group-hover:text-red-400 transition-colors">
               $DOOMHOUND
             </span>
-          </button>
+          </Link>
 
           {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-0.5">
             {NAV_LINKS.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => scrollTo(link.id)}
+              <Link
+                key={link.href}
+                href={link.href}
                 className={`px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-lg transition-all whitespace-nowrap ${
-                  activeSection === link.id
+                  pathname === link.href
                     ? "text-red-400 bg-red-600/15"
                     : "text-gray-500 hover:text-red-400 hover:bg-[#1a1a1a]"
                 }`}
               >
                 <span className="mr-1">{link.emoji}</span>
                 {link.label}
-              </button>
+              </Link>
             ))}
           </div>
 
@@ -177,7 +156,9 @@ export function Navbar() {
             >
               {/* Mobile header */}
               <div className="flex items-center justify-between px-5 h-14 border-b border-[#2a2a2a]">
-                <span className="font-creepster text-lg text-red-500">🐺 NAVIGATE</span>
+                <span className="font-creepster text-lg text-red-500">
+                  🐺 NAVIGATE
+                </span>
                 <button
                   onClick={() => setMobileOpen(false)}
                   className="text-gray-500 hover:text-red-400 text-lg transition-colors"
@@ -189,21 +170,25 @@ export function Navbar() {
               {/* Mobile links */}
               <div className="py-3">
                 {NAV_LINKS.map((link, i) => (
-                  <motion.button
-                    key={link.id}
+                  <motion.div
+                    key={link.href}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.04 }}
-                    onClick={() => scrollTo(link.id)}
-                    className={`w-full flex items-center gap-3 px-5 py-3 text-sm font-bold uppercase tracking-wider transition-all ${
-                      activeSection === link.id
-                        ? "text-red-400 bg-red-600/10 border-l-2 border-red-500"
-                        : "text-gray-400 hover:text-red-400 hover:bg-[#1a1a1a] border-l-2 border-transparent"
-                    }`}
                   >
-                    <span className="text-base">{link.emoji}</span>
-                    {link.label}
-                  </motion.button>
+                    <Link
+                      href={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex items-center gap-3 px-5 py-3 text-sm font-bold uppercase tracking-wider transition-all ${
+                        pathname === link.href
+                          ? "text-red-400 bg-red-600/10 border-l-2 border-red-500"
+                          : "text-gray-400 hover:text-red-400 hover:bg-[#1a1a1a] border-l-2 border-transparent"
+                      }`}
+                    >
+                      <span className="text-base">{link.emoji}</span>
+                      {link.label}
+                    </Link>
+                  </motion.div>
                 ))}
               </div>
 

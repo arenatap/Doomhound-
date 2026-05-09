@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, Copy, Check } from "lucide-react";
+import Link from "next/link";
 import { BloodSplash } from "./blood-splash";
 
 const fullAddress = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
@@ -221,12 +222,12 @@ export function HeroSection() {
             </a>
           </BloodSplash>
           <BloodSplash className="w-full sm:w-auto">
-            <a
-              href="#arena-game"
+            <Link
+              href="/pack"
               className="inline-flex items-center justify-center w-full sm:w-auto px-8 sm:px-10 md:px-12 py-4 md:py-5 text-base sm:text-lg md:text-xl font-bold bg-transparent border-2 border-red-600/80 hover:border-red-500 text-red-400 hover:text-red-300 rounded-xl hover:shadow-[0_0_20px_rgba(220,38,38,0.3)] transition-all duration-300"
             >
               JOIN THE PACK
-            </a>
+            </Link>
           </BloodSplash>
         </motion.div>
 
