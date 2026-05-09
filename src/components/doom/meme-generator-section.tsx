@@ -19,14 +19,6 @@ const templates = [
   { src: "/images/doomhound-meme12.png", label: "Fear It" },
   { src: "/images/doomhound-meme13.png", label: "Unleashed" },
   { src: "/images/doomhound-meme14.png", label: "Degen" },
-  { src: "/images/doomhound-meme15.jpeg", label: "Alpha" },
-  { src: "/images/doomhound-meme16.jpeg", label: "NFT Hound" },
-  { src: "/images/doomhound-meme17.png", label: "Demonic" },
-  { src: "/images/doomhound-meme18.png", label: "Studio" },
-  { src: "/images/doomhound-meme19.png", label: "Fire Walk" },
-  { src: "/images/doomhound-meme20.png", label: "Summoned" },
-  { src: "/images/doomhound-meme21.png", label: "Wide Boy" },
-  { src: "/images/doomhound-meme22.jpg", label: "Portrait" },
 ];
 
 export function MemeGeneratorSection() {
