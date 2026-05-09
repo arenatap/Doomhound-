@@ -19,6 +19,14 @@ const templates = [
   { src: "/images/doomhound-meme12.png", label: "Fear It" },
   { src: "/images/doomhound-meme13.png", label: "Unleashed" },
   { src: "/images/doomhound-meme14.png", label: "Degen" },
+  { src: "/images/doomhound-meme15.jpeg", label: "Alpha" },
+  { src: "/images/doomhound-meme16.jpeg", label: "NFT Hound" },
+  { src: "/images/doomhound-meme17.png", label: "Demonic" },
+  { src: "/images/doomhound-meme18.png", label: "Studio" },
+  { src: "/images/doomhound-meme19.png", label: "Fire Walk" },
+  { src: "/images/doomhound-meme20.png", label: "Summoned" },
+  { src: "/images/doomhound-meme21.png", label: "Wide Boy" },
+  { src: "/images/doomhound-meme22.jpg", label: "Portrait" },
 ];
 
 export function MemeGeneratorSection() {
@@ -28,8 +36,15 @@ export function MemeGeneratorSection() {
   const [generated, setGenerated] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Wrap text into lines that fit within maxWidth
-  const wrapText = useCallback((ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
+  /**
+   * Wrap text into lines that fit within maxWidth at a given font size.
+   * Each line is measured against the actual rendered width.
+   */
+  const wrapText = useCallback((
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    maxWidth: number
+  ): string[] => {
     const words = text.split(" ");
     const lines: string[] = [];
     let currentLine = "";
@@ -48,26 +63,35 @@ export function MemeGeneratorSection() {
     return lines;
   }, []);
 
-  // Find the largest font size where all text fits within the image
+  /**
+   * Find the largest font size that fits the text within the available area.
+   * This recalculates line height for each font size to ensure accuracy.
+   * 
+   * Constraints:
+   * - Text must fit within maxWidth (horizontal)
+   * - Total text block must fit within maxAvailableHeight (vertical)
+   * - Maximum of maxLines lines allowed
+   */
   const findFittingFontSize = useCallback((
     ctx: CanvasRenderingContext2D,
     text: string,
     maxWidth: number,
     maxLines: number,
-    lineHeight: number,
     maxAvailableHeight: number,
     startSize: number
   ): number => {
     let size = startSize;
-    while (size > 14) {
+    while (size > 12) {
       ctx.font = `bold ${size}px Impact, sans-serif`;
+      const lineHeight = size * 1.2;
       const lines = wrapText(ctx, text, maxWidth);
-      if (lines.length <= maxLines && lines.length * lineHeight <= maxAvailableHeight) {
+      const totalHeight = lines.length * lineHeight;
+      if (lines.length <= maxLines && totalHeight <= maxAvailableHeight) {
         return size;
       }
       size -= 2;
     }
-    return 14;
+    return 12;
   }, [wrapText]);
 
   const generateMeme = useCallback(() => {
@@ -82,53 +106,85 @@ export function MemeGeneratorSection() {
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
+      // Draw the image at its natural size
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
 
-      const padding = img.width * 0.06; // 6% padding from edges
-      const maxWidth = img.width - padding * 2;
-      const startFontSize = Math.max(30, img.width / 12);
+      // === ADAPTIVE TEXT SYSTEM ===
+      // All measurements are proportional to the image dimensions,
+      // so text adapts to any aspect ratio (square, wide, portrait, etc.)
 
-      const drawMemeText = (text: string, startY: number, isTop: boolean) => {
-        if (!text) return;
+      const w = img.width;
+      const h = img.height;
+      const minDim = Math.min(w, h); // Use the smaller dimension for baseline sizing
+
+      // Padding: 5% of the smaller dimension — works for any aspect ratio
+      const padding = minDim * 0.05;
+
+      // Max text width: image width minus padding on both sides
+      const maxWidth = w - padding * 2;
+
+      // Starting font size: based on smaller dimension so text isn't oversized
+      // on wide images or undersized on portrait images
+      const startFontSize = Math.max(24, minDim / 10);
+
+      // Max available height for each text block (top or bottom):
+      // 30% of image height — gives enough room for the image to breathe
+      const maxAvailableHeight = h * 0.30;
+
+      // Max lines per text block
+      const maxLines = 4;
+
+      /**
+       * Draw a block of meme text (top or bottom).
+       * - Auto-fits font size to the available area
+       * - White fill with black outline for readability on any background
+       * - Proper line height and centering
+       */
+      const drawMemeText = (text: string, isTop: boolean) => {
+        if (!text.trim()) return;
 
         const upperText = text.toUpperCase();
-        const maxLines = 3;
-        const lineHeight = startFontSize * 1.15;
-        const maxAvailableHeight = img.height * 0.35; // max 35% of image height
 
-        // Find font size that fits
-        const fontSize = findFittingFontSize(ctx, upperText, maxWidth, maxLines, lineHeight, maxAvailableHeight, startFontSize);
-        const actualLineHeight = fontSize * 1.15;
+        // Find the optimal font size for this text and this image
+        const fontSize = findFittingFontSize(
+          ctx, upperText, maxWidth, maxLines, maxAvailableHeight, startFontSize
+        );
+        const lineHeight = fontSize * 1.2;
 
         ctx.font = `bold ${fontSize}px Impact, sans-serif`;
         ctx.fillStyle = "white";
         ctx.strokeStyle = "black";
-        ctx.lineWidth = Math.max(2, fontSize / 12);
+        ctx.lineWidth = Math.max(2, fontSize / 10);
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
 
         const lines = wrapText(ctx, upperText, maxWidth);
+        const totalBlockHeight = lines.length * lineHeight;
 
-        // Calculate total block height for centering
-        const totalBlockHeight = lines.length * actualLineHeight;
-        let y = isTop ? startY : startY - totalBlockHeight + actualLineHeight;
+        // Vertical positioning:
+        // - Top text: starts at padding from the top
+        // - Bottom text: aligned so the bottom of the last line is at padding from bottom
+        let y: number;
+        if (isTop) {
+          y = padding;
+        } else {
+          y = h - padding - totalBlockHeight;
+        }
 
+        // Draw each line with outline + fill for meme-style text
         for (const line of lines) {
-          // Black outline for readability
-          ctx.strokeText(line, canvas.width / 2, y);
-          // White fill
-          ctx.fillText(line, canvas.width / 2, y);
-          y += actualLineHeight;
+          // Multiple outline passes for better readability
+          ctx.strokeText(line, w / 2, y);
+          ctx.fillText(line, w / 2, y);
+          y += lineHeight;
         }
       };
 
-      // Top text — starts near top with padding
-      drawMemeText(topText, padding + 5, true);
-
-      // Bottom text — anchored to bottom
-      drawMemeText(bottomText, canvas.height - padding - 5, false);
+      // Draw top and bottom text
+      drawMemeText(topText, true);
+      drawMemeText(bottomText, false);
 
       setGenerated(true);
     };
