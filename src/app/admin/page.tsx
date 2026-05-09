@@ -129,8 +129,8 @@ export default function AdminPage() {
     totalTickets: number;
     participants: number;
   } | null>(null);
-  const [newRafflePrize, setNewRafflePrize] = useState("1000000"); // 1M default for first raffle
-  const [newRaffleTicketPrice, setNewRaffleTicketPrice] = useState("150"); // 150 pts per ticket
+  const [newRafflePrize, setNewRafflePrize] = useState("");
+  const [newRaffleTicketPrice, setNewRaffleTicketPrice] = useState("");
 
   // Restore session
   useEffect(() => {
@@ -495,8 +495,9 @@ export default function AdminPage() {
             <button
               onClick={async () => {
                 if (!storedPw) return;
-                const prize = parseInt(newRafflePrize) || 100000;
-                const ticketPrice = parseInt(newRaffleTicketPrice) || 150;
+                const prize = parseInt(newRafflePrize) || 0;
+                const ticketPrice = parseInt(newRaffleTicketPrice) || 0;
+                if (!prize || !ticketPrice) { showToast("❌ Set prize and ticket price!"); return; }
                 try {
                   const res = await fetch("/api/raffle", {
                     method: "POST",
