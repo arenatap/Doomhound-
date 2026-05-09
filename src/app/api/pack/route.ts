@@ -1077,16 +1077,17 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Update member
+        // Update member — RE-SPIN does NOT consume the weekly spin
         const won = selectedSegment.amount > 0;
+        const isRespin = selectedSegment.respin || false;
         await db.packMember.update({
           where: { handle: cleanHandle },
           data: {
-            lastWheelSpin: new Date(),
+            lastWheelSpin: isRespin ? member.lastWheelSpin : new Date(),
             totalWheelSpins: { increment: 1 },
             totalWheelWinnings: { increment: selectedSegment.amount },
             pendingWinnings: won ? { increment: selectedSegment.amount } : member.pendingWinnings,
-            prizeSent: false,
+            prizeSent: won ? false : member.prizeSent,
             doomhoundBalance: balanceResult.balance,
             balanceCheckedAt: new Date(),
           },

@@ -699,7 +699,7 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
           <strong className="text-gray-400">Win</strong> = tokens sent to your wallet within 24h!
         </p>
         <p className="text-gray-500 text-[11px] leading-relaxed">
-          <strong className="text-gray-400">RE-SPIN</strong> = free extra spin next week!
+          <strong className="text-gray-400">RE-SPIN</strong> = spin again right now for free!
         </p>
       </div>
 
@@ -790,7 +790,7 @@ export function WheelOfDoom({ member, onSpinComplete }: WheelOfDoomProps) {
                 {result.won
                   ? "$DOOMHOUND tokens"
                   : result.respin
-                    ? "You get a free spin next week!"
+                    ? "Spin again right now — it's free!"
                     : "Better luck next week!"}
               </p>
 
