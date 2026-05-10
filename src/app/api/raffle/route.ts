@@ -80,7 +80,8 @@ export async function GET(request: NextRequest) {
           const romeTz = "Europe/Rome";
           const romeDate = new Date(now.toLocaleString("en-US", { timeZone: romeTz }));
           const dayOfWeek = romeDate.getDay();
-          const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+          // If Sunday, set to NEXT Sunday (7 days) so raffle has a full week
+          const daysUntilSunday = dayOfWeek === 0 ? 7 : 7 - dayOfWeek;
           const endDate = new Date(romeDate);
           endDate.setDate(endDate.getDate() + daysUntilSunday);
           endDate.setHours(23, 59, 59, 999);
@@ -370,7 +371,8 @@ export async function POST(request: NextRequest) {
         const romeTz = "Europe/Rome";
         const romeDate = new Date(now.toLocaleString("en-US", { timeZone: romeTz }));
         const dayOfWeek = romeDate.getDay();
-        const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+        // If Sunday, set to NEXT Sunday (7 days) so raffle has a full week
+        const daysUntilSunday = dayOfWeek === 0 ? 7 : 7 - dayOfWeek;
         const nextEndDate = new Date(romeDate);
         nextEndDate.setDate(nextEndDate.getDate() + daysUntilSunday);
         nextEndDate.setHours(23, 59, 59, 999);
@@ -422,7 +424,8 @@ export async function POST(request: NextRequest) {
         const romeTz = "Europe/Rome";
         const romeDate = new Date(now.toLocaleString("en-US", { timeZone: romeTz }));
         const dayOfWeek = romeDate.getDay();
-        const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+        // If Sunday, set to NEXT Sunday (7 days) so raffle has a full week
+        const daysUntilSunday = dayOfWeek === 0 ? 7 : 7 - dayOfWeek;
         const endDate = new Date(romeDate);
         endDate.setDate(endDate.getDate() + daysUntilSunday);
         endDate.setHours(23, 59, 59, 999);
