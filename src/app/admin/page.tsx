@@ -131,6 +131,16 @@ export default function AdminPage() {
   } | null>(null);
   const [newRafflePrize, setNewRafflePrize] = useState("");
   const [newRaffleTicketPrice, setNewRaffleTicketPrice] = useState("");
+  const [purgeResult, setPurgeResult] = useState<{
+    purged: { handle: string; userName: string; balance: number; ticketsRemoved: number; pointsRefunded: number; reason: string }[];
+    kept: { handle: string; userName: string; balance: number; ticketsKept: number }[];
+    totalPurged: number;
+    totalPointsRefunded: number;
+    remainingTickets: number;
+    remainingParticipants: number;
+  } | null>(null);
+  const [confirmPurge, setConfirmPurge] = useState(false);
+  const [purgeLoading, setPurgeLoading] = useState(false);
 
   // Restore session
   useEffect(() => {
@@ -584,6 +594,71 @@ export default function AdminPage() {
             Draw closes the current raffle and picks a winner. New raffle auto-creates for next week.
           </p>
 
+          {/* Purge Non-Holders */}
+          <div className="mt-4">
+            <button
+              onClick={() => setConfirmPurge(true)}
+              disabled={purgeLoading}
+              className="w-full px-5 py-3 text-sm font-bold bg-orange-600/20 border border-orange-600/40 text-orange-400 rounded-xl hover:bg-orange-600/30 transition-all disabled:opacity-50"
+            >
+              {purgeLoading ? "CHECKING BALANCES..." : "\uD83D\uDD25 PURGE NON-HOLDERS"}
+            </button>
+            <p className="text-gray-600 text-[10px] sm:text-xs mt-1.5">
+              Removes raffle tickets from anyone who no longer holds $DOOMHOUND. Points are refunded.
+            </p>
+          </div>
+
+          {/* Purge Result */}
+          {purgeResult && (
+            <div className="mt-4 bg-gradient-to-br from-[#1a0f0a] to-[#0d0d0d] border border-orange-600/40 rounded-xl p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-2xl">\uD83D\uDD25</span>
+                <div>
+                  <h3 className="font-creepster text-xl text-orange-400">PURGE RESULTS</h3>
+                  <p className="text-gray-500 text-xs">{purgeResult.remainingTickets} tickets left · {purgeResult.remainingParticipants} participants</p>
+                </div>
+              </div>
+              {purgeResult.purged.length > 0 ? (
+                <>
+                  <p className="text-red-400 text-sm font-bold mb-2">REMOVED ({purgeResult.totalPurged} tickets):</p>
+                  <div className="space-y-1.5 mb-4">
+                    {purgeResult.purged.map((p) => (
+                      <div key={p.handle} className="flex items-center gap-2 text-xs bg-[#0a0a0a] border border-red-900/30 rounded-lg px-3 py-2">
+                        <span className="text-red-400 font-bold">@{p.handle}</span>
+                        <span className="text-gray-500 flex-1">{p.reason}</span>
+                        <span className="text-gray-400">{p.ticketsRemoved} ticket{p.ticketsRemoved > 1 ? "s" : ""}</span>
+                        <span className="text-green-400">+{p.pointsRefunded}pts</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className="text-green-400 text-sm mb-4">All ticket holders still have $DOOMHOUND!</p>
+              )}
+              {purgeResult.kept.length > 0 && (
+                <>
+                  <p className="text-green-400 text-sm font-bold mb-2">STILL HOLDING:</p>
+                  <div className="space-y-1.5">
+                    {purgeResult.kept.map((k) => (
+                      <div key={k.handle} className="flex items-center gap-2 text-xs bg-[#0a0a0a] border border-green-900/30 rounded-lg px-3 py-2">
+                        <span className="text-green-400 font-bold">@{k.handle}</span>
+                        <span className="text-yellow-400 font-mono">{formatBalance(k.balance)}</span>
+                        <span className="text-yellow-400/60 text-[10px]">$DOOMHOUND</span>
+                        <span className="text-gray-500 ml-auto">{k.ticketsKept} ticket{k.ticketsKept > 1 ? "s" : ""}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+              <button
+                onClick={() => setPurgeResult(null)}
+                className="mt-3 text-gray-600 text-[10px] hover:text-gray-400 transition-colors"
+              >
+                \u2715 Dismiss
+              </button>
+            </div>
+          )}
+
           {/* Raffle Draw Result */}
           {raffleResult && (
             <div className="mt-4 bg-gradient-to-br from-[#1a0a0a] to-[#0d0d0d] border border-yellow-600/40 rounded-xl p-5">
@@ -635,6 +710,69 @@ export default function AdminPage() {
             </div>
           )}
         </div>
+
+        {/* Purge Confirmation */}
+        <AnimatePresence>
+          {confirmPurge && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+              onClick={() => setConfirmPurge(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.9 }}
+                className="bg-[#1a1a1a] border border-orange-600/40 rounded-xl p-6 max-w-sm w-full text-center"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <p className="text-orange-400 text-sm sm:text-base mb-1 font-bold">Purge non-holders?</p>
+                <p className="text-gray-400 text-xs sm:text-sm mb-4">
+                  This will check $DOOMHOUND balances for all raffle participants via blockchain RPC.
+                  Tickets from anyone with 0 balance will be removed and their points refunded.
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={async () => {
+                      if (!storedPw) return;
+                      setPurgeLoading(true);
+                      setConfirmPurge(false);
+                      try {
+                        const res = await fetch("/api/raffle", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ action: "purge_non_holders", adminPassword: storedPw }),
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                          setPurgeResult(data);
+                          showToast(`🔥 Purged ${data.totalPurged} tickets from non-holders`);
+                        } else {
+                          showToast(data.error || "Purge failed");
+                        }
+                      } catch {
+                        showToast("Purge failed");
+                      } finally {
+                        setPurgeLoading(false);
+                      }
+                    }}
+                    className="px-5 py-2 text-sm font-bold bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
+                  >
+                    🔥 PURGE NOW
+                  </button>
+                  <button
+                    onClick={() => setConfirmPurge(false)}
+                    className="px-5 py-2 text-sm font-bold bg-[#2a2a2a] text-gray-400 rounded-lg hover:text-white transition-colors"
+                  >
+                    CANCEL
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Mark All Confirmation */}
         <AnimatePresence>
