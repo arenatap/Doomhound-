@@ -1,0 +1,60 @@
+{
+  "name": "Hound #020",
+  "description": "Hounds of Hell #20 — Legendary tier. 666 demonic hounds from the underworld. Hold to unlock DOOMHOUND Pack bonuses.",
+  "image": "ipfs://Qm.../20.png",
+  "external_url": "https://doomhound.fun",
+  "attributes": [
+    {
+      "trait_type": "Background",
+      "value": "Ice Hell"
+    },
+    {
+      "trait_type": "Fur",
+      "value": "Toxic Green"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "Heterochromia"
+    },
+    {
+      "trait_type": "Horns",
+      "value": "Bone"
+    },
+    {
+      "trait_type": "Collar",
+      "value": "Ribcage"
+    },
+    {
+      "trait_type": "Tail",
+      "value": "Serpent"
+    },
+    {
+      "trait_type": "Special",
+      "value": "Flame Crown"
+    },
+    {
+      "trait_type": "Rarity Tier",
+      "value": "Legendary"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Rarity Score",
+      "value": 881
+    }
+  ],
+  "properties": {
+    "category": "image",
+    "files": [
+      {
+        "uri": "ipfs://Qm.../20.png",
+        "type": "image/png"
+      }
+    ],
+    "creators": [
+      {
+        "address": "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb",
+        "share": 100
+      }
+    ]
+  }
+}
