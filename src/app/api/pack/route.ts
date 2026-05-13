@@ -1105,13 +1105,17 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Update member — RE-SPIN does NOT consume the weekly spin
+        // Update member — RE-SPIN allows immediate re-spin (set lastWheelSpin to before this Monday)
         const won = selectedSegment.amount > 0;
         const isRespin = selectedSegment.respin || false;
+        // For RE-SPIN: set lastWheelSpin to before this Monday so the frontend allows another spin immediately
+        const lastSpinValue = isRespin
+          ? new Date(thisMonday.getTime() - 1) // 1ms before Monday = eligible to spin again
+          : new Date();
         await db.packMember.update({
           where: { handle: cleanHandle },
           data: {
-            lastWheelSpin: isRespin ? member.lastWheelSpin : new Date(),
+            lastWheelSpin: lastSpinValue,
             totalWheelSpins: { increment: 1 },
             totalWheelWinnings: { increment: selectedSegment.amount },
             pendingWinnings: won ? { increment: selectedSegment.amount } : member.pendingWinnings,
@@ -1125,7 +1129,7 @@ export async function POST(request: NextRequest) {
         const desc = won
           ? `Wheel of Doom: Won ${formatBalance(selectedSegment.amount)} $DOOMHOUND! 🎉`
           : selectedSegment.respin
-            ? "Wheel of Doom: RE-SPIN! Spin again next week for free!"
+            ? "Wheel of Doom: RE-SPIN! Spin again right now for free!"
             : "Wheel of Doom: Nothing this time. Better luck next week!";
         await addActivity(cleanHandle, "wheel_spin", desc, 0);
 
