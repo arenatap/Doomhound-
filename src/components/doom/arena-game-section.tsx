@@ -136,10 +136,20 @@ function getBalanceTier(balance: number) {
 function canCheckIn(lastCheckIn: string | null): boolean {
   if (!lastCheckIn) return true;
   // Use timezone-aware date comparison matching server logic (Europe/Rome)
-  const getUserDate = (d: Date) =>
-    d.toLocaleDateString("en-CA", { timeZone: "Europe/Rome" }); // YYYY-MM-DD
-  const lastStr = getUserDate(new Date(lastCheckIn));
-  const todayStr = getUserDate(new Date());
+  // formatToParts is reliable across all environments (unlike toLocaleDateString)
+  const PACK_TZ = "Europe/Rome";
+  const getDateInTz = (d: Date): string => {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: PACK_TZ,
+      year: "numeric", month: "2-digit", day: "2-digit",
+    }).formatToParts(d);
+    const year = parts.find(p => p.type === "year")!.value;
+    const month = parts.find(p => p.type === "month")!.value;
+    const day = parts.find(p => p.type === "day")!.value;
+    return `${year}-${month}-${day}`;
+  };
+  const lastStr = getDateInTz(new Date(lastCheckIn));
+  const todayStr = getDateInTz(new Date());
   return lastStr !== todayStr;
 }
 function canVerify(lastVerifiedAt: string | null): boolean {
@@ -300,10 +310,9 @@ export function ArenaGameSection() {
   const doCheckIn = useCallback(async () => {
     if (!member) return;
     try {
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Rome";
       const res = await fetch("/api/pack", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "checkin", handle: member.handle, timezone }),
+        body: JSON.stringify({ action: "checkin", handle: member.handle }),
       });
       const data = await res.json();
       if (data.member) {

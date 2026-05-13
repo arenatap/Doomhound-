@@ -515,15 +515,36 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "Not registered" }, { status: 404 });
         }
 
-        // Use Europe/Rome timezone for date comparison (consistent across all users)
+        // Always use Europe/Rome timezone for consistent date comparison across all users
+        // This matches the frontend canCheckIn() logic and the project's CET schedule
+        const PACK_TZ = "Europe/Rome";
         const now = new Date();
-        const userTz = body.timezone || "Europe/Rome";
-        const getUserDate = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: userTz }); // YYYY-MM-DD format
-        
-        const todayStr = getUserDate(now);
+
+        // Reliable date-in-timezone helper using formatToParts (avoids locale-dependent toLocaleDateString)
+        const getDateInTz = (d: Date): string => {
+          const parts = new Intl.DateTimeFormat("en-US", {
+            timeZone: PACK_TZ,
+            year: "numeric", month: "2-digit", day: "2-digit",
+          }).formatToParts(d);
+          const year = parts.find(p => p.type === "year")!.value;
+          const month = parts.find(p => p.type === "month")!.value;
+          const day = parts.find(p => p.type === "day")!.value;
+          return `${year}-${month}-${day}`; // Always YYYY-MM-DD
+        };
+
+        // Calculate the calendar-day difference between two dates in the target timezone
+        const getDayDiff = (earlier: Date, later: Date): number => {
+          const earlierStr = getDateInTz(earlier);
+          const laterStr = getDateInTz(later);
+          const earlierDate = new Date(earlierStr + "T00:00:00Z");
+          const laterDate = new Date(laterStr + "T00:00:00Z");
+          return Math.round((laterDate.getTime() - earlierDate.getTime()) / 86400000);
+        };
+
+        const todayStr = getDateInTz(now);
 
         if (member.lastCheckIn) {
-          const lastStr = getUserDate(new Date(member.lastCheckIn));
+          const lastStr = getDateInTz(new Date(member.lastCheckIn));
           if (lastStr === todayStr) {
             // Already checked in today — return full member data so client can update
             const fullMember = await db.packMember.findUnique({
@@ -534,31 +555,30 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Calculate streak — compare against lastCheckIn (more reliable than lastStreakAt)
+        // Calculate streak using calendar-day difference (robust against timezone edge cases)
         let newStreakCount = 1;
         const lastCheckDate = member.lastCheckIn || member.lastStreakAt;
         if (lastCheckDate) {
-          const lastCheckStr = getUserDate(new Date(lastCheckDate));
-          // Calculate yesterday in user's timezone
-          const yesterday = new Date(now);
-          yesterday.setDate(yesterday.getDate() - 1);
-          const yesterdayStr = getUserDate(yesterday);
+          const lastDate = new Date(lastCheckDate);
+          const dayDiff = getDayDiff(lastDate, now);
 
-          if (lastCheckStr === yesterdayStr) {
-            // Last check-in was yesterday — continue streak
-            newStreakCount = member.streakCount + 1;
-          } else if (lastCheckStr === todayStr) {
-            // Already checked in today (shouldn't happen, but keep streak)
+          if (dayDiff === 0) {
+            // Same day (shouldn't reach here since we check above, but keep streak)
             newStreakCount = member.streakCount;
-          } else {
-            // Check if the last check-in was within ~48 hours (grace period for timezone edge cases)
-            // This prevents streak resets due to timezone drift
-            const hoursSinceLastCheck = (now.getTime() - new Date(lastCheckDate).getTime()) / (1000 * 60 * 60);
+          } else if (dayDiff === 1) {
+            // Yesterday — continue streak
+            newStreakCount = member.streakCount + 1;
+          } else if (dayDiff === 2) {
+            // Missed one calendar day but within ~48h raw — grace period
+            // This handles edge cases like late-night check-ins across date boundaries
+            const hoursSinceLastCheck = (now.getTime() - lastDate.getTime()) / (1000 * 60 * 60);
             if (hoursSinceLastCheck < 48) {
-              // Within grace period — continue streak
+              // Grace period applies — continue streak
               newStreakCount = member.streakCount + 1;
             }
+            // Otherwise: missed a day, streak resets to 1 (default)
           }
+          // dayDiff >= 3: definitely missed days, streak resets to 1 (default)
         }
 
         await addActivity(cleanHandle, "daily_checkin", `Daily summon completed (streak: ${newStreakCount})`, POINTS_CONFIG.daily_checkin.value);
