@@ -515,7 +515,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "Not registered" }, { status: 404 });
         }
 
-        // Use Europe/Rome timezone for date comparison (user's timezone)
+        // Use Europe/Rome timezone for date comparison (consistent across all users)
         const now = new Date();
         const userTz = body.timezone || "Europe/Rome";
         const getUserDate = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: userTz }); // YYYY-MM-DD format
@@ -534,23 +534,31 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Calculate streak
+        // Calculate streak — compare against lastCheckIn (more reliable than lastStreakAt)
         let newStreakCount = 1;
-        if (member.lastStreakAt) {
-          const lastStreakStr = getUserDate(new Date(member.lastStreakAt));
+        const lastCheckDate = member.lastCheckIn || member.lastStreakAt;
+        if (lastCheckDate) {
+          const lastCheckStr = getUserDate(new Date(lastCheckDate));
           // Calculate yesterday in user's timezone
           const yesterday = new Date(now);
           yesterday.setDate(yesterday.getDate() - 1);
           const yesterdayStr = getUserDate(yesterday);
 
-          if (lastStreakStr === yesterdayStr) {
-            // Last streak was yesterday — continue streak
+          if (lastCheckStr === yesterdayStr) {
+            // Last check-in was yesterday — continue streak
             newStreakCount = member.streakCount + 1;
-          } else if (lastStreakStr === todayStr) {
+          } else if (lastCheckStr === todayStr) {
             // Already checked in today (shouldn't happen, but keep streak)
             newStreakCount = member.streakCount;
+          } else {
+            // Check if the last check-in was within ~48 hours (grace period for timezone edge cases)
+            // This prevents streak resets due to timezone drift
+            const hoursSinceLastCheck = (now.getTime() - new Date(lastCheckDate).getTime()) / (1000 * 60 * 60);
+            if (hoursSinceLastCheck < 48) {
+              // Within grace period — continue streak
+              newStreakCount = member.streakCount + 1;
+            }
           }
-          // If last streak was before yesterday, streak resets to 1 (default)
         }
 
         await addActivity(cleanHandle, "daily_checkin", `Daily summon completed (streak: ${newStreakCount})`, POINTS_CONFIG.daily_checkin.value);
