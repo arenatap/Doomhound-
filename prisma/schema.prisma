@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -67,6 +67,52 @@ model ActivityLog {
 
   @@index([memberHandle])
   @@index([createdAt])
+}
+
+// ===== DOOMHOUND DAO =====
+model DaoSettings {
+  id           String   @id @default(cuid())
+  key          String   @unique   // e.g. "categories", "voting_duration_hours", "quorum", "approval_threshold", "proposer_min_points"
+  value        String              // JSON string for complex values, or simple string/number
+  updatedAt    DateTime @updatedAt
+}
+
+model DaoProposal {
+  id             String   @id @default(cuid())
+  title          String
+  description    String
+  category       String              // burn, pack, treasury, nft, marketing
+  status         String   @default("active")  // active, passed, failed, executed, cancelled
+  createdBy      String              // Arena handle of the proposer (admin)
+  votingEndsAt   DateTime            // When voting closes
+  quorum         Int      @default(3)          // Min number of voters required
+  approvalPct    Int      @default(50)         // Percentage needed to pass (50 = 50%+1)
+  snapshotData   String   @default("{}")       // JSON: { handle: points } snapshot at creation time
+  resultData     String?             // JSON: { totalVotes, yesVotes, noVotes, passed } after closing
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  votes          DaoVote[]
+
+  @@index([status])
+  @@index([category])
+  @@index([votingEndsAt])
+}
+
+model DaoVote {
+  id           String   @id @default(cuid())
+  proposalId   String                          // FK to DaoProposal
+  memberHandle String                          // Arena handle of the voter
+  vote         String                          // "yes" or "no"
+  votingPower  Int                             // Points at time of vote
+  createdAt    DateTime @default(now())
+
+  proposal     DaoProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@unique([proposalId, memberHandle])  // One vote per member per proposal
+  @@index([proposalId])
+  @@index([memberHandle])
 }
 
 // ===== PACK RAFFLE =====

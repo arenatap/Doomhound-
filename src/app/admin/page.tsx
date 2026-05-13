@@ -142,6 +142,18 @@ export default function AdminPage() {
   const [confirmPurge, setConfirmPurge] = useState(false);
   const [purgeLoading, setPurgeLoading] = useState(false);
 
+  // DAO State
+  const [daoSettings, setDaoSettings] = useState<Record<string, string> | null>(null);
+  const [daoProposals, setDaoProposals] = useState<any[]>([]);
+  const [newProposalTitle, setNewProposalTitle] = useState("");
+  const [newProposalDesc, setNewProposalDesc] = useState("");
+  const [newProposalCategory, setNewProposalCategory] = useState("burn");
+  const [daoLoading, setDaoLoading] = useState(false);
+  const [editCategories, setEditCategories] = useState("");
+  const [editDuration, setEditDuration] = useState("");
+  const [editQuorum, setEditQuorum] = useState("");
+  const [editApproval, setEditApproval] = useState("");
+
   // Restore session
   useEffect(() => {
     const p = getPassword();
@@ -162,6 +174,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (!authed || !storedPw) return;
     loadData(storedPw);
+    loadDaoData(storedPw);
     const interval = setInterval(() => loadData(storedPw), 30000);
     return () => clearInterval(interval);
   }, [authed, storedPw]);
@@ -242,6 +255,136 @@ export default function AdminPage() {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   };
+
+  // Load DAO data
+  const loadDaoData = useCallback(async (pw: string) => {
+    setDaoLoading(true);
+    try {
+      const [settingsRes, proposalsRes] = await Promise.all([
+        fetch("/api/dao?action=settings"),
+        fetch("/api/dao?action=proposals&status=all"),
+      ]);
+      const settingsData = await settingsRes.json();
+      const proposalsData = await proposalsRes.json();
+      if (settingsData.settings) {
+        setDaoSettings(settingsData.settings);
+        setEditCategories(settingsData.settings.categories || "[]");
+        setEditDuration(settingsData.settings.voting_duration_hours || "48");
+        setEditQuorum(settingsData.settings.quorum || "3");
+        setEditApproval(settingsData.settings.approval_threshold || "50");
+      }
+      if (proposalsData.proposals) setDaoProposals(proposalsData.proposals);
+    } catch (err) {
+      console.error("DAO load error:", err);
+    } finally {
+      setDaoLoading(false);
+    }
+  }, []);
+
+  // Create DAO proposal
+  const createDaoProposal = useCallback(async () => {
+    if (!storedPw) return;
+    if (!newProposalTitle.trim() || !newProposalDesc.trim()) {
+      showToast("Title and description required!");
+      return;
+    }
+    try {
+      const res = await fetch("/api/dao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "create_proposal",
+          adminPassword: storedPw,
+          title: newProposalTitle.trim(),
+          description: newProposalDesc.trim(),
+          category: newProposalCategory,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Proposal created: "${newProposalTitle}"`);
+        setNewProposalTitle("");
+        setNewProposalDesc("");
+        loadDaoData(storedPw);
+      } else {
+        showToast(data.error || "Create failed");
+      }
+    } catch {
+      showToast("Create failed");
+    }
+  }, [storedPw, newProposalTitle, newProposalDesc, newProposalCategory, loadDaoData]);
+
+  // Save DAO settings
+  const saveDaoSettings = useCallback(async () => {
+    if (!storedPw) return;
+    try {
+      const res = await fetch("/api/dao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_settings",
+          adminPassword: storedPw,
+          settings: {
+            categories: editCategories,
+            voting_duration_hours: editDuration,
+            quorum: editQuorum,
+            approval_threshold: editApproval,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("DAO settings saved!");
+        loadDaoData(storedPw);
+      } else {
+        showToast(data.error || "Save failed");
+      }
+    } catch {
+      showToast("Save failed");
+    }
+  }, [storedPw, editCategories, editDuration, editQuorum, editApproval, loadDaoData]);
+
+  // Cancel DAO proposal
+  const cancelDaoProposal = useCallback(async (proposalId: string) => {
+    if (!storedPw) return;
+    try {
+      const res = await fetch("/api/dao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel_proposal", adminPassword: storedPw, proposalId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Proposal cancelled");
+        loadDaoData(storedPw);
+      } else {
+        showToast(data.error || "Cancel failed");
+      }
+    } catch {
+      showToast("Cancel failed");
+    }
+  }, [storedPw, loadDaoData]);
+
+  // Execute DAO proposal
+  const executeDaoProposal = useCallback(async (proposalId: string) => {
+    if (!storedPw) return;
+    try {
+      const res = await fetch("/api/dao", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "execute_proposal", adminPassword: storedPw, proposalId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Proposal executed!");
+        loadDaoData(storedPw);
+      } else {
+        showToast(data.error || "Execute failed");
+      }
+    } catch {
+      showToast("Execute failed");
+    }
+  }, [storedPw, loadDaoData]);
 
   // Logout
   const doLogout = useCallback(() => {
@@ -814,6 +957,183 @@ export default function AdminPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* DAO Controls */}
+        <div className="mb-8">
+          <h2 className="font-creepster text-xl sm:text-2xl text-red-500 mb-3 sm:mb-4">🐺 DAO CONTROLS</h2>
+
+          {/* DAO Settings */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 sm:p-5 mb-3">
+            <h3 className="text-white font-bold text-sm mb-3">SETTINGS</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              {/* Categories */}
+              <div className="sm:col-span-2">
+                <label className="text-gray-500 text-[10px] uppercase block mb-1">Categories (JSON array)</label>
+                <input
+                  type="text"
+                  value={editCategories}
+                  onChange={(e) => setEditCategories(e.target.value)}
+                  className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs text-white font-mono focus:border-red-600/50 focus:outline-none"
+                  placeholder='["burn","pack","treasury","nft","marketing"]'
+                />
+              </div>
+              {/* Duration */}
+              <div>
+                <label className="text-gray-500 text-[10px] uppercase block mb-1">Voting Duration (hours)</label>
+                <input
+                  type="number"
+                  value={editDuration}
+                  onChange={(e) => setEditDuration(e.target.value)}
+                  className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs text-white font-mono focus:border-red-600/50 focus:outline-none"
+                  placeholder="48"
+                />
+              </div>
+              {/* Quorum */}
+              <div>
+                <label className="text-gray-500 text-[10px] uppercase block mb-1">Quorum (min voters)</label>
+                <input
+                  type="number"
+                  value={editQuorum}
+                  onChange={(e) => setEditQuorum(e.target.value)}
+                  className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs text-white font-mono focus:border-red-600/50 focus:outline-none"
+                  placeholder="3"
+                />
+              </div>
+              {/* Approval % */}
+              <div>
+                <label className="text-gray-500 text-[10px] uppercase block mb-1">Approval Threshold (%)</label>
+                <input
+                  type="number"
+                  value={editApproval}
+                  onChange={(e) => setEditApproval(e.target.value)}
+                  className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs text-white font-mono focus:border-red-600/50 focus:outline-none"
+                  placeholder="50"
+                />
+              </div>
+            </div>
+            <button
+              onClick={saveDaoSettings}
+              className="px-4 py-2 text-xs font-bold bg-red-600/20 border border-red-600/40 text-red-400 rounded-lg hover:bg-red-600/30 transition-all"
+            >
+              SAVE SETTINGS
+            </button>
+          </div>
+
+          {/* Create Proposal */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 sm:p-5 mb-3">
+            <h3 className="text-white font-bold text-sm mb-3">CREATE PROPOSAL</h3>
+            <div className="space-y-3 mb-4">
+              {/* Category selector */}
+              <div>
+                <label className="text-gray-500 text-[10px] uppercase block mb-1">Category</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {daoSettings ? JSON.parse(daoSettings.categories || "[]").map((c: string) => (
+                    <button
+                      key={c}
+                      onClick={() => setNewProposalCategory(c)}
+                      className={`px-2.5 py-1 text-[10px] font-bold rounded border transition-colors ${
+                        newProposalCategory === c
+                          ? "bg-red-600/20 border-red-600/40 text-red-400"
+                          : "bg-[#0a0a0a] border-[#2a2a2a] text-gray-500 hover:text-gray-300"
+                      }`}
+                    >
+                      {c.toUpperCase()}
+                    </button>
+                  )) : (
+                    ["burn", "pack", "treasury", "nft", "marketing"].map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => setNewProposalCategory(c)}
+                        className={`px-2.5 py-1 text-[10px] font-bold rounded border transition-colors ${
+                          newProposalCategory === c
+                            ? "bg-red-600/20 border-red-600/40 text-red-400"
+                            : "bg-[#0a0a0a] border-[#2a2a2a] text-gray-500 hover:text-gray-300"
+                        }`}
+                      >
+                        {c.toUpperCase()}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+              {/* Title */}
+              <div>
+                <label className="text-gray-500 text-[10px] uppercase block mb-1">Title</label>
+                <input
+                  type="text"
+                  value={newProposalTitle}
+                  onChange={(e) => setNewProposalTitle(e.target.value)}
+                  className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white focus:border-red-600/50 focus:outline-none"
+                  placeholder="e.g. Increase daily burn to 15M"
+                />
+              </div>
+              {/* Description */}
+              <div>
+                <label className="text-gray-500 text-[10px] uppercase block mb-1">Description</label>
+                <textarea
+                  value={newProposalDesc}
+                  onChange={(e) => setNewProposalDesc(e.target.value)}
+                  rows={3}
+                  className="w-full bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white focus:border-red-600/50 focus:outline-none resize-none"
+                  placeholder="Describe what this proposal does and why the pack should vote for it..."
+                />
+              </div>
+            </div>
+            <button
+              onClick={createDaoProposal}
+              disabled={!newProposalTitle.trim() || !newProposalDesc.trim()}
+              className="px-5 py-2.5 text-sm font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-[0_0_10px_rgba(220,38,38,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              🐺 CREATE PROPOSAL
+            </button>
+          </div>
+
+          {/* Existing Proposals */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 sm:p-5">
+            <h3 className="text-white font-bold text-sm mb-3">EXISTING PROPOSALS ({daoProposals.length})</h3>
+            {daoProposals.length === 0 ? (
+              <p className="text-gray-600 text-xs">No proposals yet</p>
+            ) : (
+              <div className="space-y-2 max-h-96 overflow-y-auto no-scrollbar">
+                {daoProposals.map((p: any) => {
+                  const isActive = p.status === "active";
+                  const isPassed = p.status === "passed";
+                  return (
+                    <div
+                      key={p.id}
+                      className={`flex items-center gap-3 text-xs px-3 py-2.5 rounded-lg border ${
+                        isActive
+                          ? "bg-green-900/10 border-green-600/20"
+                          : isPassed
+                            ? "bg-yellow-900/10 border-yellow-600/20"
+                            : "bg-[#0a0a0a] border-[#2a2a2a]"
+                      }`}
+                    >
+                      <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded ${
+                        isActive ? "bg-green-600/20 text-green-400" : isPassed ? "bg-yellow-600/20 text-yellow-400" : "bg-[#2a2a2a] text-gray-500"
+                      }`}>{p.status.toUpperCase()}</span>
+                      <span className="text-gray-400 font-bold">{p.category.toUpperCase()}</span>
+                      <span className="text-white flex-1 truncate">{p.title}</span>
+                      <span className="text-gray-600">{p._count?.votes || 0} votes</span>
+                      {isActive && (
+                        <button
+                          onClick={() => cancelDaoProposal(p.id)}
+                          className="text-red-400 text-[10px] font-bold hover:text-red-300"
+                        >CANCEL</button>
+                      )}
+                      {isPassed && (
+                        <button
+                          onClick={() => executeDaoProposal(p.id)}
+                          className="text-blue-400 text-[10px] font-bold hover:text-blue-300"
+                        >EXECUTE</button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Recent Activity */}
         <div className="mb-8">
