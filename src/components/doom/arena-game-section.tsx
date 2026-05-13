@@ -240,12 +240,13 @@ export function ArenaGameSection() {
     restoreSession();
   }, []);
 
-  // Check referral param
+  // Check referral param — store separately, don't pollute handle input
+  const [referralCode, setReferralCode] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
-    if (ref) setHandle(ref);
+    if (ref) setReferralCode(ref);
   }, []);
 
   // ===== API CALLS =====
@@ -281,11 +282,8 @@ export function ArenaGameSection() {
     setLoading(true);
     setError(null);
     try {
-      let referral: string | undefined;
-      if (typeof window !== "undefined") {
-        const params = new URLSearchParams(window.location.search);
-        referral = params.get("ref") || undefined;
-      }
+      // Use stored referral code from URL param (set on mount)
+      const referral = referralCode || undefined;
       const res = await fetch("/api/pack", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -304,7 +302,7 @@ export function ArenaGameSection() {
       }
     } catch { setError("Failed to connect to server"); }
     finally { setLoading(false); }
-  }, [handle, loadLeaderboard]);
+  }, [handle, referralCode, loadLeaderboard]);
 
   // ===== DAILY CHECK-IN =====
   const doCheckIn = useCallback(async () => {
@@ -943,6 +941,11 @@ export function ArenaGameSection() {
                       <p className="text-gray-400 text-xs sm:text-sm mb-5 sm:mb-6">
                         Enter your Arena handle to join the $DOOMHOUND pack
                       </p>
+                      {referralCode && (
+                        <div className="mb-4 px-3 py-2 bg-red-900/20 border border-red-800/30 rounded-lg text-xs sm:text-sm text-red-400 flex items-center gap-2">
+                          <span>⛓️</span> Invited by <span className="font-bold">@{referralCode}</span>
+                        </div>
+                      )}
                       <div className="flex gap-2 sm:gap-3 mb-4">
                         <div className="flex-1 relative">
                           <span className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm sm:text-base">@</span>
