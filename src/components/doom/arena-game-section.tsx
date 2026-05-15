@@ -196,6 +196,7 @@ export function ArenaGameSection() {
           const data = await res.json();
           if (data.member) {
             setMember(data.member);
+            if (data.referralCount !== undefined) setReferralCount(data.referralCount);
             // Save handle to localStorage as backup
             if (typeof window !== "undefined") {
               localStorage.setItem("doomhound_handle", data.member.handle);
@@ -219,6 +220,7 @@ export function ArenaGameSection() {
               const data = await res.json();
               if (data.member) {
                 setMember(data.member);
+                if (data.referralCount !== undefined) setReferralCount(data.referralCount);
                 setSessionLoading(false);
                 loadLeaderboard();
                 return;

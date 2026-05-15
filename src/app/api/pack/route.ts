@@ -341,7 +341,10 @@ export async function GET(request: NextRequest) {
           clearSessionCookie(res);
           return res;
         }
-        return NextResponse.json({ member });
+        const sessionReferralCount = await db.packMember.count({
+          where: { referredBy: member.handle },
+        });
+        return NextResponse.json({ member, referralCount: sessionReferralCount });
       }
 
       case "restore_session": {
@@ -370,7 +373,10 @@ export async function GET(request: NextRequest) {
           where: { handle: cleanH },
           data: { sessionToken: newToken },
         });
-        const res = NextResponse.json({ member });
+        const restoreReferralCount = await db.packMember.count({
+          where: { referredBy: cleanH },
+        });
+        const res = NextResponse.json({ member, referralCount: restoreReferralCount });
         setSessionCookie(res, newToken);
         return res;
       }
