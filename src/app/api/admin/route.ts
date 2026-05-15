@@ -271,6 +271,42 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      case "award_achievement": {
+        const { handle: targetHandle, achievementId } = body;
+        if (!targetHandle || !achievementId) {
+          return NextResponse.json({ error: "handle and achievementId required" }, { status: 400 });
+        }
+        const cleanTarget = targetHandle.replace("@", "").trim().toLowerCase();
+        const member = await db.packMember.findUnique({ where: { handle: cleanTarget } });
+        if (!member) {
+          return NextResponse.json({ error: `@${cleanTarget} not found` }, { status: 404 });
+        }
+        const ACHIEVEMENT_DEFS: Record<string, { name: string; emoji: string }> = {
+          first_blood: { name: "First Blood", emoji: "🩸" },
+          pack_starter: { name: "Pack Starter", emoji: "⛓️" },
+          "7_day_streak": { name: "7-Day Streak", emoji: "🔥" },
+          howler: { name: "Howler", emoji: "📢" },
+          whale_spotter: { name: "Whale Spotter", emoji: "🐋" },
+          trending_demon: { name: "Trending Demon", emoji: "📈" },
+          og_hound: { name: "OG Hound", emoji: "👑" },
+          meme_lord: { name: "Meme Lord", emoji: "🎨" },
+        };
+        const def = ACHIEVEMENT_DEFS[achievementId];
+        if (!def) {
+          return NextResponse.json({ error: "Unknown achievement: " + achievementId }, { status: 400 });
+        }
+        let achievements = JSON.parse(member.achievements || "[]");
+        if (achievements.some((a: any) => a.id === achievementId)) {
+          return NextResponse.json({ error: `@${cleanTarget} already has ${def.name}` }, { status: 400 });
+        }
+        achievements.push({ id: achievementId, name: def.name, emoji: def.emoji, awardedAt: new Date().toISOString() });
+        await db.packMember.update({
+          where: { handle: cleanTarget },
+          data: { achievements: JSON.stringify(achievements) },
+        });
+        return NextResponse.json({ success: true, handle: cleanTarget, achievement: def.name });
+      }
+
       default:
         return NextResponse.json({ error: "Unknown action" }, { status: 400 });
     }
