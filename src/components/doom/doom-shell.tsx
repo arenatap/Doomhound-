@@ -27,7 +27,9 @@ export function DoomShell({ children }: { children: ReactNode }) {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
     if (ref) {
-      localStorage.setItem("doomhound_ref", ref);
+      // Normalize: strip @, trim, lowercase — handles ?ref=Toff083249361 or ?ref=@702Philip
+      const cleanRef = ref.replace("@", "").trim().toLowerCase();
+      localStorage.setItem("doomhound_ref", cleanRef);
     }
   }, []);
 

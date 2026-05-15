@@ -410,19 +410,40 @@ export async function POST(request: NextRequest) {
       case "register": {
         const existing = await db.packMember.findUnique({ where: { handle: cleanHandle } });
         if (existing) {
+          // Generate/update session token for existing member too
+          const token = existing.sessionToken || randomUUID();
+          const updateData: any = {};
+          if (!existing.sessionToken) {
+            updateData.sessionToken = token;
+          }
+
+          // Process referral retroactively if user has no referredBy but came via ref link
+          const rawRef = body.referral as string | undefined;
+          const cleanRef = rawRef ? rawRef.replace("@", "").trim().toLowerCase() : undefined;
+          if (cleanRef && !existing.referredBy && cleanRef !== cleanHandle) {
+            const referrer = await db.packMember.findUnique({ where: { handle: cleanRef } });
+            if (referrer) {
+              // Award referrer 75pts
+              await addActivity(cleanRef, "referral", `Recruited @${cleanHandle} to the pack!`, POINTS_CONFIG.referral.value);
+              updateData.referredBy = cleanRef;
+            }
+          }
+
+          if (Object.keys(updateData).length > 0) {
+            await db.packMember.update({
+              where: { handle: cleanHandle },
+              data: updateData,
+            });
+          }
+
           const member = await db.packMember.findUnique({
             where: { handle: cleanHandle },
             include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
           });
-          // Generate/update session token for existing member too
-          const token = existing.sessionToken || randomUUID();
-          if (!existing.sessionToken) {
-            await db.packMember.update({
-              where: { handle: cleanHandle },
-              data: { sessionToken: token },
-            });
-          }
-          const res = NextResponse.json({ member, alreadyRegistered: true, sessionToken: token });
+          const referralCount = await db.packMember.count({
+            where: { referredBy: cleanHandle },
+          });
+          const res = NextResponse.json({ member, referralCount, alreadyRegistered: true, sessionToken: token });
           setSessionCookie(res, token);
           return res;
         }
@@ -485,15 +506,16 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Referral
-        const ref = body.referral as string | undefined;
-        if (ref && ref !== cleanHandle) {
-          const referrer = await db.packMember.findUnique({ where: { handle: ref } });
+        // Referral — always lowercase the ref code to match DB handles
+        const rawRef = body.referral as string | undefined;
+        const cleanRef = rawRef ? rawRef.replace("@", "").trim().toLowerCase() : undefined;
+        if (cleanRef && cleanRef !== cleanHandle) {
+          const referrer = await db.packMember.findUnique({ where: { handle: cleanRef } });
           if (referrer) {
-            await addActivity(ref, "referral", `Recruited @${cleanHandle} to the pack!`, POINTS_CONFIG.referral.value);
+            await addActivity(cleanRef, "referral", `Recruited @${cleanHandle} to the pack!`, POINTS_CONFIG.referral.value);
             await db.packMember.update({
               where: { handle: cleanHandle },
-              data: { referredBy: ref },
+              data: { referredBy: cleanRef },
             });
           }
         }
@@ -1031,6 +1053,41 @@ export async function POST(request: NextRequest) {
       }
 
       // ===== LOGOUT =====
+      case "process_referral": {
+        // Process a pending referral for an already-registered user
+        // Called when user visits ?ref=... but is already logged in
+        const member = await db.packMember.findUnique({ where: { handle: cleanHandle } });
+        if (!member) return NextResponse.json({ error: "Not registered" }, { status: 404 });
+
+        const rawRef = body.referral as string | undefined;
+        const cleanRef = rawRef ? rawRef.replace("@", "").trim().toLowerCase() : undefined;
+
+        if (!cleanRef || member.referredBy || cleanRef === cleanHandle) {
+          return NextResponse.json({ processed: false, reason: member.referredBy ? "Already referred" : "No ref code" });
+        }
+
+        const referrer = await db.packMember.findUnique({ where: { handle: cleanRef } });
+        if (!referrer) {
+          return NextResponse.json({ processed: false, reason: "Referrer not found" });
+        }
+
+        // Award referrer 75pts and set referredBy on the new member
+        await addActivity(cleanRef, "referral", `Recruited @${cleanHandle} to the pack!`, POINTS_CONFIG.referral.value);
+        await db.packMember.update({
+          where: { handle: cleanHandle },
+          data: { referredBy: cleanRef },
+        });
+
+        const updatedMember = await db.packMember.findUnique({
+          where: { handle: cleanHandle },
+          include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
+        });
+        const referralCount = await db.packMember.count({
+          where: { referredBy: cleanHandle },
+        });
+        return NextResponse.json({ processed: true, member: updatedMember, referralCount });
+      }
+
       case "logout": {
         // Clear session token from DB + cookie
         const token = request.cookies.get(SESSION_COOKIE)?.value;

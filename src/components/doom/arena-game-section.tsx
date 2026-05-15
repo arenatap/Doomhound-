@@ -203,6 +203,8 @@ export function ArenaGameSection() {
             }
             setSessionLoading(false);
             loadLeaderboard();
+            // Process pending referral if user has no referredBy and there's a saved ref
+            processPendingReferral(data.member);
             return;
           }
         }
@@ -223,6 +225,8 @@ export function ArenaGameSection() {
                 if (data.referralCount !== undefined) setReferralCount(data.referralCount);
                 setSessionLoading(false);
                 loadLeaderboard();
+                // Process pending referral if user has no referredBy and there's a saved ref
+                processPendingReferral(data.member);
                 return;
               }
             }
@@ -243,6 +247,45 @@ export function ArenaGameSection() {
     restoreSession();
   }, []);
 
+  // Process a pending referral code from localStorage for an already-logged-in user
+  const processPendingReferral = async (currentMember: PackMember) => {
+    if (typeof window === "undefined") return;
+    if (currentMember.referredBy) {
+      // Already referred — clear any stale ref code
+      localStorage.removeItem("doomhound_ref");
+      setReferralCode(null);
+      return;
+    }
+    const savedRef = localStorage.getItem("doomhound_ref");
+    if (!savedRef) return;
+
+    const cleanRef = savedRef.replace("@", "").trim().toLowerCase();
+    const cleanMemberHandle = currentMember.handle.toLowerCase();
+    if (cleanRef === cleanMemberHandle) {
+      localStorage.removeItem("doomhound_ref");
+      setReferralCode(null);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/pack", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "process_referral", handle: currentMember.handle, referral: savedRef }),
+      });
+      const data = await res.json();
+      if (data.processed && data.member) {
+        setMember(data.member);
+        if (data.referralCount !== undefined) setReferralCount(data.referralCount);
+      }
+      // Clear referral code regardless of result
+      localStorage.removeItem("doomhound_ref");
+      setReferralCode(null);
+    } catch {
+      // Silently fail — don't block login
+    }
+  };
+
   // Check referral param — store in localStorage so it survives page navigation
   const [referralCode, setReferralCode] = useState<string | null>(null);
   useEffect(() => {
@@ -251,8 +294,9 @@ export function ArenaGameSection() {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
     if (ref) {
-      localStorage.setItem("doomhound_ref", ref);
-      setReferralCode(ref);
+      const cleanRef = ref.replace("@", "").trim().toLowerCase();
+      localStorage.setItem("doomhound_ref", cleanRef);
+      setReferralCode(cleanRef);
     } else {
       // No ref in URL — check if there's a saved ref from a previous page visit
       const savedRef = localStorage.getItem("doomhound_ref");
@@ -306,6 +350,7 @@ export function ArenaGameSection() {
       if (data.error) { setError(data.error); }
       else if (data.member) {
         setMember(data.member);
+        if (data.referralCount !== undefined) setReferralCount(data.referralCount);
         // Save handle to localStorage for persistent login
         if (typeof window !== "undefined") {
           localStorage.setItem("doomhound_handle", data.member.handle);
@@ -827,6 +872,9 @@ export function ArenaGameSection() {
                           <p className="text-gray-600 text-[9px] sm:text-[10px]">recruit{referralCount !== 1 ? "s" : ""}</p>
                         </div>
                       </div>
+                      {member.referredBy && (
+                        <p className="mt-2 text-[10px] sm:text-xs text-gray-500">⛓️ Invited by <span className="text-red-400 font-bold">@{member.referredBy}</span></p>
+                      )}
                       <div className="mt-3 flex gap-2">
                         <input readOnly value={`https://doomhound.onrender.com/?ref=${member.handle}`}
                           className="flex-1 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-400 font-mono truncate" />
