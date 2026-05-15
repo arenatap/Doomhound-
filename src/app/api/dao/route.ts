@@ -213,17 +213,23 @@ export async function POST(request: NextRequest) {
           },
         });
 
+        // Deduct voting power from member's points
+        await db.packMember.update({
+          where: { handle: cleanHandle },
+          data: { points: { decrement: power } },
+        });
+
         // Log activity
         await db.activityLog.create({
           data: {
             memberHandle: cleanHandle,
             type: "dao_vote",
-            description: `Voted ${vote.toUpperCase()} on "${proposal.title}" (${power} voting power)`,
-            points: 0,
+            description: `Voted ${vote.toUpperCase()} on "${proposal.title}" (-${power} pts)`,
+            points: -power,
           },
         });
 
-        return NextResponse.json({ success: true, vote: newVote });
+        return NextResponse.json({ success: true, vote: newVote, pointsDeducted: power });
       }
 
       // ===== CREATE PROPOSAL (admin only) =====

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { DoomShell } from "@/components/doom/doom-shell";
+import { Footer } from "@/components/doom/footer";
 
 // ===== TYPES =====
 interface DaoProposal {
@@ -164,6 +166,9 @@ export default function DaoPage() {
       });
       const data = await res.json();
       if (data.success) {
+        // Update local points after deduction
+        const deducted = data.pointsDeducted || 0;
+        setMemberPoints(prev => Math.max(0, prev - deducted));
         loadProposals();
         if (selectedProposal?.id === proposalId) {
           setSelectedProposal(null);
@@ -181,14 +186,9 @@ export default function DaoPage() {
   const categories = settings ? JSON.parse(settings.categories) : ["burn", "pack", "treasury", "nft", "marketing"];
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] relative overflow-hidden">
-      {/* Background effects */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent animate-flame" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(220,38,38,0.08),transparent_50%)]" />
-      </div>
-
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-20 sm:py-28 md:py-36">
+    <DoomShell>
+      <div className="pt-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 py-20 sm:py-28 md:py-36">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -383,6 +383,7 @@ export default function DaoPage() {
                             </div>
                             <span className="text-gray-600 text-[10px]">{memberPoints} pts</span>
                           </div>
+                          <p className="text-yellow-500/60 text-[9px] mt-2 text-center">Points committed will be deducted from your balance</p>
                         </div>
                         {/* YES / NO buttons */}
                         <div className="flex gap-3">
@@ -459,6 +460,8 @@ export default function DaoPage() {
           </div>
         </div>
       </div>
-    </main>
+      </div>
+      <Footer />
+    </DoomShell>
   );
 }
