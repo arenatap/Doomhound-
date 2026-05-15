@@ -21,6 +21,16 @@ export function DoomShell({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("click", handleClick);
   }, [handleClick]);
 
+  // Capture referral code from URL on any page (survives navigation to /pack)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref) {
+      localStorage.setItem("doomhound_ref", ref);
+    }
+  }, []);
+
   // Play bite sound on any button/anchor click
   useEffect(() => {
     const handleBtnClick = (e: MouseEvent) => {

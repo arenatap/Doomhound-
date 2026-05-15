@@ -243,13 +243,21 @@ export function ArenaGameSection() {
     restoreSession();
   }, []);
 
-  // Check referral param — store separately, don't pollute handle input
+  // Check referral param — store in localStorage so it survives page navigation
   const [referralCode, setReferralCode] = useState<string | null>(null);
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // If URL has ?ref=, save it to localStorage (user just arrived via referral link)
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
-    if (ref) setReferralCode(ref);
+    if (ref) {
+      localStorage.setItem("doomhound_ref", ref);
+      setReferralCode(ref);
+    } else {
+      // No ref in URL — check if there's a saved ref from a previous page visit
+      const savedRef = localStorage.getItem("doomhound_ref");
+      if (savedRef) setReferralCode(savedRef);
+    }
   }, []);
 
   // ===== API CALLS =====
@@ -301,7 +309,10 @@ export function ArenaGameSection() {
         // Save handle to localStorage for persistent login
         if (typeof window !== "undefined") {
           localStorage.setItem("doomhound_handle", data.member.handle);
+          // Clear referral code after successful use
+          localStorage.removeItem("doomhound_ref");
         }
+        setReferralCode(null);
         loadLeaderboard();
         setShowRegister(false);
       }
