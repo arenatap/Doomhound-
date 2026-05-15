@@ -307,6 +307,63 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, handle: cleanTarget, achievement: def.name });
       }
 
+      case "fix_referral_points": {
+        // Find all members who have referredBy set but referrer has no referral activity for them
+        const allMembers = await db.packMember.findMany({
+          select: { handle: true, referredBy: true },
+        });
+
+        const fixes: string[] = [];
+        let totalPtsAwarded = 0;
+
+        for (const member of allMembers) {
+          if (!member.referredBy) continue;
+
+          // Check if referrer already has a referral activity for this member
+          const existingActivity = await db.activityLog.findFirst({
+            where: {
+              memberHandle: member.referredBy,
+              type: "referral",
+              description: { contains: member.handle },
+            },
+          });
+
+          if (!existingActivity) {
+            // Award the missing 75pts to the referrer
+            const REFERRAL_PTS = 75;
+            await db.activityLog.create({
+              data: {
+                memberHandle: member.referredBy,
+                type: "referral",
+                description: `Recruited @${member.handle} to the pack! (backfill)`,
+                points: REFERRAL_PTS,
+              },
+            });
+
+            // Recalculate referrer total points
+            const referrerActivities = await db.activityLog.findMany({ where: { memberHandle: member.referredBy } });
+            const totalPoints = referrerActivities.reduce((sum, a) => sum + a.points, 0);
+            const RANK_TIERS = [
+              { title: "Alpha Hound", minPoints: 1000 },
+              { title: "Hellfire", minPoints: 500 },
+              { title: "Shadow Fang", minPoints: 250 },
+              { title: "Pup", minPoints: 100 },
+              { title: "Lost Soul", minPoints: 0 },
+            ];
+            const rank = RANK_TIERS.find(r => totalPoints >= r.minPoints)?.title || "Lost Soul";
+            await db.packMember.update({
+              where: { handle: member.referredBy },
+              data: { points: totalPoints, rank },
+            });
+
+            fixes.push(`@${member.referredBy} → +${REFERRAL_PTS}pts for recruiting @${member.handle}`);
+            totalPtsAwarded += REFERRAL_PTS;
+          }
+        }
+
+        return NextResponse.json({ success: true, fixes, totalPtsAwarded, fixCount: fixes.length });
+      }
+
       default:
         return NextResponse.json({ error: "Unknown action" }, { status: 400 });
     }
