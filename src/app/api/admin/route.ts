@@ -319,16 +319,20 @@ export async function POST(request: NextRequest) {
         for (const member of allMembers) {
           if (!member.referredBy) continue;
 
-          // Check if referrer already has a referral activity for this member
-          const existingActivity = await db.activityLog.findFirst({
+          // Check if referrer already has ANY referral activity
+          const existingReferralActivities = await db.activityLog.findMany({
             where: {
               memberHandle: member.referredBy,
               type: "referral",
-              description: { contains: member.handle },
             },
           });
 
-          if (!existingActivity) {
+          // Check if any of these activities mention this specific member
+          const alreadyHasActivity = existingReferralActivities.some(a =>
+            a.description.toLowerCase().includes(member.handle.toLowerCase())
+          );
+
+          if (!alreadyHasActivity) {
             // Award the missing 75pts to the referrer
             const REFERRAL_PTS = 75;
             await db.activityLog.create({
