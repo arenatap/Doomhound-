@@ -201,6 +201,76 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, count });
       }
 
+      case "assign_referral": {
+        // Manually assign a referral: set referredBy on newUser and give referrer 75pts
+        const { newMemberHandle, referrerHandle } = body;
+        if (!newMemberHandle || !referrerHandle) {
+          return NextResponse.json({ error: "Both newMemberHandle and referrerHandle are required" }, { status: 400 });
+        }
+
+        const cleanNew = newMemberHandle.replace("@", "").trim().toLowerCase();
+        const cleanRef = referrerHandle.replace("@", "").trim().toLowerCase();
+
+        if (cleanNew === cleanRef) {
+          return NextResponse.json({ error: "Cannot refer yourself" }, { status: 400 });
+        }
+
+        const newMember = await db.packMember.findUnique({ where: { handle: cleanNew } });
+        if (!newMember) {
+          return NextResponse.json({ error: `@${cleanNew} not found in the pack` }, { status: 404 });
+        }
+
+        const referrer = await db.packMember.findUnique({ where: { handle: cleanRef } });
+        if (!referrer) {
+          return NextResponse.json({ error: `@${cleanRef} not found in the pack` }, { status: 404 });
+        }
+
+        if (newMember.referredBy) {
+          return NextResponse.json({ error: `@${cleanNew} already referred by @${newMember.referredBy}` }, { status: 400 });
+        }
+
+        // Award referrer 75pts
+        const REFERRAL_POINTS = 75;
+        await db.activityLog.create({
+          data: {
+            memberHandle: cleanRef,
+            type: "referral",
+            description: `Recruited @${cleanNew} to the pack! (admin assigned)`,
+            points: REFERRAL_POINTS,
+          },
+        });
+
+        // Update referrer points + rank
+        const referrerActivities = await db.activityLog.findMany({ where: { memberHandle: cleanRef } });
+        const referrerTotalPoints = referrerActivities.reduce((sum, a) => sum + a.points, 0);
+        const RANK_TIERS = [
+          { title: "Alpha Hound", minPoints: 1000 },
+          { title: "Hellfire", minPoints: 500 },
+          { title: "Shadow Fang", minPoints: 250 },
+          { title: "Pup", minPoints: 100 },
+          { title: "Lost Soul", minPoints: 0 },
+        ];
+        const referrerRank = RANK_TIERS.find(r => referrerTotalPoints >= r.minPoints)?.title || "Lost Soul";
+        await db.packMember.update({
+          where: { handle: cleanRef },
+          data: { points: referrerTotalPoints, rank: referrerRank },
+        });
+
+        // Set referredBy on new member
+        await db.packMember.update({
+          where: { handle: cleanNew },
+          data: { referredBy: cleanRef },
+        });
+
+        return NextResponse.json({
+          success: true,
+          newMember: cleanNew,
+          referrer: cleanRef,
+          pointsAwarded: REFERRAL_POINTS,
+          referrerNewTotal: referrerTotalPoints,
+        });
+      }
+
       default:
         return NextResponse.json({ error: "Unknown action" }, { status: 400 });
     }
