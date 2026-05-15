@@ -313,8 +313,12 @@ export async function POST(request: NextRequest) {
           select: { handle: true, referredBy: true },
         });
 
+        const debug: string[] = [];
         const fixes: string[] = [];
         let totalPtsAwarded = 0;
+
+        debug.push(`Total members: ${allMembers.length}`);
+        debug.push(`Members with referredBy: ${allMembers.filter(m => m.referredBy).length}`);
 
         for (const member of allMembers) {
           if (!member.referredBy) continue;
@@ -327,10 +331,16 @@ export async function POST(request: NextRequest) {
             },
           });
 
+          debug.push(`@${member.handle} referredBy=@${member.referredBy} → referrer has ${existingReferralActivities.length} referral activities`);
+
           // Check if any of these activities mention this specific member
           const alreadyHasActivity = existingReferralActivities.some(a =>
             a.description.toLowerCase().includes(member.handle.toLowerCase())
           );
+
+          if (alreadyHasActivity) {
+            debug.push(`  → ALREADY has activity for @${member.handle}, skipping`);
+          }
 
           if (!alreadyHasActivity) {
             // Award the missing 75pts to the referrer
@@ -365,7 +375,7 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        return NextResponse.json({ success: true, fixes, totalPtsAwarded, fixCount: fixes.length });
+        return NextResponse.json({ success: true, fixes, totalPtsAwarded, fixCount: fixes.length, debug });
       }
 
       default:
