@@ -36,16 +36,24 @@ interface DaoSettings {
 
 const CATEGORY_ICONS: Record<string, string> = {
   burn: "🔥",
+  wheel: "🎡",
+  raffle: "🎟️",
   pack: "🎮",
+  pack_perks: "⛓️",
   treasury: "💰",
+  community_fund: "💰",
   nft: "🖼️",
   marketing: "📢",
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
   burn: "text-orange-400 border-orange-600/40 bg-orange-600/10",
+  wheel: "text-purple-400 border-purple-600/40 bg-purple-600/10",
+  raffle: "text-cyan-400 border-cyan-600/40 bg-cyan-600/10",
   pack: "text-blue-400 border-blue-600/40 bg-blue-600/10",
+  pack_perks: "text-pink-400 border-pink-600/40 bg-pink-600/10",
   treasury: "text-yellow-400 border-yellow-600/40 bg-yellow-600/10",
+  community_fund: "text-yellow-400 border-yellow-600/40 bg-yellow-600/10",
   nft: "text-purple-400 border-purple-600/40 bg-purple-600/10",
   marketing: "text-green-400 border-green-600/40 bg-green-600/10",
 };
@@ -87,12 +95,23 @@ export default function DaoPage() {
   const [votingOn, setVotingOn] = useState<string | null>(null);
   const [selectedProposal, setSelectedProposal] = useState<DaoProposal | null>(null);
   const [voteError, setVoteError] = useState<string | null>(null);
+  const [memberPoints, setMemberPoints] = useState<number>(0);
+  const [votingPower, setVotingPower] = useState<Record<string, number>>({}); // proposalId -> power
 
-  // Get handle from localStorage (same as Pack page)
+  // Get handle + points from localStorage / API
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const h = localStorage.getItem("doomhound_handle");
-      if (h) setMemberHandle(h.replace("@", "").trim().toLowerCase());
+    if (typeof window === "undefined") return;
+    const h = localStorage.getItem("doomhound_handle");
+    if (h) {
+      const clean = h.replace("@", "").trim().toLowerCase();
+      setMemberHandle(clean);
+      // Fetch member points
+      fetch(`/api/pack?action=profile&handle=${encodeURIComponent(clean)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.member?.points) setMemberPoints(data.member.points);
+        })
+        .catch(() => {});
     }
   }, []);
 
@@ -130,13 +149,18 @@ export default function DaoPage() {
   // Vote
   const doVote = useCallback(async (proposalId: string, vote: "yes" | "no") => {
     if (!memberHandle) return;
+    const power = votingPower[proposalId] || memberPoints;
+    if (power <= 0) {
+      setVoteError("You need points to vote");
+      return;
+    }
     setVotingOn(proposalId);
     setVoteError(null);
     try {
       const res = await fetch("/api/dao", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "vote", proposalId, handle: memberHandle, vote }),
+        body: JSON.stringify({ action: "vote", proposalId, handle: memberHandle, vote, votingPower: power }),
       });
       const data = await res.json();
       if (data.success) {
@@ -152,7 +176,7 @@ export default function DaoPage() {
     } finally {
       setVotingOn(null);
     }
-  }, [memberHandle, loadProposals, selectedProposal]);
+  }, [memberHandle, memberPoints, votingPower, loadProposals, selectedProposal]);
 
   const categories = settings ? JSON.parse(settings.categories) : ["burn", "pack", "treasury", "nft", "marketing"];
 
@@ -317,21 +341,66 @@ export default function DaoPage() {
                         </span>
                       </div>
                     ) : (
-                      <div className="flex gap-3">
-                        <button
-                          onClick={() => doVote(p.id, "yes")}
-                          disabled={votingOn === p.id}
-                          className="flex-1 py-2.5 text-sm font-bold bg-green-600/20 border border-green-600/40 text-green-400 rounded-lg hover:bg-green-600/30 transition-all disabled:opacity-50"
-                        >
-                          {votingOn === p.id ? "..." : "✅ YES"}
-                        </button>
-                        <button
-                          onClick={() => doVote(p.id, "no")}
-                          disabled={votingOn === p.id}
-                          className="flex-1 py-2.5 text-sm font-bold bg-red-600/20 border border-red-600/40 text-red-400 rounded-lg hover:bg-red-600/30 transition-all disabled:opacity-50"
-                        >
-                          {votingOn === p.id ? "..." : "❌ NO"}
-                        </button>
+                      <div className="space-y-3">
+                        {/* Voting Power Selector */}
+                        <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">Voting Power</span>
+                            <span className="text-red-400 font-mono text-sm font-bold">
+                              {votingPower[p.id] || memberPoints} / {memberPoints} pts
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={1}
+                            max={memberPoints || 1}
+                            value={votingPower[p.id] || memberPoints}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              setVotingPower(prev => ({ ...prev, [p.id]: val }));
+                            }}
+                            className="w-full h-2 bg-[#2a2a2a] rounded-lg appearance-none cursor-pointer accent-red-500"
+                          />
+                          <div className="flex items-center justify-between mt-1.5">
+                            <span className="text-gray-600 text-[10px]">1 pt</span>
+                            <div className="flex gap-1.5">
+                              <button
+                                onClick={() => setVotingPower(prev => ({ ...prev, [p.id]: Math.max(1, Math.floor(memberPoints * 0.25)) }))}
+                                className="px-2 py-0.5 text-[10px] font-bold bg-[#2a2a2a] hover:bg-red-900/30 text-gray-400 hover:text-red-400 rounded border border-[#2a2a2a] transition-colors"
+                              >25%</button>
+                              <button
+                                onClick={() => setVotingPower(prev => ({ ...prev, [p.id]: Math.max(1, Math.floor(memberPoints * 0.5)) }))}
+                                className="px-2 py-0.5 text-[10px] font-bold bg-[#2a2a2a] hover:bg-red-900/30 text-gray-400 hover:text-red-400 rounded border border-[#2a2a2a] transition-colors"
+                              >50%</button>
+                              <button
+                                onClick={() => setVotingPower(prev => ({ ...prev, [p.id]: Math.max(1, Math.floor(memberPoints * 0.75)) }))}
+                                className="px-2 py-0.5 text-[10px] font-bold bg-[#2a2a2a] hover:bg-red-900/30 text-gray-400 hover:text-red-400 rounded border border-[#2a2a2a] transition-colors"
+                              >75%</button>
+                              <button
+                                onClick={() => setVotingPower(prev => ({ ...prev, [p.id]: memberPoints }))}
+                                className="px-2 py-0.5 text-[10px] font-bold bg-red-900/30 hover:bg-red-900/50 text-red-400 rounded border border-red-800/30 transition-colors"
+                              >MAX</button>
+                            </div>
+                            <span className="text-gray-600 text-[10px]">{memberPoints} pts</span>
+                          </div>
+                        </div>
+                        {/* YES / NO buttons */}
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => doVote(p.id, "yes")}
+                            disabled={votingOn === p.id}
+                            className="flex-1 py-2.5 text-sm font-bold bg-green-600/20 border border-green-600/40 text-green-400 rounded-lg hover:bg-green-600/30 transition-all disabled:opacity-50"
+                          >
+                            {votingOn === p.id ? "..." : `✅ YES (${votingPower[p.id] || memberPoints})`}
+                          </button>
+                          <button
+                            onClick={() => doVote(p.id, "no")}
+                            disabled={votingOn === p.id}
+                            className="flex-1 py-2.5 text-sm font-bold bg-red-600/20 border border-red-600/40 text-red-400 rounded-lg hover:bg-red-600/30 transition-all disabled:opacity-50"
+                          >
+                            {votingOn === p.id ? "..." : `❌ NO (${votingPower[p.id] || memberPoints})`}
+                          </button>
+                        </div>
                       </div>
                     )
                   )}
@@ -362,8 +431,8 @@ export default function DaoPage() {
             <div className="flex items-start gap-3">
               <span className="text-xl">🗳️</span>
               <div>
-                <p className="text-white font-bold">1 Point = 1 Vote</p>
-                <p className="text-gray-500 text-xs">Your Pack points are your voting power</p>
+                <p className="text-white font-bold">Choose Your Power</p>
+                <p className="text-gray-500 text-xs">Decide how many points to commit per vote — from 1 to all your points</p>
               </div>
             </div>
             <div className="flex items-start gap-3">

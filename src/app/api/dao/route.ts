@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
     switch (action) {
       // ===== VOTE =====
       case "vote": {
-        const { proposalId, handle, vote } = body;
+        const { proposalId, handle, vote, votingPower: requestedPower } = body;
         if (!proposalId || !handle || !vote) {
           return NextResponse.json({ error: "proposalId, handle, and vote required" }, { status: 400 });
         }
@@ -170,6 +170,12 @@ export async function POST(request: NextRequest) {
         if (!member) {
           return NextResponse.json({ error: "Not registered in the Pack" }, { status: 404 });
         }
+
+        // Validate voting power: user chooses how many points to commit (1 to their total)
+        const power = Math.max(1, Math.min(
+          typeof requestedPower === "number" ? requestedPower : member.points,
+          member.points
+        ));
 
         // Get proposal
         const proposal = await db.daoProposal.findUnique({
@@ -197,13 +203,13 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "You already voted on this proposal" }, { status: 400 });
         }
 
-        // Create vote with current points as voting power
+        // Create vote with user-chosen voting power
         const newVote = await db.daoVote.create({
           data: {
             proposalId,
             memberHandle: cleanHandle,
             vote,
-            votingPower: member.points,
+            votingPower: power,
           },
         });
 
@@ -212,7 +218,7 @@ export async function POST(request: NextRequest) {
           data: {
             memberHandle: cleanHandle,
             type: "dao_vote",
-            description: `Voted ${vote.toUpperCase()} on "${proposal.title}" (${member.points} voting power)`,
+            description: `Voted ${vote.toUpperCase()} on "${proposal.title}" (${power} voting power)`,
             points: 0,
           },
         });
