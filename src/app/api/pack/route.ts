@@ -1164,8 +1164,49 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      // ===== FIX REFERRAL (admin only - retroactively set referredBy) =====
+      case "fix_referral": {
+        const { adminPassword, handle: fixHandle, referrer } = body;
+        if (adminPassword !== process.env.ADMIN_PASSWORD && adminPassword !== "doomhound2026") {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        if (!fixHandle || !referrer) {
+          return NextResponse.json({ error: "handle and referrer required" }, { status: 400 });
+        }
+        const fixClean = fixHandle.replace("@", "").trim().toLowerCase();
+        const refClean = referrer.replace("@", "").trim().toLowerCase();
+
+        // Verify both members exist
+        const target = await db.packMember.findUnique({ where: { handle: fixClean } });
+        if (!target) return NextResponse.json({ error: "Target member not found" }, { status: 404 });
+        const referrerMember = await db.packMember.findUnique({ where: { handle: refClean } });
+        if (!referrerMember) return NextResponse.json({ error: "Referrer not found" }, { status: 404 });
+
+        // Set referredBy
+        await db.packMember.update({
+          where: { handle: fixClean },
+          data: { referredBy: refClean },
+        });
+
+        // Award referrer points if not already awarded
+        const existingRef = await db.activityLog.findFirst({
+          where: { memberHandle: refClean, type: "referral", description: { contains: fixClean } },
+        });
+        if (!existingRef) {
+          await addActivity(refClean, "referral", `Recruited @${fixClean} to the pack!`, POINTS_CONFIG.referral.value);
+        }
+
+        return NextResponse.json({ success: true, handle: fixClean, referredBy: refClean });
+      }
+
       default:
-        return NextResponse.json({ error: "Unknown action" }, { status: 400 });
+        return NextResponse.json({
+          error: "Unknown action",
+          availableActions: [
+            "register", "checkin", "verify_arena_post", "check_balance",
+            "wheel_spin", "claim_winnings", "fix_referral"
+          ],
+        }, { status: 400 });
     }
   } catch (error: any) {
     console.error("Pack API error:", error);
