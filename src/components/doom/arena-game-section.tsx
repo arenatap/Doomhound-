@@ -165,6 +165,7 @@ function verifyCooldownMins(lastVerifiedAt: string | null): number {
 // ===== COMPONENT =====
 export function ArenaGameSection() {
   const [member, setMember] = useState<PackMember | null>(null);
+  const [referralCount, setReferralCount] = useState<number>(0);
   const [leaderboard, setLeaderboard] = useState<PackMember[]>([]);
   const [handle, setHandle] = useState("");
   const [loading, setLoading] = useState(false);
@@ -255,6 +256,7 @@ export function ArenaGameSection() {
       const res = await fetch(`/api/pack?action=profile&handle=${encodeURIComponent(h)}`);
       const data = await res.json();
       if (data.member) { setMember(data.member); }
+      if (data.referralCount !== undefined) { setReferralCount(data.referralCount); }
     } catch { /* silent */ }
   }, []);
 
@@ -272,6 +274,7 @@ export function ArenaGameSection() {
       const res = await fetch(`/api/pack?action=profile&handle=${encodeURIComponent(member.handle)}`);
       const data = await res.json();
       if (data.member) setMember(data.member);
+      if (data.referralCount !== undefined) setReferralCount(data.referralCount);
     } catch { /* silent */ }
   }, [member]);
 
@@ -805,6 +808,10 @@ export function ArenaGameSection() {
                         <div className="flex-1 min-w-0">
                           <p className="text-white text-sm sm:text-base font-bold">Pack Recruit</p>
                           <p className="text-gray-500 text-xs sm:text-sm">+{POINTS.referral.value} pts · Share your invite link</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-red-400 font-bold text-lg sm:text-xl">{referralCount}</p>
+                          <p className="text-gray-600 text-[9px] sm:text-[10px]">recruit{referralCount !== 1 ? "s" : ""}</p>
                         </div>
                       </div>
                       <div className="mt-3 flex gap-2">

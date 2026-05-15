@@ -304,7 +304,11 @@ export async function GET(request: NextRequest) {
         if (!member) {
           return NextResponse.json({ error: "Not registered" }, { status: 404 });
         }
-        return NextResponse.json({ member });
+        // Count referrals (members who were referred by this handle)
+        const referralCount = await db.packMember.count({
+          where: { referredBy: handle },
+        });
+        return NextResponse.json({ member, referralCount });
       }
 
       case "wheel_history": {
