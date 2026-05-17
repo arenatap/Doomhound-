@@ -548,10 +548,15 @@ export async function GET(request: NextRequest) {
         // Check if airdrop has been initialized (any member has airdropPointsStart > 0)
         const airdropInitialized = allMembers.some(m => m.airdropPointsStart > 0);
 
-        // Calculate airdrop points and exclude devs
+        // Calculate airdrop points and exclude devs (via DEV_HANDLES/DEV_WALLETS env vars)
         // If airdrop NOT initialized yet, everyone shows 0
         // Always show ALL non-dev members so the leaderboard is visible even at 0 points
         const leaderboard = allMembers
+          .filter(m => {
+            const isDev = DEV_HANDLES.includes(m.handle.toLowerCase()) ||
+                          (m.walletAddress ? DEV_WALLETS.includes(m.walletAddress.toLowerCase()) : false);
+            return !isDev; // Exclude devs
+          })
           .map(m => ({
             handle: m.handle,
             userName: m.userName,
@@ -559,10 +564,7 @@ export async function GET(request: NextRequest) {
             stakingTier: m.stakingTier,
             airdropPoints: airdropInitialized ? Math.max(0, m.points - m.airdropPointsStart) : 0,
             totalPoints: m.points,
-            isDev: DEV_HANDLES.includes(m.handle.toLowerCase()) ||
-                   (m.walletAddress ? DEV_WALLETS.includes(m.walletAddress.toLowerCase()) : false),
           }))
-          .filter(m => !m.isDev) // Exclude devs — everyone else is shown
           .sort((a, b) => b.airdropPoints - a.airdropPoints);
 
         // Airdrop prizes — 200M total pool
@@ -576,7 +578,6 @@ export async function GET(request: NextRequest) {
           leaderboard,
           airdropPrizes: AIRDROP_PRIZES,
           totalPool: 200_000_000,
-          devExcluded: true,
           airdropInitialized,
         });
       }

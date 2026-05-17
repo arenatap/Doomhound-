@@ -55,14 +55,12 @@ interface AirdropEntry {
   stakingTier: string;
   airdropPoints: number;
   totalPoints: number;
-  isDev: boolean;
 }
 
 interface AirdropData {
   leaderboard: AirdropEntry[];
   airdropPrizes: { rank: number; amount: number; emoji: string }[];
   totalPool: number;
-  devExcluded: boolean;
   airdropInitialized: boolean;
 }
 
@@ -185,10 +183,10 @@ export default function StakingPage() {
     }
   }, [handle]);
 
-  // Calculate user's airdrop rank
+  // Calculate user's airdrop rank (devs already excluded from leaderboard by API)
   const userAirdropPoints = member ? Math.max(0, member.points - member.airdropPointsStart) : 0;
   const userAirdropRank = airdropData
-    ? airdropData.leaderboard.filter(e => !e.isDev && e.airdropPoints > userAirdropPoints).length + 1
+    ? airdropData.leaderboard.filter(e => e.airdropPoints > userAirdropPoints).length + 1
     : null;
 
   if (sessionLoading) {
@@ -376,11 +374,7 @@ export default function StakingPage() {
                         ))}
                       </div>
 
-                      {/* Dev exclusion badge */}
-                      <div className="flex items-center justify-center gap-2 text-[10px] text-gray-600">
-                        <span>🐾</span>
-                        <span>Dev is excluded — 100% for the community</span>
-                      </div>
+
                     </div>
                   </div>
 
@@ -438,15 +432,8 @@ export default function StakingPage() {
                         </div>
                       ) : airdropData && airdropData.leaderboard.length > 0 ? (
                         airdropData.leaderboard.map((entry, idx) => {
-                          const isUser = entry.handle === member.handle;
-                          const effectiveRank = entry.isDev ? null : (() => {
-                            let rank = 1;
-                            for (const e of airdropData.leaderboard) {
-                              if (e === entry) break;
-                              if (!e.isDev) rank++;
-                            }
-                            return rank;
-                          })();
+                          const isUser = entry.handle === member?.handle;
+                          const rank = idx + 1; // Simple rank since devs are already filtered out by API
 
                           return (
                             <div
@@ -454,23 +441,19 @@ export default function StakingPage() {
                               className={`flex items-center gap-3 px-4 py-3 transition-all ${
                                 isUser
                                   ? "bg-red-600/10 border-l-2 border-red-500"
-                                  : entry.isDev
-                                  ? "bg-[#0a0a0a]/50 opacity-50"
                                   : "hover:bg-[#0a0a0a]/50"
                               }`}
                             >
                               {/* Rank */}
                               <div className="w-8 text-center flex-shrink-0">
-                                {effectiveRank === 1 ? (
+                                {rank === 1 ? (
                                   <span className="text-lg">🥇</span>
-                                ) : effectiveRank === 2 ? (
+                                ) : rank === 2 ? (
                                   <span className="text-lg">🥈</span>
-                                ) : effectiveRank === 3 ? (
+                                ) : rank === 3 ? (
                                   <span className="text-lg">🥉</span>
-                                ) : entry.isDev ? (
-                                  <span className="text-xs">🐾</span>
                                 ) : (
-                                  <span className="text-gray-600 text-xs font-mono">#{effectiveRank}</span>
+                                  <span className="text-gray-600 text-xs font-mono">#{rank}</span>
                                 )}
                               </div>
 
@@ -527,7 +510,7 @@ export default function StakingPage() {
                       <p>🐺 <strong className="text-gray-300">The race starts NOW</strong> — everyone at 0 airdrop points</p>
                       <p>🔥 <strong className="text-gray-300">Every point counts</strong> — check-ins, staking claims, wheel spins, achievements</p>
                       <p>💎 <strong className="text-gray-300">Staking multiplies</strong> — Diamond tier earns 40 pts/day automatically</p>
-                      <p>🐾 <strong className="text-gray-300">Dev is excluded</strong> — 100% for the community</p>
+
                       <p>🏆 <strong className="text-orange-400">Top 3 at graduation</strong> split 200M $DOOMHOUND (100M / 60M / 40M)</p>
                     </div>
                   </div>
