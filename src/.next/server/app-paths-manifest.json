@@ -1,0 +1,22 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/api/admin/route": "app/api/admin/route.js",
+  "/api/arena/route": "app/api/arena/route.js",
+  "/api/dao/route": "app/api/dao/route.js",
+  "/api/pack/route": "app/api/pack/route.js",
+  "/api/raffle/route": "app/api/raffle/route.js",
+  "/api/route": "app/api/route.js",
+  "/api/snowtrace/route": "app/api/snowtrace/route.js",
+  "/burns/page": "app/burns/page.js",
+  "/calculator/page": "app/calculator/page.js",
+  "/dao/page": "app/dao/page.js",
+  "/health/route": "app/health/route.js",
+  "/memes/page": "app/memes/page.js",
+  "/nft/page": "app/nft/page.js",
+  "/pack/page": "app/pack/page.js",
+  "/page": "app/page.js",
+  "/staking/page": "app/staking/page.js",
+  "/stats/page": "app/stats/page.js"
+}

@@ -1,0 +1,22 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/admin/page": "/admin",
+  "/api/admin/route": "/api/admin",
+  "/api/arena/route": "/api/arena",
+  "/api/dao/route": "/api/dao",
+  "/api/pack/route": "/api/pack",
+  "/api/raffle/route": "/api/raffle",
+  "/api/route": "/api",
+  "/api/snowtrace/route": "/api/snowtrace",
+  "/burns/page": "/burns",
+  "/calculator/page": "/calculator",
+  "/dao/page": "/dao",
+  "/health/route": "/health",
+  "/memes/page": "/memes",
+  "/nft/page": "/nft",
+  "/pack/page": "/pack",
+  "/page": "/",
+  "/staking/page": "/staking",
+  "/stats/page": "/stats"
+}

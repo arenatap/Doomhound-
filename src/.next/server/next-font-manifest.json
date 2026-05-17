@@ -1,0 +1,51 @@
+{
+  "app": {
+    "[project]/src/app/_not-found/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
+      "static/media/Creepster_Regular-s.p.48e2334c.ttf"
+    ],
+    "[project]/src/app/admin/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
+      "static/media/Creepster_Regular-s.p.48e2334c.ttf"
+    ],
+    "[project]/src/app/burns/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
+      "static/media/Creepster_Regular-s.p.48e2334c.ttf"
+    ],
+    "[project]/src/app/calculator/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
+      "static/media/Creepster_Regular-s.p.48e2334c.ttf"
+    ],
+    "[project]/src/app/dao/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
+      "static/media/Creepster_Regular-s.p.48e2334c.ttf"
+    ],
+    "[project]/src/app/memes/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
+      "static/media/Creepster_Regular-s.p.48e2334c.ttf"
+    ],
+    "[project]/src/app/nft/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
+      "static/media/Creepster_Regular-s.p.48e2334c.ttf"
+    ],
+    "[project]/src/app/pack/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
+      "static/media/Creepster_Regular-s.p.48e2334c.ttf"
+    ],
+    "[project]/src/app/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
+      "static/media/Creepster_Regular-s.p.48e2334c.ttf"
+    ],
+    "[project]/src/app/staking/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
+      "static/media/Creepster_Regular-s.p.48e2334c.ttf"
+    ],
+    "[project]/src/app/stats/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
+      "static/media/Creepster_Regular-s.p.48e2334c.ttf"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pages": {},
+  "pagesUsingSizeAdjust": false
+}

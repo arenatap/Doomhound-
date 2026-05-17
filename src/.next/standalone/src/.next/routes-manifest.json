@@ -1,0 +1,164 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/admin",
+      "regex": "^/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin(?:/)?$"
+    },
+    {
+      "page": "/api",
+      "regex": "^/api(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api(?:/)?$"
+    },
+    {
+      "page": "/api/admin",
+      "regex": "^/api/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/admin(?:/)?$"
+    },
+    {
+      "page": "/api/arena",
+      "regex": "^/api/arena(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/arena(?:/)?$"
+    },
+    {
+      "page": "/api/dao",
+      "regex": "^/api/dao(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/dao(?:/)?$"
+    },
+    {
+      "page": "/api/pack",
+      "regex": "^/api/pack(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/pack(?:/)?$"
+    },
+    {
+      "page": "/api/raffle",
+      "regex": "^/api/raffle(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/raffle(?:/)?$"
+    },
+    {
+      "page": "/api/snowtrace",
+      "regex": "^/api/snowtrace(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/snowtrace(?:/)?$"
+    },
+    {
+      "page": "/burns",
+      "regex": "^/burns(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/burns(?:/)?$"
+    },
+    {
+      "page": "/calculator",
+      "regex": "^/calculator(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/calculator(?:/)?$"
+    },
+    {
+      "page": "/dao",
+      "regex": "^/dao(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dao(?:/)?$"
+    },
+    {
+      "page": "/health",
+      "regex": "^/health(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/health(?:/)?$"
+    },
+    {
+      "page": "/memes",
+      "regex": "^/memes(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/memes(?:/)?$"
+    },
+    {
+      "page": "/nft",
+      "regex": "^/nft(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/nft(?:/)?$"
+    },
+    {
+      "page": "/pack",
+      "regex": "^/pack(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pack(?:/)?$"
+    },
+    {
+      "page": "/staking",
+      "regex": "^/staking(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/staking(?:/)?$"
+    },
+    {
+      "page": "/stats",
+      "regex": "^/stats(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/stats(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}
