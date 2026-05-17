@@ -100,6 +100,7 @@ export default function StakingPage() {
   const [activeTab, setActiveTab] = useState<"staking" | "airdrop">("staking");
   const [airdropData, setAirdropData] = useState<AirdropData | null>(null);
   const [airdropLoading, setAirdropLoading] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
   // Session restore
   useEffect(() => {
@@ -188,6 +189,22 @@ export default function StakingPage() {
   const userAirdropRank = airdropData
     ? airdropData.leaderboard.filter(e => e.airdropPoints > userAirdropPoints).length + 1
     : null;
+
+  // Share rank function
+  const shareRank = useCallback(() => {
+    if (!member) return;
+    const rankEmoji = userAirdropRank === 1 ? "🥇" : userAirdropRank === 2 ? "🥈" : userAirdropRank === 3 ? "🥉" : "🐺";
+    const text = `${rankEmoji} I'm #${userAirdropRank || "?"} on the $DOOMHOUND Airdrop Leaderboard with ${userAirdropPoints} pts!\n\n🏆 200M $DOOMHOUND prize pool — Top 3 win at graduation!\n🔥 Join the race before it's too late:\nhttps://doomhound.onrender.com/staking\n\n#DOOMHOUND #Avalanche #Airdrop #Memecoin`;
+    
+    if (navigator.share) {
+      navigator.share({ title: "DOOMHOUND Airdrop", text }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text).then(() => {
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2000);
+      });
+    }
+  }, [member, userAirdropRank, userAirdropPoints]);
 
   if (sessionLoading) {
     return (
@@ -429,6 +446,20 @@ export default function StakingPage() {
                         <p className="text-gray-600 text-[9px] uppercase">Staking Tier</p>
                       </div>
                     </div>
+
+                    {/* Share Rank Button */}
+                    {member && airdropData?.airdropInitialized && (
+                      <button
+                        onClick={shareRank}
+                        className="w-full mt-3 py-2.5 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white text-xs sm:text-sm font-bold rounded-lg flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_25px_rgba(220,38,38,0.5)] transition-all"
+                      >
+                        {shareCopied ? (
+                          <>✅ Copied to clipboard!</>
+                        ) : (
+                          <>📢 Share Your Rank</>
+                        )}
+                      </button>
+                    )}
                   </div>
 
                   {/* Airdrop Leaderboard */}
