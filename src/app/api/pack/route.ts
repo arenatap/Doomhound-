@@ -1347,6 +1347,35 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ processed: true, member: updatedMember, referralCount });
       }
 
+      // ===== INIT AIRDROP (admin: snapshot current points) =====
+      case "init_airdrop": {
+        // Set airdropPointsStart = current points for ALL members
+        // This resets the airdrop leaderboard to 0 for everyone
+        const adminPwd = body.adminPassword as string | undefined;
+        if (adminPwd !== "doomhound2026") {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+        }
+
+        const allMembers = await db.packMember.findMany({
+          select: { handle: true, points: true },
+        });
+
+        let updated = 0;
+        for (const m of allMembers) {
+          await db.packMember.update({
+            where: { handle: m.handle },
+            data: { airdropPointsStart: m.points },
+          });
+          updated++;
+        }
+
+        return NextResponse.json({
+          success: true,
+          membersUpdated: updated,
+          message: `Airdrop initialized! All ${updated} members start from 0 airdrop points.`,
+        });
+      }
+
       case "logout": {
         // Clear session token from DB + cookie
         const token = request.cookies.get(SESSION_COOKIE)?.value;
