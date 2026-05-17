@@ -594,6 +594,39 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const { action, handle } = body;
 
+  // ===== ADMIN ACTIONS (no handle required) =====
+  // These run BEFORE the handle check since they operate on ALL members
+  if (action === "init_airdrop") {
+    const adminPwd = body.adminPassword as string | undefined;
+    if (adminPwd !== "doomhound2026") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    try {
+      const allMembers = await db.packMember.findMany({
+        select: { handle: true, points: true },
+      });
+
+      let updated = 0;
+      for (const m of allMembers) {
+        await db.packMember.update({
+          where: { handle: m.handle },
+          data: { airdropPointsStart: m.points },
+        });
+        updated++;
+      }
+
+      return NextResponse.json({
+        success: true,
+        membersUpdated: updated,
+        message: `Airdrop initialized! All ${updated} members start from 0 airdrop points.`,
+      });
+    } catch (error: any) {
+      console.error("Init airdrop error:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  }
+
   if (!handle) {
     return NextResponse.json({ error: "handle is required" }, { status: 400 });
   }
@@ -1359,35 +1392,6 @@ export async function POST(request: NextRequest) {
           where: { referredBy: cleanHandle },
         });
         return NextResponse.json({ processed: true, member: updatedMember, referralCount });
-      }
-
-      // ===== INIT AIRDROP (admin: snapshot current points) =====
-      case "init_airdrop": {
-        // Set airdropPointsStart = current points for ALL members
-        // This resets the airdrop leaderboard to 0 for everyone
-        const adminPwd = body.adminPassword as string | undefined;
-        if (adminPwd !== "doomhound2026") {
-          return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-        }
-
-        const allMembers = await db.packMember.findMany({
-          select: { handle: true, points: true },
-        });
-
-        let updated = 0;
-        for (const m of allMembers) {
-          await db.packMember.update({
-            where: { handle: m.handle },
-            data: { airdropPointsStart: m.points },
-          });
-          updated++;
-        }
-
-        return NextResponse.json({
-          success: true,
-          membersUpdated: updated,
-          message: `Airdrop initialized! All ${updated} members start from 0 airdrop points.`,
-        });
       }
 
       case "logout": {
