@@ -7,7 +7,6 @@ import { BloodSplash } from "./blood-splash";
 import { WheelOfDoom } from "./wheel-of-doom";
 import type { SpinResult } from "./wheel-of-doom";
 import { RaffleSection } from "./raffle-section";
-import { StakingSection } from "./staking-section";
 
 // ===== TYPES =====
 interface ActivityLog {
@@ -774,13 +773,28 @@ export function ArenaGameSection() {
                 }}
               />
 
-              {/* Staking */}
-              <StakingSection
-                member={member}
-                onRewardClaimed={(updatedMember) => {
-                  setMember(updatedMember);
-                }}
-              />
+              {/* Staking Link */}
+              <a href="/staking" className="block bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 sm:p-6 hover:border-red-600/50 transition-all group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl sm:text-3xl">🔥</span>
+                    <div>
+                      <h3 className="font-creepster text-xl sm:text-2xl text-red-500 group-hover:text-red-400 transition-colors">STAKING</h3>
+                      <p className="text-gray-500 text-[10px] sm:text-xs">Hold $DOOMHOUND, earn daily rewards — auto-detected from blockchain</p>
+                    </div>
+                  </div>
+                  <span className="text-gray-600 group-hover:text-red-400 text-xl transition-colors">→</span>
+                </div>
+                {member.stakingTier !== "none" && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <span className="text-green-400 text-xs font-bold">● Active</span>
+                    <span className="text-gray-500 text-[10px] sm:text-xs">
+                      Tier: {member.stakingTier.charAt(0).toUpperCase() + member.stakingTier.slice(1)} | 
+                      {member.pendingStakingReward > 0 ? ` ${member.pendingStakingReward} pts pending` : " Claim rewards →"}
+                    </span>
+                  </div>
+                )}
+              </a>
 
               {/* Tab Switcher */}
               <div className="flex gap-2">

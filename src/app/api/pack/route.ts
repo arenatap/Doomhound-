@@ -894,6 +894,20 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      // ===== UPDATE STAKING (trigger from frontend on staking page load) =====
+      case "update_staking": {
+        const member = await db.packMember.findUnique({ where: { handle: cleanHandle } });
+        if (!member) {
+          return NextResponse.json({ error: "Not registered" }, { status: 404 });
+        }
+        const stakingResult = await autoUpdateStaking(cleanHandle);
+        const updated = await db.packMember.findUnique({
+          where: { handle: cleanHandle },
+          include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
+        });
+        return NextResponse.json({ member: updated, staking: stakingResult });
+      }
+
       // ===== CLAIM STAKING REWARDS =====
       case "claim_staking": {
         const member = await db.packMember.findUnique({ where: { handle: cleanHandle } });

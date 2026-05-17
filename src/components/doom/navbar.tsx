@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { href: "/", label: "Home", emoji: "🐺" },
   { href: "/stats", label: "Stats", emoji: "📊" },
   { href: "/burns", label: "Burns", emoji: "🔥" },
+  { href: "/staking", label: "Staking", emoji: "💎" },
   { href: "/calculator", label: "ROI", emoji: "💰" },
   { href: "/pack", label: "Pack", emoji: "🏆" },
   { href: "/dao", label: "DAO", emoji: "🐺" },

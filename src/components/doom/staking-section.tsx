@@ -77,6 +77,28 @@ export function StakingSection({ member, onRewardClaimed }: StakingSectionProps)
   const hasStake = member.stakingTier !== "none" && member.stakedAmount > 0;
   const hasPendingReward = member.pendingStakingReward > 0;
 
+  // Auto-update staking on mount (reads on-chain balance, updates tier)
+  useEffect(() => {
+    if (!member.handle) return;
+    const autoUpdate = async () => {
+      try {
+        const res = await fetch("/api/pack", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update_staking", handle: member.handle }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.member) {
+            onRewardClaimed(data.member);
+          }
+        }
+      } catch {}
+    };
+    autoUpdate();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [member.handle]);
+
   // Fetch pack staking stats
   const fetchStats = useCallback(async () => {
     try {
