@@ -33,6 +33,88 @@ const BALANCE_TIERS = [
   { minBalance: 100_000, bonus: 25, label: "Pup Holder" },
 ];
 
+// ===== STAKING TIERS (auto-updated from on-chain balance) =====
+const STAKING_TIERS = [
+  { minBalance: 50_000_000, tier: "diamond", emoji: "💎", label: "Diamond", ptsPerDay: 12, apy: 12 },
+  { minBalance: 10_000_000, tier: "gold",    emoji: "🟡", label: "Gold",    ptsPerDay: 8,  apy: 8  },
+  { minBalance: 5_000_000,  tier: "silver",  emoji: "🥈", label: "Silver",  ptsPerDay: 5,  apy: 5  },
+  { minBalance: 1_000_000,  tier: "bronze",  emoji: "🥉", label: "Bronze",  ptsPerDay: 2,  apy: 2  },
+];
+
+function getStakingTier(balance: number) {
+  return STAKING_TIERS.find((t) => balance >= t.minBalance) || null;
+}
+
+/**
+ * Auto-update staking data for a member based on their on-chain balance.
+ * Called during registration, check-in, and verify_arena.
+ * - Reads on-chain balance via walletAddress
+ * - Calculates pending rewards since last update
+ * - Updates stakedAmount, stakingTier, pendingStakingReward
+ */
+async function autoUpdateStaking(handle: string): Promise<{
+  stakedAmount: number;
+  stakingTier: string;
+  pendingStakingReward: number;
+  tierUpgraded: boolean;
+  tierDowngraded: boolean;
+}> {
+  const member = await db.packMember.findUnique({ where: { handle } });
+  if (!member || !member.walletAddress || !process.env.DOOMHOUND_CONTRACT) {
+    return { stakedAmount: 0, stakingTier: "none", pendingStakingReward: 0, tierUpgraded: false, tierDowngraded: false };
+  }
+
+  // Read on-chain balance
+  const balanceResult = await checkDoomhoundBalance(member.walletAddress);
+  const newBalance = balanceResult.balance;
+  const newTierInfo = getStakingTier(newBalance);
+  const newTier = newTierInfo ? newTierInfo.tier : "none";
+
+  // Detect tier changes
+  const oldTier = member.stakingTier;
+  const tierUpgraded = oldTier !== "none" && newTier !== "none" &&
+    STAKING_TIERS.findIndex(t => t.tier === newTier) < STAKING_TIERS.findIndex(t => t.tier === oldTier);
+  const tierDowngraded = oldTier !== "none" && newTier !== "none" &&
+    STAKING_TIERS.findIndex(t => t.tier === newTier) > STAKING_TIERS.findIndex(t => t.tier === oldTier);
+  const tierLost = oldTier !== "none" && newTier === "none";
+  const tierGained = oldTier === "none" && newTier !== "none";
+
+  // Calculate pending rewards since last update
+  let newPending = member.pendingStakingReward;
+  if (member.lastStakingUpdate && newTierInfo) {
+    const hoursSinceUpdate = (Date.now() - new Date(member.lastStakingUpdate).getTime()) / (1000 * 60 * 60);
+    // Only reward for full days (24h blocks) to keep it fair and simple
+    const fullDays = Math.floor(hoursSinceUpdate / 24);
+    if (fullDays > 0) {
+      // Use the OLD tier's rate for the elapsed period (they had that balance during that time)
+      const oldTierInfo = STAKING_TIERS.find(t => t.tier === oldTier);
+      const rate = oldTierInfo ? oldTierInfo.ptsPerDay : 0;
+      newPending += rate * fullDays;
+    }
+  }
+
+  // Update the member
+  await db.packMember.update({
+    where: { handle },
+    data: {
+      stakedAmount: newBalance,
+      stakingTier: newTier,
+      pendingStakingReward: newPending,
+      lastStakingUpdate: new Date(),
+      doomhoundBalance: newBalance,
+      balanceCheckedAt: new Date(),
+    },
+  });
+
+  return {
+    stakedAmount: newBalance,
+    stakingTier: newTier,
+    pendingStakingReward: newPending,
+    tierUpgraded: tierUpgraded || tierGained,
+    tierDowngraded: tierDowngraded || tierLost,
+  };
+}
+
 // ===== ACHIEVEMENT DEFINITIONS =====
 interface AchievementDef {
   id: string;
@@ -381,10 +463,46 @@ export async function GET(request: NextRequest) {
         return res;
       }
 
+      case "staking_stats": {
+        // Total staked across all members
+        const stakers = await db.packMember.findMany({
+          where: { stakingTier: { not: "none" } },
+          select: { handle: true, userName: true, profilePic: true, stakedAmount: true, stakingTier: true },
+          orderBy: { stakedAmount: "desc" },
+        });
+
+        const totalStaked = stakers.reduce((sum, s) => sum + s.stakedAmount, 0);
+
+        // Top 5 stakers
+        const topStakers = stakers.slice(0, 5);
+
+        // Count by tier
+        const tierCounts: Record<string, number> = { diamond: 0, gold: 0, silver: 0, bronze: 0 };
+        for (const s of stakers) {
+          if (tierCounts[s.stakingTier] !== undefined) {
+            tierCounts[s.stakingTier]++;
+          }
+        }
+
+        // Total rewards distributed (from activity logs)
+        const totalRewards = await db.activityLog.aggregate({
+          where: { type: "staking_reward" },
+          _sum: { points: true },
+        });
+
+        return NextResponse.json({
+          totalStaked,
+          totalStakers: stakers.length,
+          topStakers,
+          tierCounts,
+          totalRewardsDistributed: totalRewards._sum.points || 0,
+        });
+      }
+
       default:
         return NextResponse.json({
           error: "Unknown action",
-          availableActions: ["leaderboard", "profile", "wheel_history", "session_login", "restore_session"],
+          availableActions: ["leaderboard", "profile", "wheel_history", "session_login", "restore_session", "staking_stats"],
         }, { status: 400 });
     }
   } catch (error: any) {
@@ -523,6 +641,9 @@ export async function POST(request: NextRequest) {
         // Check & award achievements (OG Hound check, etc.)
         const { newAchievements } = await checkAndAwardAchievements(cleanHandle);
 
+        // Auto-update staking (initial stake based on balance at registration)
+        const stakingResult = await autoUpdateStaking(cleanHandle);
+
         const fullMember = await db.packMember.findUnique({
           where: { handle: cleanHandle },
           include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
@@ -534,6 +655,7 @@ export async function POST(request: NextRequest) {
           balanceBonus,
           balanceTierLabel,
           newAchievements,
+          staking: stakingResult,
           sessionToken,
         });
         setSessionCookie(res, sessionToken);
@@ -619,6 +741,9 @@ export async function POST(request: NextRequest) {
           data: { lastCheckIn: new Date(), streakCount: newStreakCount, lastStreakAt: new Date() },
         });
 
+        // Auto-update staking (reads on-chain balance, calculates pending rewards)
+        const stakingResult = await autoUpdateStaking(cleanHandle);
+
         // Check achievements (First Blood, 7-Day Streak)
         const { newAchievements } = await checkAndAwardAchievements(cleanHandle);
 
@@ -626,7 +751,7 @@ export async function POST(request: NextRequest) {
           where: { handle: cleanHandle },
           include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
         });
-        return NextResponse.json({ member: updated, newAchievements });
+        return NextResponse.json({ member: updated, newAchievements, staking: stakingResult });
       }
 
       // ===== VERIFY ARENA ACTIVITY =====
@@ -766,6 +891,53 @@ export async function POST(request: NextRequest) {
           currentThreadCount,
           currentFollowerCount,
           newAchievements,
+        });
+      }
+
+      // ===== CLAIM STAKING REWARDS =====
+      case "claim_staking": {
+        const member = await db.packMember.findUnique({ where: { handle: cleanHandle } });
+        if (!member) {
+          return NextResponse.json({ error: "Not registered" }, { status: 404 });
+        }
+
+        // Auto-update staking first to catch up pending rewards
+        const stakingResult = await autoUpdateStaking(cleanHandle);
+
+        // Re-read member to get updated pendingStakingReward
+        const updatedMember = await db.packMember.findUnique({ where: { handle: cleanHandle } });
+        if (!updatedMember) {
+          return NextResponse.json({ error: "Member not found after update" }, { status: 404 });
+        }
+
+        const reward = updatedMember.pendingStakingReward;
+        if (reward <= 0) {
+          return NextResponse.json({ error: "No staking rewards to claim", member: updatedMember });
+        }
+
+        // Add reward points and reset pending
+        await addActivity(
+          cleanHandle,
+          "staking_reward",
+          `Claimed ${reward} staking rewards (${stakingResult.stakingTier} tier)`,
+          reward
+        );
+
+        // Reset pending to 0
+        await db.packMember.update({
+          where: { handle: cleanHandle },
+          data: { pendingStakingReward: 0 },
+        });
+
+        const finalMember = await db.packMember.findUnique({
+          where: { handle: cleanHandle },
+          include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
+        });
+
+        return NextResponse.json({
+          member: finalMember,
+          claimedReward: reward,
+          stakingTier: stakingResult.stakingTier,
         });
       }
 

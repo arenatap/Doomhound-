@@ -7,6 +7,7 @@ import { BloodSplash } from "./blood-splash";
 import { WheelOfDoom } from "./wheel-of-doom";
 import type { SpinResult } from "./wheel-of-doom";
 import { RaffleSection } from "./raffle-section";
+import { StakingSection } from "./staking-section";
 
 // ===== TYPES =====
 interface ActivityLog {
@@ -44,6 +45,10 @@ interface PackMember {
   totalWheelWinnings: number;
   prizeSent: boolean;
   referredBy: string | null;
+  stakedAmount: number;
+  stakingTier: string;
+  pendingStakingReward: number;
+  lastStakingUpdate: string | null;
   createdAt: string;
   streakCount: number;
   lastStreakAt: string | null;
@@ -78,6 +83,7 @@ const POINTS: Record<string, { value: number; label: string; icon: string }> = {
   referral: { value: 75, label: "Pack Recruit", icon: "⛓️" },
   doomhound_holder: { value: 0, label: "HODL Bonus", icon: "💰" },
   wheel_spin: { value: 0, label: "Wheel of Doom", icon: "🎡" },
+  staking_reward: { value: 0, label: "Staking Reward", icon: "🔥" },
 };
 
 // ===== $DOOMHOUND BALANCE TIERS =====
@@ -97,6 +103,18 @@ const RANK_TIERS = [
   { title: "Pup", minPoints: 100, emoji: "🐕", color: "text-gray-300" },
   { title: "Lost Soul", minPoints: 0, emoji: "👻", color: "text-gray-500" },
 ];
+
+// ===== STAKING TIERS (must match server) =====
+const STAKING_TIERS = [
+  { minBalance: 50_000_000, tier: "diamond", emoji: "💎", label: "Diamond", ptsPerDay: 12, apy: 12, color: "text-cyan-400" },
+  { minBalance: 10_000_000, tier: "gold",    emoji: "🟡", label: "Gold",    ptsPerDay: 8,  apy: 8,  color: "text-yellow-400" },
+  { minBalance: 5_000_000,  tier: "silver",  emoji: "🥈", label: "Silver",  ptsPerDay: 5,  apy: 5,  color: "text-gray-300" },
+  { minBalance: 1_000_000,  tier: "bronze",  emoji: "🥉", label: "Bronze",  ptsPerDay: 2,  apy: 2,  color: "text-orange-400" },
+];
+
+function getStakingTierInfo(tier: string) {
+  return STAKING_TIERS.find(t => t.tier === tier) || null;
+}
 
 // ===== SESSION MANAGEMENT (Supabase-backed with localStorage fallback) =====
 // Primary: httpOnly cookie with sessionToken → lookup in PackMember DB
@@ -753,6 +771,14 @@ export function ArenaGameSection() {
                 memberPoints={member.points}
                 onPointsSpent={(newPoints) => {
                   setMember({ ...member, points: newPoints });
+                }}
+              />
+
+              {/* Staking */}
+              <StakingSection
+                member={member}
+                onRewardClaimed={(updatedMember) => {
+                  setMember(updatedMember);
                 }}
               />
 

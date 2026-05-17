@@ -45,6 +45,12 @@ model PackMember {
   // Referral
   referredBy       String?
 
+  // Staking (auto-updated from on-chain balance)
+  stakedAmount        Float     @default(0)    // Last verified DOOMHOUND balance
+  stakingTier         String    @default("none") // none, bronze, silver, gold, diamond
+  pendingStakingReward Int      @default(0)    // Accumulated staking points not yet claimed
+  lastStakingUpdate   DateTime?                // Last time staking balance was verified
+
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -58,7 +64,7 @@ model PackMember {
 model ActivityLog {
   id           String   @id @default(cuid())
   memberHandle String             // Arena handle (FK)
-  type         String              // register, daily_checkin, arena_post, arena_follower, trending_mention, meme_generated, referral, doomhound_holder, wheel_spin, raffle_ticket
+  type         String              // register, daily_checkin, arena_post, arena_follower, trending_mention, meme_generated, referral, doomhound_holder, wheel_spin, raffle_ticket, staking_reward
   description  String
   points       Int
   createdAt    DateTime @default(now())
