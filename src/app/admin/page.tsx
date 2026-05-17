@@ -154,6 +154,11 @@ export default function AdminPage() {
   const [editQuorum, setEditQuorum] = useState("");
   const [editApproval, setEditApproval] = useState("");
 
+  // Airdrop State
+  const [airdropInitLoading, setAirdropInitLoading] = useState(false);
+  const [airdropInitResult, setAirdropInitResult] = useState<string | null>(null);
+  const [confirmAirdropInit, setConfirmAirdropInit] = useState(false);
+
   // Restore session
   useEffect(() => {
     const p = getPassword();
@@ -957,6 +962,72 @@ export default function AdminPage() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Airdrop Controls */}
+        <div className="mb-8">
+          <h2 className="font-creepster text-xl sm:text-2xl text-orange-500 mb-3 sm:mb-4">🏆 AIRDROP CONTROLS</h2>
+
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 sm:p-5 mb-3">
+            <h3 className="text-white font-bold text-sm mb-2">INIT AIRDROP LEADERBOARD</h3>
+            <p className="text-gray-500 text-xs mb-4">
+              Snapshot all current points. Everyone starts from 0 airdrop points.
+              After this, every point earned counts toward the 200M graduation airdrop.
+            </p>
+
+            {airdropInitResult && (
+              <div className="bg-green-900/30 border border-green-600/40 rounded-lg p-3 mb-3 text-center">
+                <p className="text-green-400 text-xs font-bold">{airdropInitResult}</p>
+              </div>
+            )}
+
+            {!confirmAirdropInit ? (
+              <button
+                onClick={() => { setConfirmAirdropInit(true); setAirdropInitResult(null); }}
+                className="px-5 py-2.5 text-sm font-bold bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors shadow-[0_0_10px_rgba(234,88,12,0.3)]"
+              >
+                🏆 INIT AIRDROP (RESET TO 0)
+              </button>
+            ) : (
+              <div className="flex gap-3">
+                <button
+                  onClick={async () => {
+                    if (!storedPw) return;
+                    setAirdropInitLoading(true);
+                    setConfirmAirdropInit(false);
+                    try {
+                      const res = await fetch("/api/pack", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ action: "init_airdrop", adminPassword: storedPw }),
+                      });
+                      const data = await res.json();
+                      if (data.success) {
+                        setAirdropInitResult(`✅ ${data.message}`);
+                        showToast(`🏆 Airdrop initialized! ${data.membersUpdated} members reset to 0`);
+                      } else {
+                        setAirdropInitResult(`❌ ${data.error}`);
+                      }
+                    } catch {
+                      setAirdropInitResult("❌ Failed to initialize airdrop");
+                    } finally {
+                      setAirdropInitLoading(false);
+                    }
+                  }}
+                  disabled={airdropInitLoading}
+                  className="px-5 py-2 text-sm font-bold bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {airdropInitLoading ? "⏳ INITIALIZING..." : "✅ CONFIRM — RESET ALL TO 0"}
+                </button>
+                <button
+                  onClick={() => setConfirmAirdropInit(false)}
+                  className="px-5 py-2 text-sm font-bold bg-[#2a2a2a] text-gray-400 rounded-lg hover:text-white transition-colors"
+                >
+                  CANCEL
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* DAO Controls */}
         <div className="mb-8">

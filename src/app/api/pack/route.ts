@@ -542,19 +542,23 @@ export async function GET(request: NextRequest) {
           orderBy: { points: "desc" },
         });
 
+        // Check if airdrop has been initialized (any member has airdropPointsStart > 0)
+        const airdropInitialized = allMembers.some(m => m.airdropPointsStart > 0);
+
         // Calculate airdrop points and exclude devs
+        // If airdrop NOT initialized yet, everyone shows 0
         const leaderboard = allMembers
           .map(m => ({
             handle: m.handle,
             userName: m.userName,
             profilePic: m.profilePic,
             stakingTier: m.stakingTier,
-            airdropPoints: Math.max(0, m.points - m.airdropPointsStart),
+            airdropPoints: airdropInitialized ? Math.max(0, m.points - m.airdropPointsStart) : 0,
             totalPoints: m.points,
             isDev: DEV_HANDLES.includes(m.handle.toLowerCase()) ||
                    (m.walletAddress ? DEV_WALLETS.includes(m.walletAddress.toLowerCase()) : false),
           }))
-          .filter(m => m.airdropPoints > 0 || m.isDev) // Show anyone with points or devs
+          .filter(m => m.airdropPoints > 0 || m.isDev || !airdropInitialized)
           .sort((a, b) => b.airdropPoints - a.airdropPoints);
 
         // Airdrop prizes — 200M total pool
@@ -569,6 +573,7 @@ export async function GET(request: NextRequest) {
           airdropPrizes: AIRDROP_PRIZES,
           totalPool: 200_000_000,
           devExcluded: true,
+          airdropInitialized,
         });
       }
 
@@ -716,6 +721,15 @@ export async function POST(request: NextRequest) {
 
         // Auto-update staking (initial stake based on balance at registration)
         const stakingResult = await autoUpdateStaking(cleanHandle);
+
+        // Set airdropPointsStart = current points so new users also start at 0 airdrop points
+        const memberAfterStaking = await db.packMember.findUnique({ where: { handle: cleanHandle } });
+        if (memberAfterStaking) {
+          await db.packMember.update({
+            where: { handle: cleanHandle },
+            data: { airdropPointsStart: memberAfterStaking.points },
+          });
+        }
 
         const fullMember = await db.packMember.findUnique({
           where: { handle: cleanHandle },

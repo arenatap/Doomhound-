@@ -63,6 +63,7 @@ interface AirdropData {
   airdropPrizes: { rank: number; amount: number; emoji: string }[];
   totalPool: number;
   devExcluded: boolean;
+  airdropInitialized: boolean;
 }
 
 function formatNumber(n: number): string {
@@ -403,6 +404,14 @@ export default function StakingPage() {
                         {airdropLoading ? "..." : "↻ Refresh"}
                       </button>
                     </div>
+
+                    {/* Not initialized notice */}
+                    {airdropData && !airdropData.airdropInitialized && (
+                      <div className="bg-yellow-900/20 border-b border-yellow-600/30 p-4 text-center">
+                        <p className="text-yellow-400 text-xs font-bold mb-1">⏳ AIRDROP NOT STARTED YET</p>
+                        <p className="text-gray-500 text-[10px]">The race begins when the admin initializes the airdrop. Everyone will start from 0 points.</p>
+                      </div>
+                    )}
 
                     <div className="divide-y divide-[#1a1a1a]">
                       {airdropLoading && !airdropData ? (
