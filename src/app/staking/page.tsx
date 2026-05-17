@@ -481,18 +481,14 @@ export default function StakingPage() {
                                 className="w-8 h-8 rounded-full border border-[#2a2a2a] flex-shrink-0"
                               />
 
-                              {/* Name */}
+                              {/* Name — same style as pack leaderboard */}
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className={`text-sm font-bold truncate ${isUser ? "text-red-400" : "text-white"}`}>
-                                    @{entry.handle}
-                                  </span>
-                                  {isUser && (
-                                    <span className="text-[8px] bg-red-600/20 text-red-400 px-1.5 py-0.5 rounded font-bold">YOU</span>
-                                  )}
-                                  {entry.isDev && (
-                                    <span className="text-[8px] bg-gray-600/20 text-gray-400 px-1.5 py-0.5 rounded font-bold">PACK ALPHA</span>
-                                  )}
+                                <p className={`text-sm font-bold truncate ${isUser ? "text-red-400" : "text-white"}`}>
+                                  {entry.userName || `@${entry.handle}`}
+                                  {isUser && <span className="text-[10px] sm:text-xs text-red-600 ml-1.5">(YOU)</span>}
+                                </p>
+                                <div className="flex items-center gap-1.5">
+                                  <p className="text-gray-500 text-[10px] sm:text-xs">@{entry.handle}</p>
                                 </div>
                               </div>
 
