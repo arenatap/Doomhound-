@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { DoomShell } from "@/components/doom/doom-shell";
+import { Footer } from "@/components/doom/footer";
 
 export default function NFTPage() {
   return (
@@ -63,6 +64,7 @@ export default function NFTPage() {
           </motion.div>
         </div>
       </section>
+      <Footer />
     </DoomShell>
   );
 }

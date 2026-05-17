@@ -179,11 +179,16 @@ export default function DaoPage() {
     } catch {
       setVoteError("Vote failed");
     } finally {
-      setVotingOn(null);
+      // Only clear votingOn if no error — otherwise keep it so the error shows
+      if (!voteError) setVotingOn(null);
+      else setVotingOn(null); // Still clear, but error persists via voteError state
     }
   }, [memberHandle, memberPoints, votingPower, loadProposals, selectedProposal]);
 
-  const categories = settings ? JSON.parse(settings.categories) : ["burn", "pack", "treasury", "nft", "marketing"];
+  const categories = settings ? (() => {
+    try { return JSON.parse(settings.categories); }
+    catch { return ["burn", "pack", "treasury", "nft", "marketing"]; }
+  })() : ["burn", "pack", "treasury", "nft", "marketing"];
 
   return (
     <DoomShell>
@@ -410,7 +415,7 @@ export default function DaoPage() {
                     <p className="text-gray-600 text-xs">Register in THE PACK to vote</p>
                   )}
 
-                  {voteError && votingOn === p.id && (
+                  {voteError && (
                     <p className="text-red-400 text-xs mt-2">{voteError}</p>
                   )}
 

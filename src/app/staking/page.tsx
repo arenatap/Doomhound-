@@ -173,6 +173,7 @@ export default function StakingPage() {
         setMember(data.member);
         if (typeof window !== "undefined") {
           localStorage.setItem("doomhound_handle", data.member.handle);
+          localStorage.removeItem("doomhound_ref"); // Clean up referral code after use
         }
       } else {
         setError(data.error || "Registration failed");
@@ -311,17 +312,33 @@ export default function StakingPage() {
                   />
 
                   {/* Quick check-in reminder */}
-                  {!member.lastCheckIn && (
-                    <div className="bg-orange-900/20 border border-orange-600/40 rounded-xl p-4 text-center mt-6">
-                      <p className="text-orange-400 text-sm font-bold mb-2">
-                        ⚠️ You haven&apos;t checked in yet today!
-                      </p>
-                      <p className="text-gray-400 text-xs">
-                        Daily check-in updates your staking balance and earns you points.
-                        <a href="/pack" className="text-red-400 hover:text-red-300 underline ml-1">Go to Pack →</a>
-                      </p>
-                    </div>
-                  )}
+                  {(() => {
+                    const canCheckIn = () => {
+                      if (!member?.lastCheckIn) return true; // Never checked in
+                      const PACK_TZ = "Europe/Rome";
+                      const now = new Date();
+                      const todayStr = new Intl.DateTimeFormat("en-US", {
+                        timeZone: PACK_TZ,
+                        year: "numeric", month: "2-digit", day: "2-digit",
+                      }).format(now);
+                      const lastStr = new Intl.DateTimeFormat("en-US", {
+                        timeZone: PACK_TZ,
+                        year: "numeric", month: "2-digit", day: "2-digit",
+                      }).format(new Date(member.lastCheckIn));
+                      return todayStr !== lastStr;
+                    };
+                    return canCheckIn() ? (
+                      <div className="bg-orange-900/20 border border-orange-600/40 rounded-xl p-4 text-center mt-6">
+                        <p className="text-orange-400 text-sm font-bold mb-2">
+                          ⚠️ You haven&apos;t checked in yet today!
+                        </p>
+                        <p className="text-gray-400 text-xs">
+                          Daily check-in updates your staking balance and earns you points.
+                          <a href="/pack" className="text-red-400 hover:text-red-300 underline ml-1">Go to Pack →</a>
+                        </p>
+                      </div>
+                    ) : null;
+                  })()}
                 </motion.div>
               ) : (
                 <motion.div key="airdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">

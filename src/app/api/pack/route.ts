@@ -106,8 +106,10 @@ async function autoUpdateStaking(handle: string): Promise<{
   const tierGained = oldTier === "none" && newTier !== "none";
 
   // Calculate pending rewards since last update
+  // IMPORTANT: Always calculate rewards for the OLD tier period, even if user dropped to "none"
+  // Otherwise users lose accumulated rewards when they sell tokens
   let newPending = member.pendingStakingReward;
-  if (member.lastStakingUpdate && newTierInfo) {
+  if (member.lastStakingUpdate && oldTier !== "none") {
     const hoursSinceUpdate = (Date.now() - new Date(member.lastStakingUpdate).getTime()) / (1000 * 60 * 60);
     // Only reward for full days (24h blocks) to keep it fair and simple
     const fullDays = Math.floor(hoursSinceUpdate / 24);
@@ -396,10 +398,11 @@ export async function GET(request: NextRequest) {
       }
 
       case "profile": {
-        const handle = searchParams.get("handle");
-        if (!handle) {
+        const rawHandle = searchParams.get("handle");
+        if (!rawHandle) {
           return NextResponse.json({ error: "handle is required" }, { status: 400 });
         }
+        const handle = rawHandle.replace("@", "").trim().toLowerCase();
         const member = await db.packMember.findUnique({
           where: { handle },
           include: {
@@ -608,19 +611,20 @@ export async function POST(request: NextRequest) {
         select: { handle: true, points: true },
       });
 
-      let updated = 0;
-      for (const m of allMembers) {
-        await db.packMember.update({
-          where: { handle: m.handle },
-          data: { airdropPointsStart: m.points },
-        });
-        updated++;
-      }
+      // Use transaction to ensure atomic snapshot — no partial state on failure
+      await db.$transaction(
+        allMembers.map(m =>
+          db.packMember.update({
+            where: { handle: m.handle },
+            data: { airdropPointsStart: m.points },
+          })
+        )
+      );
 
       return NextResponse.json({
         success: true,
-        membersUpdated: updated,
-        message: `Airdrop initialized! All ${updated} members start from 0 airdrop points.`,
+        membersUpdated: allMembers.length,
+        message: `Airdrop initialized! All ${allMembers.length} members start from 0 airdrop points.`,
       });
     } catch (error: any) {
       console.error("Init airdrop error:", error);
@@ -1567,8 +1571,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           error: "Unknown action",
           availableActions: [
-            "register", "checkin", "verify_arena_post", "check_balance",
-            "wheel_spin", "claim_winnings", "fix_referral"
+            "register", "checkin", "verify_arena", "update_staking", "claim_staking",
+            "check_balance", "claim_meme", "process_referral", "logout",
+            "wheel_spin", "fix_referral", "init_airdrop"
           ],
         }, { status: 400 });
     }
