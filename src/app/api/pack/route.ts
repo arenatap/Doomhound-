@@ -557,17 +557,17 @@ export async function GET(request: NextRequest) {
           .filter(m => m.airdropPoints > 0 || m.isDev) // Show anyone with points or devs
           .sort((a, b) => b.airdropPoints - a.airdropPoints);
 
-        // Airdrop prizes
+        // Airdrop prizes — 200M total pool
         const AIRDROP_PRIZES = [
-          { rank: 1, amount: 50_000_000, emoji: "🥇" },
-          { rank: 2, amount: 30_000_000, emoji: "🥈" },
-          { rank: 3, amount: 20_000_000, emoji: "🥉" },
+          { rank: 1, amount: 100_000_000, emoji: "🥇" },
+          { rank: 2, amount: 60_000_000, emoji: "🥈" },
+          { rank: 3, amount: 40_000_000, emoji: "🥉" },
         ];
 
         return NextResponse.json({
           leaderboard,
           airdropPrizes: AIRDROP_PRIZES,
-          totalPool: 100_000_000,
+          totalPool: 200_000_000,
           devExcluded: true,
         });
       }
