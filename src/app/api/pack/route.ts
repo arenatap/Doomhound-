@@ -35,10 +35,10 @@ const BALANCE_TIERS = [
 
 // ===== STAKING TIERS (auto-updated from on-chain balance) =====
 const STAKING_TIERS = [
-  { minBalance: 50_000_000, tier: "diamond", emoji: "💎", label: "Diamond", ptsPerDay: 12, apy: 12 },
-  { minBalance: 10_000_000, tier: "gold",    emoji: "🟡", label: "Gold",    ptsPerDay: 8,  apy: 8  },
-  { minBalance: 5_000_000,  tier: "silver",  emoji: "🥈", label: "Silver",  ptsPerDay: 5,  apy: 5  },
-  { minBalance: 1_000_000,  tier: "bronze",  emoji: "🥉", label: "Bronze",  ptsPerDay: 2,  apy: 2  },
+  { minBalance: 100_000_000, tier: "diamond", emoji: "💎", label: "Diamond", ptsPerDay: 40, apy: 40 },
+  { minBalance: 50_000_000,  tier: "gold",    emoji: "🟡", label: "Gold",    ptsPerDay: 20, apy: 20 },
+  { minBalance: 10_000_000,  tier: "silver",  emoji: "🥈", label: "Silver",  ptsPerDay: 8,  apy: 8  },
+  { minBalance: 1_000_000,   tier: "bronze",  emoji: "🥉", label: "Bronze",  ptsPerDay: 3,  apy: 3  },
 ];
 
 function getStakingTier(balance: number) {

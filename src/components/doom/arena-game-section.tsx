@@ -106,10 +106,10 @@ const RANK_TIERS = [
 
 // ===== STAKING TIERS (must match server) =====
 const STAKING_TIERS = [
-  { minBalance: 50_000_000, tier: "diamond", emoji: "💎", label: "Diamond", ptsPerDay: 12, apy: 12, color: "text-cyan-400" },
-  { minBalance: 10_000_000, tier: "gold",    emoji: "🟡", label: "Gold",    ptsPerDay: 8,  apy: 8,  color: "text-yellow-400" },
-  { minBalance: 5_000_000,  tier: "silver",  emoji: "🥈", label: "Silver",  ptsPerDay: 5,  apy: 5,  color: "text-gray-300" },
-  { minBalance: 1_000_000,  tier: "bronze",  emoji: "🥉", label: "Bronze",  ptsPerDay: 2,  apy: 2,  color: "text-orange-400" },
+  { minBalance: 100_000_000, tier: "diamond", emoji: "💎", label: "Diamond", ptsPerDay: 40, apy: 40, color: "text-cyan-400" },
+  { minBalance: 50_000_000,  tier: "gold",    emoji: "🟡", label: "Gold",    ptsPerDay: 20, apy: 20, color: "text-yellow-400" },
+  { minBalance: 10_000_000,  tier: "silver",  emoji: "🥈", label: "Silver",  ptsPerDay: 8,  apy: 8,  color: "text-gray-300" },
+  { minBalance: 1_000_000,   tier: "bronze",  emoji: "🥉", label: "Bronze",  ptsPerDay: 3,  apy: 3,  color: "text-orange-400" },
 ];
 
 function getStakingTierInfo(tier: string) {
