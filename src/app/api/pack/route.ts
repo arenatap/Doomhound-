@@ -547,6 +547,7 @@ export async function GET(request: NextRequest) {
 
         // Calculate airdrop points and exclude devs
         // If airdrop NOT initialized yet, everyone shows 0
+        // Always show ALL non-dev members so the leaderboard is visible even at 0 points
         const leaderboard = allMembers
           .map(m => ({
             handle: m.handle,
@@ -558,7 +559,7 @@ export async function GET(request: NextRequest) {
             isDev: DEV_HANDLES.includes(m.handle.toLowerCase()) ||
                    (m.walletAddress ? DEV_WALLETS.includes(m.walletAddress.toLowerCase()) : false),
           }))
-          .filter(m => m.airdropPoints > 0 || m.isDev || !airdropInitialized)
+          .filter(m => !m.isDev) // Exclude devs — everyone else is shown
           .sort((a, b) => b.airdropPoints - a.airdropPoints);
 
         // Airdrop prizes — 200M total pool
