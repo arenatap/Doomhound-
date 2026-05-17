@@ -51,6 +51,9 @@ model PackMember {
   pendingStakingReward Int      @default(0)    // Accumulated staking points not yet claimed
   lastStakingUpdate   DateTime?                // Last time staking balance was verified
 
+  // Airdrop (graduation airdrop — points counted from snapshot)
+  airdropPointsStart  Int       @default(0)    // Points at time of airdrop snapshot (subtracted for leaderboard)
+
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 

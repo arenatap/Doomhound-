@@ -52,6 +52,10 @@ function getStakingTier(balance: number) {
  * - Calculates pending rewards since last update
  * - Updates stakedAmount, stakingTier, pendingStakingReward
  */
+// ===== DEV WALLET EXCLUSION (for airdrop leaderboard) =====
+const DEV_WALLETS = (process.env.DEV_WALLETS || "").split(",").map(w => w.toLowerCase().trim()).filter(Boolean);
+const DEV_HANDLES = (process.env.DEV_HANDLES || "").split(",").map(h => h.toLowerCase().trim()).filter(Boolean);
+
 async function autoUpdateStaking(handle: string): Promise<{
   stakedAmount: number;
   stakingTier: string;
@@ -59,8 +63,30 @@ async function autoUpdateStaking(handle: string): Promise<{
   tierUpgraded: boolean;
   tierDowngraded: boolean;
 }> {
-  const member = await db.packMember.findUnique({ where: { handle } });
-  if (!member || !member.walletAddress || !process.env.DOOMHOUND_CONTRACT) {
+  let member = await db.packMember.findUnique({ where: { handle } });
+  if (!member || !process.env.DOOMHOUND_CONTRACT) {
+    return { stakedAmount: 0, stakingTier: "none", pendingStakingReward: 0, tierUpgraded: false, tierDowngraded: false };
+  }
+
+  // If walletAddress is missing, try to fetch it from Arena API
+  if (!member.walletAddress) {
+    try {
+      const arenaData = await arenaFetch(
+        `/agents/user/handle?handle=${encodeURIComponent(handle)}`
+      );
+      if (arenaData.user?.address) {
+        await db.packMember.update({
+          where: { handle },
+          data: { walletAddress: arenaData.user.address },
+        });
+        member = { ...member, walletAddress: arenaData.user.address };
+      }
+    } catch (err) {
+      console.error("Failed to fetch wallet from Arena:", err);
+    }
+  }
+
+  if (!member.walletAddress) {
     return { stakedAmount: 0, stakingTier: "none", pendingStakingReward: 0, tierUpgraded: false, tierDowngraded: false };
   }
 
@@ -499,10 +525,57 @@ export async function GET(request: NextRequest) {
         });
       }
 
+      case "airdrop_leaderboard": {
+        // Airdrop leaderboard: points earned SINCE snapshot
+        // airdropPoints = totalPointsEarned - airdropPointsStart
+        // Dev wallets/handles are excluded
+        const allMembers = await db.packMember.findMany({
+          select: {
+            handle: true,
+            userName: true,
+            profilePic: true,
+            points: true,
+            airdropPointsStart: true,
+            stakingTier: true,
+            walletAddress: true,
+          },
+          orderBy: { points: "desc" },
+        });
+
+        // Calculate airdrop points and exclude devs
+        const leaderboard = allMembers
+          .map(m => ({
+            handle: m.handle,
+            userName: m.userName,
+            profilePic: m.profilePic,
+            stakingTier: m.stakingTier,
+            airdropPoints: Math.max(0, m.points - m.airdropPointsStart),
+            totalPoints: m.points,
+            isDev: DEV_HANDLES.includes(m.handle.toLowerCase()) ||
+                   (m.walletAddress ? DEV_WALLETS.includes(m.walletAddress.toLowerCase()) : false),
+          }))
+          .filter(m => m.airdropPoints > 0 || m.isDev) // Show anyone with points or devs
+          .sort((a, b) => b.airdropPoints - a.airdropPoints);
+
+        // Airdrop prizes
+        const AIRDROP_PRIZES = [
+          { rank: 1, amount: 50_000_000, emoji: "🥇" },
+          { rank: 2, amount: 30_000_000, emoji: "🥈" },
+          { rank: 3, amount: 20_000_000, emoji: "🥉" },
+        ];
+
+        return NextResponse.json({
+          leaderboard,
+          airdropPrizes: AIRDROP_PRIZES,
+          totalPool: 100_000_000,
+          devExcluded: true,
+        });
+      }
+
       default:
         return NextResponse.json({
           error: "Unknown action",
-          availableActions: ["leaderboard", "profile", "wheel_history", "session_login", "restore_session", "staking_stats"],
+          availableActions: ["leaderboard", "profile", "wheel_history", "session_login", "restore_session", "staking_stats", "airdrop_leaderboard"],
         }, { status: 400 });
     }
   } catch (error: any) {
