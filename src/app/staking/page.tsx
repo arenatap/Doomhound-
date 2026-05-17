@@ -483,9 +483,9 @@ export default function StakingPage() {
                               {/* Airdrop points */}
                               <div className="text-right flex-shrink-0">
                                 <p className={`text-sm font-bold font-mono ${
-                                  effectiveRank === 1 ? "text-yellow-400" :
-                                  effectiveRank === 2 ? "text-gray-300" :
-                                  effectiveRank === 3 ? "text-orange-400" :
+                                  rank === 1 ? "text-yellow-400" :
+                                  rank === 2 ? "text-gray-300" :
+                                  rank === 3 ? "text-orange-400" :
                                   "text-white"
                                 }`}>
                                   {formatNumber(entry.airdropPoints)}
