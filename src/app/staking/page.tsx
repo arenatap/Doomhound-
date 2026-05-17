@@ -302,6 +302,34 @@ export default function StakingPage() {
             <AnimatePresence mode="wait">
               {activeTab === "staking" ? (
                 <motion.div key="staking" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+
+                  {/* Pending Staking Rewards Banner */}
+                  {member && member.pendingStakingReward > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-gradient-to-r from-orange-900/30 to-yellow-900/20 border border-orange-500/40 rounded-xl p-4 mb-6 flex items-center justify-between gap-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl animate-pulse">🔥</span>
+                        <div>
+                          <p className="text-orange-300 text-sm sm:text-base font-bold">
+                            {member.pendingStakingReward} staking pts ready!
+                          </p>
+                          <p className="text-gray-500 text-[10px] sm:text-xs">
+                            Claim below to add them to your airdrop score
+                          </p>
+                        </div>
+                      </div>
+                      <a
+                        href="#claim-rewards"
+                        className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-xs sm:text-sm font-bold rounded-lg shadow-[0_0_10px_rgba(234,88,12,0.3)] transition-all whitespace-nowrap"
+                      >
+                        CLAIM →
+                      </a>
+                    </motion.div>
+                  )}
+
                   <StakingSection
                     member={member}
                     onRewardClaimed={(updatedMember) => {

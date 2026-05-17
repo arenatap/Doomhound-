@@ -200,6 +200,7 @@ export function StakingSection({ member, onRewardClaimed }: StakingSectionProps)
                     </div>
                     <BloodSplash className="w-full">
                       <button
+                        id="claim-rewards"
                         onClick={claimRewards}
                         disabled={claiming || !hasPendingReward}
                         className={`w-full py-3 text-sm sm:text-base font-bold rounded-xl transition-all duration-300 ${
