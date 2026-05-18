@@ -137,6 +137,12 @@ export default function StakingPage() {
           if (data.member) {
             setMember(data.member);
             setSessionLoading(false);
+            // BUG FIX: Clear stale referral code for logged-in users
+            // Referral is ONLY valid at FIRST registration — existing members
+            // must NOT have their referrer reassigned
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("doomhound_ref");
+            }
             return;
           }
         }
@@ -152,6 +158,10 @@ export default function StakingPage() {
               if (data.member) {
                 setMember(data.member);
                 setSessionLoading(false);
+                // BUG FIX: Clear stale referral code for logged-in users
+                if (typeof window !== "undefined") {
+                  localStorage.removeItem("doomhound_ref");
+                }
                 return;
               }
             }

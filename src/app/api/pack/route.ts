@@ -109,16 +109,35 @@ async function autoUpdateStaking(handle: string): Promise<{
   // IMPORTANT: Always calculate rewards for the OLD tier period, even if user dropped to "none"
   // Otherwise users lose accumulated rewards when they sell tokens
   let newPending = member.pendingStakingReward;
+  let fullDays = 0;
   if (member.lastStakingUpdate && oldTier !== "none") {
     const hoursSinceUpdate = (Date.now() - new Date(member.lastStakingUpdate).getTime()) / (1000 * 60 * 60);
     // Only reward for full days (24h blocks) to keep it fair and simple
-    const fullDays = Math.floor(hoursSinceUpdate / 24);
+    fullDays = Math.floor(hoursSinceUpdate / 24);
     if (fullDays > 0) {
       // Use the OLD tier's rate for the elapsed period (they had that balance during that time)
       const oldTierInfo = STAKING_TIERS.find(t => t.tier === oldTier);
       const rate = oldTierInfo ? oldTierInfo.ptsPerDay : 0;
       newPending += rate * fullDays;
     }
+  }
+
+  // BUG FIX: Only advance lastStakingUpdate by the rewarded full days.
+  // Previously, lastStakingUpdate was set to `new Date()`, which discarded partial hours
+  // that didn't make a full 24h day. Now we preserve those partial hours for the next
+  // calculation by advancing the timestamp only by the rewarded period.
+  // Example: if 2 days and 5 hours passed, we reward 2 days and keep the 5h remainder.
+  let nextLastStakingUpdate: Date;
+  if (member.lastStakingUpdate && fullDays > 0) {
+    // Advance by only the rewarded full days, preserving partial hours
+    const hoursRewarded = fullDays * 24;
+    nextLastStakingUpdate = new Date(new Date(member.lastStakingUpdate).getTime() + hoursRewarded * 3600000);
+  } else if (!member.lastStakingUpdate) {
+    // First time staking is detected — start the clock now
+    nextLastStakingUpdate = new Date();
+  } else {
+    // No full days passed — keep the original timestamp so partial hours accumulate
+    nextLastStakingUpdate = new Date(member.lastStakingUpdate);
   }
 
   // Update the member
@@ -128,7 +147,7 @@ async function autoUpdateStaking(handle: string): Promise<{
       stakedAmount: newBalance,
       stakingTier: newTier,
       pendingStakingReward: newPending,
-      lastStakingUpdate: new Date(),
+      lastStakingUpdate: nextLastStakingUpdate,
       doomhoundBalance: newBalance,
       balanceCheckedAt: new Date(),
     },
@@ -759,16 +778,31 @@ export async function POST(request: NextRequest) {
         }
 
         // Referral — always lowercase the ref code to match DB handles
+        // SAFEGUARD: Only process referral for NEW members who don't already have a referredBy.
+        // This prevents any edge case where an existing member's referrer could be overwritten.
+        // Also check for duplicate referral activities to prevent double-awarding points.
         const rawRef = body.referral as string | undefined;
         const cleanRef = rawRef ? rawRef.replace("@", "").trim().toLowerCase() : undefined;
-        if (cleanRef && cleanRef !== cleanHandle) {
+        const freshMember = await db.packMember.findUnique({ where: { handle: cleanHandle } });
+        if (cleanRef && cleanRef !== cleanHandle && freshMember && !freshMember.referredBy) {
           const referrer = await db.packMember.findUnique({ where: { handle: cleanRef } });
           if (referrer) {
-            await addActivity(cleanRef, "referral", `Recruited @${cleanHandle} to the pack!`, POINTS_CONFIG.referral.value);
-            await db.packMember.update({
-              where: { handle: cleanHandle },
-              data: { referredBy: cleanRef },
+            // Check for duplicate referral activity (prevent double-awarding)
+            const existingReferralActivity = await db.activityLog.findFirst({
+              where: {
+                memberHandle: cleanRef,
+                type: "referral",
+                description: { contains: cleanHandle },
+              },
             });
+            if (!existingReferralActivity) {
+              // First set referredBy, then award points — if points fail, referredBy prevents re-processing
+              await db.packMember.update({
+                where: { handle: cleanHandle },
+                data: { referredBy: cleanRef },
+              });
+              await addActivity(cleanRef, "referral", `Recruited @${cleanHandle} to the pack!`, POINTS_CONFIG.referral.value);
+            }
           }
         }
 
@@ -1180,6 +1214,9 @@ export async function POST(request: NextRequest) {
             rank: getRank(totalPoints),
           },
         });
+
+        // Also update staking data when balance is checked (keeps tier in sync)
+        await autoUpdateStaking(cleanHandle);
 
         // Check achievements (Whale Spotter)
         const { newAchievements } = await checkAndAwardAchievements(cleanHandle);
