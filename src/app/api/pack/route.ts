@@ -1124,7 +1124,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "No staking rewards to claim", member: updatedMember });
         }
 
-        // Add reward points and reset pending
+        // Add reward points to total
         await addActivity(
           cleanHandle,
           "staking_reward",
@@ -1132,10 +1132,13 @@ export async function POST(request: NextRequest) {
           reward
         );
 
-        // Reset pending to 0
+        // Use ATOMIC DECREMENT instead of setting to 0.
+        // This prevents a race condition: if another autoUpdateStaking call
+        // adds more pending rewards between our read and write, decrement
+        // preserves those new rewards instead of wiping them to 0.
         await db.packMember.update({
           where: { handle: cleanHandle },
-          data: { pendingStakingReward: 0 },
+          data: { pendingStakingReward: { decrement: reward } },
         });
 
         const finalMember = await db.packMember.findUnique({
