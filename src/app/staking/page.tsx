@@ -64,6 +64,22 @@ interface AirdropData {
   airdropInitialized: boolean;
 }
 
+// Airdrop deadline: May 25, 2026 23:59 Rome time
+const AIRDROP_DEADLINE = new Date('2026-05-25T23:59:00+02:00');
+
+function getTimeLeft(deadline: Date): { days: number; hours: number; minutes: number; seconds: number; expired: boolean } {
+  const now = new Date();
+  const diff = deadline.getTime() - now.getTime();
+  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
+  return {
+    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((diff / (1000 * 60)) % 60),
+    seconds: Math.floor((diff / 1000) % 60),
+    expired: false,
+  };
+}
+
 function formatNumber(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
@@ -101,6 +117,15 @@ export default function StakingPage() {
   const [airdropData, setAirdropData] = useState<AirdropData | null>(null);
   const [airdropLoading, setAirdropLoading] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+  const [countdown, setCountdown] = useState(getTimeLeft(AIRDROP_DEADLINE));
+
+  // Live countdown timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCountdown(getTimeLeft(AIRDROP_DEADLINE));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Session restore
   useEffect(() => {
@@ -393,7 +418,7 @@ export default function StakingPage() {
                         <span className="text-3xl sm:text-4xl">🏆</span>
                         <div>
                           <h2 className="font-creepster text-2xl sm:text-3xl text-orange-400">GRADUATION AIRDROP</h2>
-                          <p className="text-gray-500 text-xs">When $DOOMHOUND breaks the bonding curve</p>
+                          <p className="text-green-400 text-xs font-bold animate-pulse">$DOOMHOUND HAS GRADUATED! 🎉</p>
                         </div>
                       </div>
 
@@ -419,7 +444,39 @@ export default function StakingPage() {
                         ))}
                       </div>
 
-
+                      {/* Countdown Timer */}
+                      <div className={`border rounded-lg p-4 text-center ${
+                        countdown.expired ? "bg-red-900/30 border-red-500/50" : "bg-[#0a0a0a] border-orange-500/30"
+                      }`}>
+                        <p className="text-gray-500 text-[9px] uppercase tracking-wider mb-2">
+                          {countdown.expired ? "🔥 AIRDROP ENDED" : "⏰ Race ends in"}
+                        </p>
+                        {countdown.expired ? (
+                          <p className="text-red-400 font-bold text-lg">Winners announced soon!</p>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2 sm:gap-3">
+                            <div className="text-center">
+                              <p className="text-orange-400 font-bold text-xl sm:text-2xl font-mono">{countdown.days}</p>
+                              <p className="text-gray-600 text-[8px] uppercase">Days</p>
+                            </div>
+                            <span className="text-orange-600 text-xl font-bold">:</span>
+                            <div className="text-center">
+                              <p className="text-orange-400 font-bold text-xl sm:text-2xl font-mono">{String(countdown.hours).padStart(2, '0')}</p>
+                              <p className="text-gray-600 text-[8px] uppercase">Hours</p>
+                            </div>
+                            <span className="text-orange-600 text-xl font-bold">:</span>
+                            <div className="text-center">
+                              <p className="text-orange-400 font-bold text-xl sm:text-2xl font-mono">{String(countdown.minutes).padStart(2, '0')}</p>
+                              <p className="text-gray-600 text-[8px] uppercase">Mins</p>
+                            </div>
+                            <span className="text-orange-600 text-xl font-bold">:</span>
+                            <div className="text-center">
+                              <p className="text-orange-300 font-bold text-xl sm:text-2xl font-mono">{String(countdown.seconds).padStart(2, '0')}</p>
+                              <p className="text-gray-600 text-[8px] uppercase">Secs</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -566,11 +623,11 @@ export default function StakingPage() {
                   <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5">
                     <h3 className="font-creepster text-lg text-gray-400 mb-3">HOW IT WORKS</h3>
                     <div className="space-y-2 text-gray-500 text-xs sm:text-sm">
-                      <p>🐺 <strong className="text-gray-300">The race starts NOW</strong> — everyone at 0 airdrop points</p>
+                      <p>🎉 <strong className="text-green-400">$DOOMHOUND has graduated!</strong> — the race is ON</p>
                       <p>🔥 <strong className="text-gray-300">Every point counts</strong> — check-ins, staking claims, wheel spins, achievements</p>
                       <p>💎 <strong className="text-gray-300">Staking multiplies</strong> — Diamond tier earns 40 pts/day automatically</p>
-
-                      <p>🏆 <strong className="text-orange-400">Top 3 at graduation</strong> split 200M $DOOMHOUND (100M / 60M / 40M)</p>
+                      <p>⏰ <strong className="text-orange-400">7 days to grind</strong> — deadline May 25, 23:59 CET</p>
+                      <p>🏆 <strong className="text-orange-400">Top 3 at deadline</strong> split 200M $DOOMHOUND (100M / 60M / 40M)</p>
                     </div>
                   </div>
 
