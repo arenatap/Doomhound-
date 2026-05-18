@@ -105,40 +105,43 @@ async function autoUpdateStaking(handle: string): Promise<{
   const tierLost = oldTier !== "none" && newTier === "none";
   const tierGained = oldTier === "none" && newTier !== "none";
 
-  // Calculate pending rewards since last update
-  // IMPORTANT: Always calculate rewards for the OLD tier period, even if user dropped to "none"
-  // Otherwise users lose accumulated rewards when they sell tokens
+  // Calculate pending rewards using CALENDAR DAYS (Europe/Rome timezone).
+  // Every day at 00:00 Rome time = 1 new staking day for ALL users.
+  // This means everyone gets rewards at the same time — no individual 24h timers.
+  // IMPORTANT: Always calculate rewards for the OLD tier period, even if user dropped to "none".
+  const PACK_TZ = "Europe/Rome";
+  const getDateInTz = (d: Date): string => {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: PACK_TZ,
+      year: "numeric", month: "2-digit", day: "2-digit",
+    }).formatToParts(d);
+    const year = parts.find(p => p.type === "year")!.value;
+    const month = parts.find(p => p.type === "month")!.value;
+    const day = parts.find(p => p.type === "day")!.value;
+    return `${year}-${month}-${day}`;
+  };
+
   let newPending = member.pendingStakingReward;
-  let fullDays = 0;
+  let rewardedDays = 0;
+  const todayStr = getDateInTz(new Date());
+
   if (member.lastStakingUpdate && oldTier !== "none") {
-    const hoursSinceUpdate = (Date.now() - new Date(member.lastStakingUpdate).getTime()) / (1000 * 60 * 60);
-    // Only reward for full days (24h blocks) to keep it fair and simple
-    fullDays = Math.floor(hoursSinceUpdate / 24);
-    if (fullDays > 0) {
-      // Use the OLD tier's rate for the elapsed period (they had that balance during that time)
+    const lastStr = getDateInTz(new Date(member.lastStakingUpdate));
+    // Count calendar days between last update and today (exclusive of last day, inclusive of today)
+    const lastDate = new Date(lastStr + "T00:00:00Z");
+    const todayDate = new Date(todayStr + "T00:00:00Z");
+    const dayDiff = Math.round((todayDate.getTime() - lastDate.getTime()) / 86400000);
+    rewardedDays = Math.max(0, dayDiff);
+    if (rewardedDays > 0) {
       const oldTierInfo = STAKING_TIERS.find(t => t.tier === oldTier);
       const rate = oldTierInfo ? oldTierInfo.ptsPerDay : 0;
-      newPending += rate * fullDays;
+      newPending += rate * rewardedDays;
     }
   }
 
-  // BUG FIX: Only advance lastStakingUpdate by the rewarded full days.
-  // Previously, lastStakingUpdate was set to `new Date()`, which discarded partial hours
-  // that didn't make a full 24h day. Now we preserve those partial hours for the next
-  // calculation by advancing the timestamp only by the rewarded period.
-  // Example: if 2 days and 5 hours passed, we reward 2 days and keep the 5h remainder.
-  let nextLastStakingUpdate: Date;
-  if (member.lastStakingUpdate && fullDays > 0) {
-    // Advance by only the rewarded full days, preserving partial hours
-    const hoursRewarded = fullDays * 24;
-    nextLastStakingUpdate = new Date(new Date(member.lastStakingUpdate).getTime() + hoursRewarded * 3600000);
-  } else if (!member.lastStakingUpdate) {
-    // First time staking is detected — start the clock now
-    nextLastStakingUpdate = new Date();
-  } else {
-    // No full days passed — keep the original timestamp so partial hours accumulate
-    nextLastStakingUpdate = new Date(member.lastStakingUpdate);
-  }
+  // Set lastStakingUpdate to today's date (midnight Rome time in UTC representation)
+  // This marks "all days up to and including today have been rewarded"
+  const nextLastStakingUpdate = new Date(todayStr + "T00:00:00Z");
 
   // Update the member
   await db.packMember.update({
