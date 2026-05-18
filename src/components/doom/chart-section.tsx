@@ -6,6 +6,8 @@ import { ScrollReveal } from "./scroll-reveal";
 
 // ===== CONFIG =====
 const DOOMHOUND_CONTRACT = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
+// DEX Screener pair address (DOOMHOUND/ARENA on Uniswap V4 Avalanche)
+const DEXSCREENER_PAIR = "0x6eee7befd37571e8da63fa80a7e967eeb98465d7eee9c37d66e9e124fca68a41";
 
 // ===== ANIMATED CHART PLACEHOLDER =====
 function AnimatedChartPlaceholder() {
@@ -126,7 +128,7 @@ export function ChartSection() {
           </h2>
           <p className="text-center text-gray-400 text-sm sm:text-base md:text-lg mb-8 sm:mb-12 max-w-xl mx-auto">
             {isLaunched
-              ? "Live $DOOMHOUND price action. Watch it burn upward."
+              ? "Live $DOOMHOUND/ARENA price action on Uniswap V4 — Avalanche."
               : "The chart will ignite when the Hound is unleashed."}
           </p>
         </ScrollReveal>
@@ -137,7 +139,7 @@ export function ChartSection() {
               // Post-launch: Embed DEXScreener
               <div className="w-full" style={{ minHeight: "400px" }}>
                 <iframe
-                  src={`https://dexscreener.com/avalanche/${DOOMHOUND_CONTRACT}?embed=1&theme=dark&trades=0`}
+                  src={`https://dexscreener.com/avalanche/${DEXSCREENER_PAIR}?embed=1&theme=dark&trades=0`}
                   className="w-full border-0"
                   style={{ height: "500px" }}
                   title="$DOOMHOUND Chart"

@@ -5,7 +5,9 @@ import { ScrollReveal } from "./scroll-reveal";
 
 // ===== CONFIGURATION =====
 const DOOMHOUND_CONTRACT = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
-const ARENA_COMMUNITY_URL = `https://arena.social/community/${DOOMHOUND_CONTRACT}`;
+// DEX Screener pair address (DOOMHOUND/ARENA on Uniswap V4 Avalanche)
+const DEXSCREENER_PAIR = "0x6eee7befd37571e8da63fa80a7e967eeb98465d7eee9c37d66e9e124fca68a41";
+const ARENA_COMMUNITY_URL = `https://arena.social/community/${DOOMHOUND_CONTRACT}?ref=Toff083249361`;
 
 // ===== TYPES =====
 interface ArenaCommunity {
@@ -39,6 +41,15 @@ interface ArenaOwner {
   followerCount: number;
   threadCount: number;
   keyPrice: number;
+}
+
+interface LiveData {
+  connected: boolean;
+  community: ArenaCommunity | null;
+  stats: ArenaStats | null;
+  ownerProfile: ArenaOwner | null;
+  avaxUsd: number;
+  fetchedAt: string;
 }
 
 interface SnowtraceHolder {
@@ -126,6 +137,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
   const [community, setCommunity] = useState<ArenaCommunity | null>(null);
   const [arenaStats, setArenaStats] = useState<ArenaStats | null>(null);
   const [ownerProfile, setOwnerProfile] = useState<ArenaOwner | null>(null);
+  const [avaxUsd, setAvaxUsd] = useState<number>(9.6);
 
   // Snowtrace on-chain data (always available — THIS IS THE TOKEN HOLDERS DATA)
   const [onChainHolders, setOnChainHolders] = useState<SnowtraceHolder[]>([]);
@@ -145,6 +157,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
         if (data.community) setCommunity(data.community);
         if (data.stats) setArenaStats(data.stats);
         if (data.ownerProfile) setOwnerProfile(data.ownerProfile);
+        if (data.avaxUsd) setAvaxUsd(data.avaxUsd);
       } else {
         setArenaConnected(false);
       }
@@ -284,7 +297,7 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                     Price Chart
                   </h3>
                   <a
-                    href={`https://dexscreener.com/avalanche/${DOOMHOUND_CONTRACT}`}
+                    href={`https://dexscreener.com/avalanche/${DEXSCREENER_PAIR}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-red-400 text-[10px] sm:text-xs hover:text-red-300 transition-colors"
@@ -292,9 +305,9 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                     Open on DexScreener →
                   </a>
                 </div>
-                <div className="w-full" style={{ height: "380px" }}>
+                <div className="w-full" style={{ height: "420px" }}>
                   <iframe
-                    src={`https://dexscreener.com/avalanche/${DOOMHOUND_CONTRACT}?embed=1&theme=dark&info=0`}
+                    src={`https://dexscreener.com/avalanche/${DEXSCREENER_PAIR}?embed=1&theme=dark&info=0`}
                     className="w-full h-full border-0"
                     title="$DOOMHOUND Chart"
                     loading="lazy"
@@ -315,12 +328,18 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                   </span>
                 </div>
                 <div className="space-y-3">
-                  {/* Token Price */}
+                  {/* Token Price — HERO stat */}
                   {arenaConnected && arenaStats && (
-                    <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-red-900/30">
-                      <span className="text-gray-400 text-sm">Token Price</span>
-                      <span className="text-orange-400 text-lg sm:text-xl font-bold font-mono">
-                        {formatAvax(arenaStats.price)} AVAX
+                    <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 rounded-lg px-4 py-4 border border-red-900/40">
+                      <span className="text-gray-400 text-xs uppercase tracking-wider block mb-1">Token Price</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-orange-400 text-2xl sm:text-3xl font-bold font-mono">
+                          {formatAvax(arenaStats.price)}
+                        </span>
+                        <span className="text-orange-300 text-sm font-bold">AVAX</span>
+                      </div>
+                      <span className="text-green-400 text-sm font-mono">
+                        ≈ ${(arenaStats.price * avaxUsd).toFixed(6)} USD
                       </span>
                     </div>
                   )}
@@ -328,18 +347,28 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
                   {arenaConnected && arenaStats && (
                     <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
                       <span className="text-gray-400 text-sm">Market Cap</span>
-                      <span className="text-white text-sm font-bold font-mono">
-                        {formatAvax(arenaStats.marketCap)} AVAX
-                      </span>
+                      <div className="text-right">
+                        <span className="text-white text-sm font-bold font-mono block">
+                          {formatAvax(arenaStats.marketCap)} AVAX
+                        </span>
+                        <span className="text-green-400 text-xs font-mono">
+                          ≈ ${(arenaStats.marketCap * avaxUsd).toFixed(2)} USD
+                        </span>
+                      </div>
                     </div>
                   )}
                   {/* Liquidity */}
                   {arenaConnected && arenaStats && arenaStats.liquidityAvax > 0 && (
                     <div className="flex justify-between items-center bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#2a2a2a]">
                       <span className="text-gray-400 text-sm">Liquidity</span>
-                      <span className="text-green-400 text-sm font-bold font-mono">
-                        {formatAvax(arenaStats.liquidityAvax)} AVAX
-                      </span>
+                      <div className="text-right">
+                        <span className="text-green-400 text-sm font-bold font-mono block">
+                          {formatAvax(arenaStats.liquidityAvax)} AVAX
+                        </span>
+                        <span className="text-green-400/70 text-xs font-mono">
+                          ≈ ${(arenaStats.liquidityAvax * avaxUsd).toFixed(2)} USD
+                        </span>
+                      </div>
                     </div>
                   )}
                   {/* Buys / Sells */}

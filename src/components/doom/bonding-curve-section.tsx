@@ -63,6 +63,7 @@ export function BondingCurveSection() {
   const [rateLimited, setRateLimited] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const prevMarketCap = useRef<number>(0);
+  const [avaxUsd, setAvaxUsd] = useState<number>(9.6);
 
   const fetchData = useCallback(async () => {
     try {
@@ -78,6 +79,7 @@ export function BondingCurveSection() {
           });
         }
         if (data.community) setCommunity(data.community);
+        if (data.avaxUsd) setAvaxUsd(data.avaxUsd);
         if (!data.rateLimited) setLastUpdated(new Date());
       }
     } catch {
@@ -204,44 +206,40 @@ export function BondingCurveSection() {
             </div>
 
             {/* Live Stats row */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-5">
               {connected && stats ? (
                 <>
-                  <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
-                    <p className="text-cyan-400 font-bold text-sm sm:text-base font-mono">
-                      {formatAvax(liquidityAvax)}
+                  <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-red-900/30">
+                    <p className="text-orange-400 font-bold text-sm sm:text-base font-mono">
+                      {formatAvax(price)}
                       <span className="text-gray-500 text-[9px] ml-1">AVAX</span>
                     </p>
-                    <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Liquidity (Curve)</p>
+                    <p className="text-green-400/70 text-[9px] font-mono">≈ ${(price * avaxUsd).toFixed(6)}</p>
+                    <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Price</p>
                   </div>
                   <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
                     <p className={`font-bold text-sm sm:text-base font-mono ${isGrowing ? "text-green-400" : "text-white"}`}>
                       {formatAvax(marketCap)}
                       <span className="text-gray-500 text-[9px] ml-1">AVAX</span>
                     </p>
+                    <p className="text-green-400/70 text-[9px] font-mono">≈ ${(marketCap * avaxUsd).toFixed(2)}</p>
                     <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Market Cap</p>
                   </div>
                   <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
-                    <p className="text-orange-400 font-bold text-sm sm:text-base font-mono">
-                      {formatAvax(price)}
+                    <p className="text-green-400 font-bold text-sm sm:text-base font-mono">
+                      {formatAvax(liquidityAvax)}
                       <span className="text-gray-500 text-[9px] ml-1">AVAX</span>
                     </p>
-                    <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Price</p>
+                    <p className="text-green-400/70 text-[9px] font-mono">≈ ${(liquidityAvax * avaxUsd).toFixed(2)}</p>
+                    <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Liquidity</p>
                   </div>
                   <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
-                    <p className="text-purple-400 font-bold text-sm sm:text-base font-mono">
-                      {formatCount(marketCapArena)}
-                      <span className="text-gray-500 text-[9px] ml-1">$ARENA</span>
+                    <p className="text-sm font-bold font-mono">
+                      <span className="text-green-400">{formatCount(stats.buys)}</span>
+                      <span className="text-gray-600 mx-0.5">/</span>
+                      <span className="text-red-400">{formatCount(stats.sells)}</span>
                     </p>
-                    <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">MC in $ARENA</p>
-                  </div>
-                  <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
-                    <p className="text-green-400 font-bold text-sm sm:text-base font-mono">{formatCount(stats.buys)}</p>
-                    <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Buys</p>
-                  </div>
-                  <div className="bg-[#0a0a0a] rounded-lg p-3 text-center border border-[#2a2a2a]">
-                    <p className="text-red-400 font-bold text-sm sm:text-base font-mono">{formatCount(stats.sells)}</p>
-                    <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Sells</p>
+                    <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Buys / Sells</p>
                   </div>
                 </>
               ) : (
