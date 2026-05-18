@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { motion } from "framer-motion";
 import { ScrollReveal } from "./scroll-reveal";
 
 // ===== CONFIGURATION =====
@@ -8,6 +9,157 @@ const DOOMHOUND_CONTRACT = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb";
 // DEX Screener pair address (DOOMHOUND/ARENA on Uniswap V4 Avalanche)
 const DEXSCREENER_PAIR = "0x6eee7befd37571e8da63fa80a7e967eeb98465d7eee9c37d66e9e124fca68a41";
 const ARENA_COMMUNITY_URL = `https://arena.social/community/${DOOMHOUND_CONTRACT}?ref=Toff083249361`;
+
+// ===== DEX SCREENER QUICK STATS COMPONENT =====
+// Replaces the broken iframe embed with live data from our API
+interface DexQuickData {
+  connected: boolean;
+  pair: {
+    priceUsd: number;
+    priceNative: number;
+    priceChange: { m5?: number; h1?: number; h6?: number; h24?: number };
+    volume: { h24?: number; h6?: number; h1?: number; m5?: number };
+    liquidity: { usd?: number; base?: number; quote?: number };
+    marketCap: number;
+    fdv: number;
+    txns: {
+      m5?: { buys: number; sells: number };
+      h1?: { buys: number; sells: number };
+      h6?: { buys: number; sells: number };
+      h24?: { buys: number; sells: number };
+    };
+  } | null;
+}
+
+function formatDexPrice(price: number): string {
+  if (price <= 0) return "$0";
+  if (price < 0.000001) return `$${price.toFixed(9)}`;
+  if (price < 0.0001) return `$${price.toFixed(7)}`;
+  if (price < 0.01) return `$${price.toFixed(5)}`;
+  if (price < 1) return `$${price.toFixed(4)}`;
+  if (price < 100) return `$${price.toFixed(2)}`;
+  return `$${price.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+}
+
+function formatDexUsd(val: number): string {
+  if (val <= 0) return "$0";
+  if (val < 1) return `$${val.toFixed(2)}`;
+  if (val < 10000) return `$${val.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+  if (val < 1000000) return `$${(val / 1000).toFixed(1)}K`;
+  return `$${(val / 1000000).toFixed(2)}M`;
+}
+
+function DexScreenerQuickStats() {
+  const [data, setData] = useState<DexQuickData | null>(null);
+
+  const fetchDex = useCallback(async () => {
+    try {
+      const res = await fetch("/api/dexscreener?action=live");
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      console.error("DexScreener quick stats error:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDex();
+    const interval = setInterval(fetchDex, 20000);
+    return () => clearInterval(interval);
+  }, [fetchDex]);
+
+  const pair = data?.pair;
+  const change1h = pair?.priceChange?.h1 ?? 0;
+  const change24h = pair?.priceChange?.h24 ?? 0;
+
+  return (
+    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
+      <div className="flex items-center justify-between px-4 sm:px-5 pt-4 pb-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-xs sm:text-sm uppercase tracking-wider text-gray-500">
+            DEX Screener
+          </h3>
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+          </span>
+        </div>
+        <a
+          href={`https://dexscreener.com/avalanche/${DEXSCREENER_PAIR}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-red-400 text-[10px] sm:text-xs hover:text-red-300 transition-colors"
+        >
+          Open on DexScreener →
+        </a>
+      </div>
+
+      {pair ? (
+        <div className="px-4 sm:px-5 pb-4 space-y-3">
+          {/* Price Hero */}
+          <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 rounded-lg px-4 py-3 border border-red-900/40">
+            <span className="text-gray-400 text-[10px] uppercase tracking-wider block mb-1">Price (DEX)</span>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <motion.span
+                key={pair.priceUsd}
+                initial={{ opacity: 0.5 }}
+                animate={{ opacity: 1 }}
+                className="text-orange-400 text-2xl sm:text-3xl font-bold font-mono"
+              >
+                {formatDexPrice(pair.priceUsd)}
+              </motion.span>
+              <span className="text-orange-300/70 text-xs font-mono">
+                {pair.priceNative.toFixed(6)} ARENA
+              </span>
+            </div>
+            <div className="flex items-center gap-3 mt-1">
+              <span className={`text-xs font-mono font-bold ${change1h >= 0 ? "text-green-400" : "text-red-400"}`}>
+                1h: {change1h >= 0 ? "+" : ""}{change1h.toFixed(2)}%
+              </span>
+              <span className={`text-xs font-mono font-bold ${change24h >= 0 ? "text-green-400" : "text-red-400"}`}>
+                24h: {change24h >= 0 ? "+" : ""}{change24h.toFixed(2)}%
+              </span>
+            </div>
+          </div>
+
+          {/* Quick Stats Grid */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-[#0a0a0a] rounded-lg px-3 py-2.5 border border-[#2a2a2a]">
+              <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Market Cap</p>
+              <p className="text-white text-sm font-bold font-mono">{formatDexUsd(pair.marketCap || pair.fdv)}</p>
+            </div>
+            <div className="bg-[#0a0a0a] rounded-lg px-3 py-2.5 border border-[#2a2a2a]">
+              <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Liquidity</p>
+              <p className="text-green-400 text-sm font-bold font-mono">{formatDexUsd(pair.liquidity?.usd || 0)}</p>
+            </div>
+            <div className="bg-[#0a0a0a] rounded-lg px-3 py-2.5 border border-[#2a2a2a]">
+              <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Volume 24h</p>
+              <p className="text-orange-400 text-sm font-bold font-mono">{formatDexUsd(pair.volume?.h24 || 0)}</p>
+            </div>
+            <div className="bg-[#0a0a0a] rounded-lg px-3 py-2.5 border border-[#2a2a2a]">
+              <p className="text-gray-500 text-[9px] sm:text-[10px] uppercase">Txns 1h</p>
+              <p className="text-sm font-bold font-mono">
+                <span className="text-green-400">{pair.txns?.h1?.buys || 0}</span>
+                <span className="text-gray-600 mx-0.5">/</span>
+                <span className="text-red-400">{pair.txns?.h1?.sells || 0}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Pair info */}
+          <div className="flex items-center justify-between text-[10px] text-gray-600">
+            <span>Uniswap V4 · Avalanche</span>
+            <span>Auto-refresh 20s</span>
+          </div>
+        </div>
+      ) : (
+        <div className="px-5 py-8 text-center">
+          <p className="text-gray-600 text-sm animate-pulse">Loading DEX data...</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ===== TYPES =====
 interface ArenaCommunity {
@@ -289,31 +441,9 @@ export function LiveDataSection({ onNewBuy }: { onNewBuy?: () => void }) {
         <div className="grid md:grid-cols-2 gap-5 sm:gap-6 md:gap-10">
           {/* Left Column */}
           <div className="space-y-5 sm:space-y-6">
-            {/* DexScreener Chart */}
+            {/* DEX Screener Quick Stats (no more broken iframe!) */}
             <ScrollReveal delay={0.05}>
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
-                <div className="flex items-center justify-between px-5 pt-4 pb-2">
-                  <h3 className="text-xs sm:text-sm uppercase tracking-wider text-gray-500">
-                    Price Chart
-                  </h3>
-                  <a
-                    href={`https://dexscreener.com/avalanche/${DEXSCREENER_PAIR}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-red-400 text-[10px] sm:text-xs hover:text-red-300 transition-colors"
-                  >
-                    Open on DexScreener →
-                  </a>
-                </div>
-                <div className="w-full" style={{ height: "420px" }}>
-                  <iframe
-                    src={`https://dexscreener.com/avalanche/${DEXSCREENER_PAIR}?embed=1&theme=dark&info=0`}
-                    className="w-full h-full border-0"
-                    title="$DOOMHOUND Chart"
-                    loading="lazy"
-                  />
-                </div>
-              </div>
+              <DexScreenerQuickStats />
             </ScrollReveal>
 
             {/* Arena Community Stats (LIVE from Arena API) */}

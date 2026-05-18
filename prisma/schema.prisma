@@ -158,3 +158,20 @@ model RaffleTicket {
   @@index([raffleId])
   @@index([memberHandle])
 }
+
+// ===== PRICE SNAPSHOTS (for custom chart) =====
+model PriceSnapshot {
+  id              String   @id @default(cuid())
+  priceUsd        Float    @default(0)       // Price in USD
+  priceNative     Float    @default(0)       // Price in ARENA (native quote)
+  volumeH24       Float    @default(0)       // 24h volume in USD
+  liquidityUsd    Float    @default(0)       // Liquidity in USD
+  marketCap       Float    @default(0)       // Market cap in USD
+  priceChangeH1   Float    @default(0)       // 1h price change %
+  priceChangeH24  Float    @default(0)       // 24h price change %
+  txnsBuysH1      Int      @default(0)       // 1h buy transactions
+  txnsSellsH1     Int      @default(0)       // 1h sell transactions
+  createdAt       DateTime @default(now())
+
+  @@index([createdAt])
+}
