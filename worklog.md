@@ -129,3 +129,31 @@ Stage Summary:
 - Recent wins feed showing other players' winnings
 - Pending winnings display with 24h prize claim notice
 - All new code is TypeScript-typed and follows existing patterns
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix broken DEX Screener price chart in Stats section
+
+Work Log:
+- Analyzed screenshot showing "Loading pair..." stuck state on mobile
+- Identified that DEX Screener iframe embed doesn't work (pair too new / mobile issues)
+- Verified DEX Screener API works perfectly (curl test confirmed)
+- Created /api/dexscreener route with: live pair data, chart history, info endpoints
+- Added PriceSnapshot model to Prisma schema for historical chart data collection
+- Built custom SVG PriceLineChart component with:
+  - Real-time price display with USD + ARENA conversion
+  - Time range selector (1H/6H/24H/7D)
+  - Price change indicators (1h, 24h) with green/red coloring
+  - Market cap, liquidity, volume, txns stats bar
+  - Hover tooltips on chart data points
+  - Animated loading state while data accumulates
+- Replaced broken DEX Screener iframe in LiveDataSection with DexScreenerQuickStats
+- Added DB resilience (try/catch on all DB operations for when DB is unavailable)
+- Build verified, committed, and pushed to GitHub
+
+Stage Summary:
+- Custom price chart replaces broken iframe embed
+- DEX Screener API proxied through backend at /api/dexscreener
+- Price snapshots stored in DB every 60s (when price changes) for chart history
+- Chart will populate over time as snapshots accumulate
+- Deploy triggered on Render via GitHub push
