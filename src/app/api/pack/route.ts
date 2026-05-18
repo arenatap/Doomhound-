@@ -276,17 +276,20 @@ async function checkAndAwardAchievements(handle: string): Promise<{ newAchieveme
   });
   if (!member) return { newAchievements: [] };
 
+  // Safety: ensure activities array exists (defensive against undefined)
+  const activities = member.activities || [];
+
   let achievements = parseAchievements(member.achievements);
   const beforeIds = new Set(achievements.map((a) => a.id));
 
   // First Blood — First check-in
-  const hasCheckin = member.activities.some((a) => a.type === "daily_checkin");
+  const hasCheckin = activities.some((a) => a.type === "daily_checkin");
   if (hasCheckin) {
     achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "first_blood")!);
   }
 
   // Pack Starter — Referred 1 member
-  const hasReferral = member.activities.some((a) => a.type === "referral");
+  const hasReferral = activities.some((a) => a.type === "referral");
   if (hasReferral) {
     achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "pack_starter")!);
   }
@@ -297,7 +300,7 @@ async function checkAndAwardAchievements(handle: string): Promise<{ newAchieveme
   }
 
   // Howler — 10+ Arena posts verified (total arena_post activities)
-  const arenaPostCount = member.activities.filter((a) => a.type === "arena_post").length;
+  const arenaPostCount = activities.filter((a) => a.type === "arena_post").length;
   // Each arena_post activity can represent multiple posts, so we sum from descriptions or use threadCount
   // Simpler: count activities of type arena_post
   if (arenaPostCount >= 10) {
@@ -310,7 +313,7 @@ async function checkAndAwardAchievements(handle: string): Promise<{ newAchieveme
   }
 
   // Trending Demon — Had a trending post
-  const hasTrending = member.activities.some((a) => a.type === "trending_mention");
+  const hasTrending = activities.some((a) => a.type === "trending_mention");
   if (hasTrending) {
     achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "trending_demon")!);
   }
@@ -322,7 +325,7 @@ async function checkAndAwardAchievements(handle: string): Promise<{ newAchieveme
   }
 
   // Meme Lord — 5+ memes forged
-  const memeCount = member.activities.filter((a) => a.type === "meme_generated").length;
+  const memeCount = activities.filter((a) => a.type === "meme_generated").length;
   if (memeCount >= 5) {
     achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "meme_lord")!);
   }
@@ -1274,7 +1277,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Check cooldown (10 min between claims)
-        const lastMeme = member.activities.find(
+        const lastMeme = (member.activities || []).find(
           (a) => a.type === "meme_generated" && Date.now() - new Date(a.createdAt).getTime() < 600000
         );
         if (lastMeme) {
