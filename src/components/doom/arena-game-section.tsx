@@ -220,8 +220,8 @@ export function ArenaGameSection() {
             }
             setSessionLoading(false);
             loadLeaderboard();
-            // Process pending referral if user has no referredBy and there's a saved ref
-            processPendingReferral(data.member);
+            // BUG FIX: Just clear stale referral, don't process it for existing members
+            clearStaleReferral();
             return;
           }
         }
@@ -242,8 +242,8 @@ export function ArenaGameSection() {
                 if (data.referralCount !== undefined) setReferralCount(data.referralCount);
                 setSessionLoading(false);
                 loadLeaderboard();
-                // Process pending referral if user has no referredBy and there's a saved ref
-                processPendingReferral(data.member);
+                // BUG FIX: Just clear stale referral, don't process it for existing members
+                clearStaleReferral();
                 return;
               }
             }
@@ -264,43 +264,14 @@ export function ArenaGameSection() {
     restoreSession();
   }, []);
 
-  // Process a pending referral code from localStorage for an already-logged-in user
-  const processPendingReferral = async (currentMember: PackMember) => {
+  // BUG FIX: Clear any stale referral code for already-logged-in users.
+  // Referral is ONLY valid at the time of FIRST registration.
+  // Existing Pack members should NOT be reassigned to a new referrer.
+  const clearStaleReferral = () => {
     if (typeof window === "undefined") return;
-    if (currentMember.referredBy) {
-      // Already referred — clear any stale ref code
-      localStorage.removeItem("doomhound_ref");
-      setReferralCode(null);
-      return;
-    }
-    const savedRef = localStorage.getItem("doomhound_ref");
-    if (!savedRef) return;
-
-    const cleanRef = savedRef.replace("@", "").trim().toLowerCase();
-    const cleanMemberHandle = currentMember.handle.toLowerCase();
-    if (cleanRef === cleanMemberHandle) {
-      localStorage.removeItem("doomhound_ref");
-      setReferralCode(null);
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/pack", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "process_referral", handle: currentMember.handle, referral: savedRef }),
-      });
-      const data = await res.json();
-      if (data.processed && data.member) {
-        setMember(data.member);
-        if (data.referralCount !== undefined) setReferralCount(data.referralCount);
-      }
-      // Clear referral code regardless of result
-      localStorage.removeItem("doomhound_ref");
-      setReferralCode(null);
-    } catch {
-      // Silently fail — don't block login
-    }
+    // If user is already logged in, just clear any stored referral code
+    localStorage.removeItem("doomhound_ref");
+    setReferralCode(null);
   };
 
   // Check referral param — store in localStorage so it survives page navigation

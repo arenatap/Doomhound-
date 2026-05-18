@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 // ===== ADMIN PASSWORD =====
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "doomhound2026";
+// BUG FIX: No hardcoded fallback — must be set via env var
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 
 function verifyAdmin(request: NextRequest): boolean {
   const password = request.headers.get("X-Admin-Password");

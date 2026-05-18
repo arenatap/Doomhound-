@@ -187,10 +187,13 @@ export default function StakingPage() {
     setError(null);
     try {
       const cleanHandle = handle.replace("@", "").trim().toLowerCase();
+      // Include referral code from localStorage if available (captured from ?ref= URL param)
+      const savedRef = typeof window !== "undefined" ? localStorage.getItem("doomhound_ref") : null;
+      const referral = savedRef ? savedRef.replace("@", "").trim().toLowerCase() : undefined;
       const res = await fetch("/api/pack", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "register", handle: cleanHandle }),
+        body: JSON.stringify({ action: "register", handle: cleanHandle, referral }),
       });
       const data = await res.json();
       if (data.member) {

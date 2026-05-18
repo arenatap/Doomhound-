@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { randomUUID } from "crypto";
+import { randomUUID, randomInt } from "crypto";
 
 // ===== POINTS CONFIG =====
 const POINTS_CONFIG: Record<string, { value: number; label: string }> = {
@@ -325,13 +325,16 @@ async function addActivity(handle: string, type: string, description: string, po
   await db.activityLog.create({
     data: { memberHandle: handle, type, description, points },
   });
-  const member = await db.packMember.findUnique({ where: { handle } });
-  if (member) {
-    const newPoints = member.points + points;
-    const newRank = getRank(newPoints);
+  // BUG FIX: Use atomic increment instead of read-calculate-write to prevent race conditions
+  const member = await db.packMember.update({
+    where: { handle },
+    data: { points: { increment: points } },
+  });
+  const newRank = getRank(member.points);
+  if (member.rank !== newRank) {
     await db.packMember.update({
       where: { handle },
-      data: { points: newPoints, rank: newRank },
+      data: { rank: newRank },
     });
   }
 }
@@ -459,37 +462,38 @@ export async function GET(request: NextRequest) {
       }
 
       case "restore_session": {
-        // Restore session by handle (from localStorage fallback)
-        // This is the Supabase-backed approach: once registered, always recognized
+        // BUG FIX: Require existing session cookie to restore session.
+        // Previously, anyone could pass any handle and get full account access.
+        // Now: must have a valid session cookie (even if expired handle mismatch),
+        // OR the handle in localStorage must match the session cookie's handle.
         const handleParam = searchParams.get("handle");
         if (!handleParam) {
           return NextResponse.json({ error: "handle is required" }, { status: 400 });
         }
         const cleanH = handleParam.replace("@", "").trim().toLowerCase();
-        const member = await db.packMember.findUnique({
-          where: { handle: cleanH },
-          include: {
-            activities: {
-              orderBy: { createdAt: "desc" },
-              take: 20,
-            },
-          },
-        });
-        if (!member) {
-          return NextResponse.json({ error: "Not registered" }, { status: 404 });
+
+        // Check if there's an existing session cookie — if so, only allow restoring the same handle
+        const existingToken = request.cookies.get(SESSION_COOKIE)?.value;
+        if (existingToken) {
+          const existingSession = await db.packMember.findUnique({
+            where: { sessionToken: existingToken },
+            select: { handle: true },
+          });
+          if (existingSession && existingSession.handle === cleanH) {
+            // Valid session — just return the member data without generating a new token
+            const member = await db.packMember.findUnique({
+              where: { handle: cleanH },
+              include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
+            });
+            const restoreReferralCount = await db.packMember.count({
+              where: { referredBy: cleanH },
+            });
+            return NextResponse.json({ member, referralCount: restoreReferralCount });
+          }
         }
-        // Generate a new session token and set cookie for next visit
-        const newToken = randomUUID();
-        await db.packMember.update({
-          where: { handle: cleanH },
-          data: { sessionToken: newToken },
-        });
-        const restoreReferralCount = await db.packMember.count({
-          where: { referredBy: cleanH },
-        });
-        const res = NextResponse.json({ member, referralCount: restoreReferralCount });
-        setSessionCookie(res, newToken);
-        return res;
+
+        // No valid session — require re-authentication via register/login
+        return NextResponse.json({ error: "Session expired. Please log in again." }, { status: 401 });
       }
 
       case "staking_stats": {
@@ -603,7 +607,8 @@ export async function POST(request: NextRequest) {
   // These run BEFORE the handle check since they operate on ALL members
   if (action === "init_airdrop") {
     const adminPwd = body.adminPassword as string | undefined;
-    if (adminPwd !== "doomhound2026") {
+    // BUG FIX: Use only env var for admin password (no hardcoded fallback)
+    if (adminPwd !== process.env.ADMIN_PASSWORD) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -639,6 +644,23 @@ export async function POST(request: NextRequest) {
 
   const cleanHandle = handle.replace("@", "").trim().toLowerCase();
 
+  // BUG FIX: Session authentication for all mutations except register and admin actions
+  // Prevents unauthenticated API abuse (anyone calling endpoints with just a handle)
+  const SESSION_AUTH_ACTIONS = ["checkin", "verify_arena", "update_staking", "claim_staking", "check_balance", "claim_meme", "process_referral", "wheel_spin"];
+  if (SESSION_AUTH_ACTIONS.includes(action)) {
+    const sessionToken = request.cookies.get(SESSION_COOKIE)?.value;
+    if (!sessionToken) {
+      return NextResponse.json({ error: "Not authenticated. Please log in again." }, { status: 401 });
+    }
+    const sessionMember = await db.packMember.findUnique({
+      where: { sessionToken },
+      select: { handle: true },
+    });
+    if (!sessionMember || sessionMember.handle !== cleanHandle) {
+      return NextResponse.json({ error: "Session mismatch. Please log in again." }, { status: 401 });
+    }
+  }
+
   try {
     switch (action) {
       // ===== REGISTER =====
@@ -652,17 +674,12 @@ export async function POST(request: NextRequest) {
             updateData.sessionToken = token;
           }
 
-          // Process referral retroactively if user has no referredBy but came via ref link
-          const rawRef = body.referral as string | undefined;
-          const cleanRef = rawRef ? rawRef.replace("@", "").trim().toLowerCase() : undefined;
-          if (cleanRef && !existing.referredBy && cleanRef !== cleanHandle) {
-            const referrer = await db.packMember.findUnique({ where: { handle: cleanRef } });
-            if (referrer) {
-              // Award referrer 75pts
-              await addActivity(cleanRef, "referral", `Recruited @${cleanHandle} to the pack!`, POINTS_CONFIG.referral.value);
-              updateData.referredBy = cleanRef;
-            }
-          }
+          // BUG FIX: Do NOT process referral retroactively for existing members.
+          // Referral is ONLY valid at the time of FIRST registration.
+          // If a user is already in the Pack, clicking someone's referral link
+          // should NOT reassign them to a different referrer.
+          // Clear any stale referral code from localStorage on the client side.
+          // (No server-side action needed — just don't set referredBy)
 
           if (Object.keys(updateData).length > 0) {
             await db.packMember.update({
@@ -960,10 +977,25 @@ export async function POST(request: NextRequest) {
         const threads = trendingData.threads || [];
         let trendingBonus = 0;
 
+        // BUG FIX: Get already-awarded trending thread IDs to prevent repeat awards
+        const awardedTrendingIds = new Set(
+          member.activities
+            .filter(a => a.type === "trending_mention" && a.description.includes("[trending:"))
+            .map(a => {
+              const match = a.description.match(/\[trending:([^\]]+)\]/);
+              return match ? match[1] : null;
+            })
+            .filter(Boolean)
+        );
+
         for (const thread of threads) {
           const content = stripHtml(thread.content || "").toLowerCase();
           const threadHandle = (thread.userHandle || "").toLowerCase();
           const communityTicker = thread.community?.ticker?.toLowerCase();
+          const threadId = thread.id;
+
+          // Skip already-awarded trending posts
+          if (threadId && awardedTrendingIds.has(threadId)) continue;
 
           const isDoomhoundPost =
             content.includes("doomhound") ||
@@ -974,7 +1006,7 @@ export async function POST(request: NextRequest) {
             trendingBonus += POINTS_CONFIG.trending_mention.value;
             verifiedActivities.push({
               type: "trending_mention",
-              description: `Your $DOOMHOUND post is trending on Arena! 🔥`,
+              description: `Your $DOOMHOUND post is trending on Arena! 🔥 [trending:${threadId}]`,
               points: POINTS_CONFIG.trending_mention.value,
             });
             break;
@@ -1366,38 +1398,11 @@ export async function POST(request: NextRequest) {
 
       // ===== LOGOUT =====
       case "process_referral": {
-        // Process a pending referral for an already-registered user
-        // Called when user visits ?ref=... but is already logged in
-        const member = await db.packMember.findUnique({ where: { handle: cleanHandle } });
-        if (!member) return NextResponse.json({ error: "Not registered" }, { status: 404 });
-
-        const rawRef = body.referral as string | undefined;
-        const cleanRef = rawRef ? rawRef.replace("@", "").trim().toLowerCase() : undefined;
-
-        if (!cleanRef || member.referredBy || cleanRef === cleanHandle) {
-          return NextResponse.json({ processed: false, reason: member.referredBy ? "Already referred" : "No ref code" });
-        }
-
-        const referrer = await db.packMember.findUnique({ where: { handle: cleanRef } });
-        if (!referrer) {
-          return NextResponse.json({ processed: false, reason: "Referrer not found" });
-        }
-
-        // Award referrer 75pts and set referredBy on the new member
-        await addActivity(cleanRef, "referral", `Recruited @${cleanHandle} to the pack!`, POINTS_CONFIG.referral.value);
-        await db.packMember.update({
-          where: { handle: cleanHandle },
-          data: { referredBy: cleanRef },
-        });
-
-        const updatedMember = await db.packMember.findUnique({
-          where: { handle: cleanHandle },
-          include: { activities: { orderBy: { createdAt: "desc" }, take: 20 } },
-        });
-        const referralCount = await db.packMember.count({
-          where: { referredBy: cleanHandle },
-        });
-        return NextResponse.json({ processed: true, member: updatedMember, referralCount });
+        // BUG FIX: Disabled retroactive referral processing for existing members.
+        // Referral is ONLY valid at the time of FIRST registration.
+        // Existing Pack members clicking a referral link must NOT be reassigned.
+        // This endpoint now simply clears the referral code without processing it.
+        return NextResponse.json({ processed: false, reason: "Referral only valid at registration" });
       }
 
       case "logout": {
@@ -1471,8 +1476,9 @@ export async function POST(request: NextRequest) {
           { label: "RE-SPIN", amount: 0, weight: 5, color: "#7C3AED", respin: true },
         ];
 
+        // BUG FIX: Use cryptographically secure random instead of Math.random()
         const totalWeight = WHEEL_SEGMENTS.reduce((sum, s) => sum + s.weight, 0);
-        let random = Math.random() * totalWeight;
+        let random = randomInt(0, totalWeight);
         let selectedSegment = WHEEL_SEGMENTS[0];
         let selectedIndex = 0;
         for (let i = 0; i < WHEEL_SEGMENTS.length; i++) {
@@ -1536,7 +1542,8 @@ export async function POST(request: NextRequest) {
       // ===== FIX REFERRAL (admin only - retroactively set referredBy) =====
       case "fix_referral": {
         const { adminPassword, handle: fixHandle, referrer } = body;
-        if (adminPassword !== process.env.ADMIN_PASSWORD && adminPassword !== "doomhound2026") {
+        // BUG FIX: Use only env var for admin password (no hardcoded fallback)
+        if (adminPassword !== process.env.ADMIN_PASSWORD) {
           return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
         if (!fixHandle || !referrer) {
