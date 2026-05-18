@@ -939,7 +939,10 @@ export async function POST(request: NextRequest) {
 
       // ===== VERIFY ARENA ACTIVITY =====
       case "verify_arena": {
-        const member = await db.packMember.findUnique({ where: { handle: cleanHandle } });
+        const member = await db.packMember.findUnique({
+          where: { handle: cleanHandle },
+          include: { activities: { orderBy: { createdAt: "desc" } } },
+        });
         if (!member) {
           return NextResponse.json({ error: "Not registered" }, { status: 404 });
         }
@@ -1019,7 +1022,7 @@ export async function POST(request: NextRequest) {
 
         // BUG FIX: Get already-awarded trending thread IDs to prevent repeat awards
         const awardedTrendingIds = new Set(
-          member.activities
+          (member.activities || [])
             .filter(a => a.type === "trending_mention" && a.description.includes("[trending:"))
             .map(a => {
               const match = a.description.match(/\[trending:([^\]]+)\]/);
