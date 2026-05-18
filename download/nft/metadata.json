@@ -1,0 +1,2844 @@
+{
+  "collection": "HOUNDS OF THE HELL",
+  "description": "69 unique Doomhound NFTs from the depths of hell",
+  "total_supply": 69,
+  "blockchain": "Avalanche",
+  "rarity_distribution": {
+    "Common": 30,
+    "Uncommon": 20,
+    "Rare": 10,
+    "Epic": 6,
+    "Legendary": 3
+  },
+  "nfts": [
+    {
+      "id": 1,
+      "name": "Hound #001 - Hellfire Volcanic",
+      "image": "001_hellfire_volcanic.png",
+      "rarity": "Common",
+      "theme": "Hellfire",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Hellfire"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Red"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Volcanic"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Curved"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Glowing"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Iron"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Burn"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Hound #002 - Hellfire Forest",
+      "image": "002_hellfire_forest.png",
+      "rarity": "Common",
+      "theme": "Hellfire",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Hellfire"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Orange"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Forest"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Twisted"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Burning"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Bronze"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Claw"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Hound #003 - Hellfire Eruption",
+      "image": "003_hellfire_eruption.png",
+      "rarity": "Common",
+      "theme": "Hellfire",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Hellfire"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Yellow"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Eruption"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Broken"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Floating"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Silver"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Blade"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Hound #004 - Hellfire Dungeon",
+      "image": "004_hellfire_dungeon.png",
+      "rarity": "Common",
+      "theme": "Hellfire",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Hellfire"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Crimson"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Dungeon"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Obsidian"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Etched"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Iron"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Burn"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Hound #005 - Hellfire Cathedral",
+      "image": "005_hellfire_cathedral.png",
+      "rarity": "Common",
+      "theme": "Hellfire",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Hellfire"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Inferno"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Cathedral"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Molten"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Glowing"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Bronze"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Claw"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Hound #006 - Bloodmoon Moor",
+      "image": "006_bloodmoon_moor.png",
+      "rarity": "Common",
+      "theme": "Blood Moon",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Blood Moon"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Blood Red"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Moor"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Bone"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ancient"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Iron"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Divine"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Hound #007 - Bloodmoon Graveyard",
+      "image": "007_bloodmoon_graveyard.png",
+      "rarity": "Common",
+      "theme": "Blood Moon",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Blood Moon"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Crimson"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Graveyard"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Curved"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Etched"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Silver"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Claw"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Hound #008 - Bloodmoon Manor",
+      "image": "008_bloodmoon_manor.png",
+      "rarity": "Common",
+      "theme": "Blood Moon",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Blood Moon"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Dark Red"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Manor"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Twisted"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Floating"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Bronze"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Blade"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Hound #009 - Bloodmoon Battlefield",
+      "image": "009_bloodmoon_battlefield.png",
+      "rarity": "Common",
+      "theme": "Blood Moon",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Blood Moon"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Burgundy"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Battlefield"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Broken"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Burning"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Iron"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Burn"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Hound #010 - Bloodmoon Altar",
+      "image": "010_bloodmoon_altar.png",
+      "rarity": "Common",
+      "theme": "Blood Moon",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Blood Moon"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Maroon"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Altar"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Obsidian"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Glowing"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Gold"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Divine"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Hound #011 - Shadow Void",
+      "image": "011_shadow_void.png",
+      "rarity": "Common",
+      "theme": "Shadow",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Shadow"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Dark Purple"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Void"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Curved"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ethereal"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Silver"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Void"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Hound #012 - Shadow Forest",
+      "image": "012_shadow_forest.png",
+      "rarity": "Common",
+      "theme": "Shadow",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Shadow"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Black Flame"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Forest"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Twisted"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Floating"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Iron"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Claw"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Hound #013 - Shadow City",
+      "image": "013_shadow_city.png",
+      "rarity": "Common",
+      "theme": "Shadow",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Shadow"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Shadow Gray"
+        },
+        {
+          "trait_type": "Background",
+          "value": "City"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Broken"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Etched"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Bronze"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Blade"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Hound #014 - Shadow Cave",
+      "image": "014_shadow_cave.png",
+      "rarity": "Common",
+      "theme": "Shadow",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Shadow"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Midnight"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Cave"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Obsidian"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ancient"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Silver"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Burn"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Hound #015 - Shadow Mirrors",
+      "image": "015_shadow_mirrors.png",
+      "rarity": "Common",
+      "theme": "Shadow",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Shadow"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Obsidian Flame"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Mirrors"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Bone"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Glowing"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Iron"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Void"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Hound #016 - Shadow Crossroads",
+      "image": "016_shadow_crossroads.png",
+      "rarity": "Common",
+      "theme": "Shadow",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Shadow"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Void Black"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Crossroads"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Molten"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ethereal"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Bronze"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Claw"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Hound #017 - Shadow Cliff",
+      "image": "017_shadow_cliff.png",
+      "rarity": "Common",
+      "theme": "Shadow",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Shadow"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Dusk"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Cliff"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Floating"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Silver"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Blade"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Hound #018 - Shadow Church",
+      "image": "018_shadow_church.png",
+      "rarity": "Common",
+      "theme": "Shadow",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Shadow"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Umbra"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Church"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Spectral"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ancient"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Iron"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Divine"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Hound #019 - Shadow Crypt",
+      "image": "019_shadow_crypt.png",
+      "rarity": "Common",
+      "theme": "Shadow",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Shadow"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Phantom"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Crypt"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Twisted"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Burning"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Gold"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Void"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Hound #020 - Shadow Portal",
+      "image": "020_shadow_portal.png",
+      "rarity": "Common",
+      "theme": "Shadow",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Shadow"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Eclipse"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Portal"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Broken"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Etched"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Platinum"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Electrical"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "name": "Hound #021 - Hellfire Bridge",
+      "image": "021_hellfire_bridge.png",
+      "rarity": "Common",
+      "theme": "Hellfire",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Hellfire"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Ember"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Bridge"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Curved"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Burning"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Gold"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Claw"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Hound #022 - Hellfire Forge",
+      "image": "022_hellfire_forge.png",
+      "rarity": "Common",
+      "theme": "Hellfire",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Hellfire"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Magma"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Forge"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Twisted"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Glowing"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Platinum"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Burn"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "name": "Hound #023 - Hellfire Desert",
+      "image": "023_hellfire_desert.png",
+      "rarity": "Common",
+      "theme": "Hellfire",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Hellfire"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Blaze"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Desert"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Molten"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Floating"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Blade"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "name": "Hound #024 - Bloodmoon Ruins",
+      "image": "024_bloodmoon_ruins.png",
+      "rarity": "Common",
+      "theme": "Blood Moon",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Blood Moon"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Sanguine"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Ruins"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Floating"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Platinum"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Claw"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "name": "Hound #025 - Bloodmoon Riverbed",
+      "image": "025_bloodmoon_riverbed.png",
+      "rarity": "Common",
+      "theme": "Blood Moon",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Blood Moon"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Carmine"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Riverbed"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Bone"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Burning"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Blade"
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "name": "Hound #026 - Bloodmoon Circus",
+      "image": "026_bloodmoon_circus.png",
+      "rarity": "Common",
+      "theme": "Blood Moon",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Blood Moon"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Ruby"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Circus"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Spectral"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ethereal"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Bone"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Divine"
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "name": "Hound #027 - Hellfire Colosseum",
+      "image": "027_hellfire_colosseum.png",
+      "rarity": "Common",
+      "theme": "Hellfire",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Hellfire"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Scarlet"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Colosseum"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Broken"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ancient"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Silver"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Burn"
+        }
+      ]
+    },
+    {
+      "id": 28,
+      "name": "Hound #028 - Hellfire Pit",
+      "image": "028_hellfire_pit.png",
+      "rarity": "Common",
+      "theme": "Hellfire",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Hellfire"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Solar"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Pit"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Obsidian"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Floating"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Gold"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Claw"
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "name": "Hound #029 - Bloodmoon Lake",
+      "image": "029_bloodmoon_lake.png",
+      "rarity": "Common",
+      "theme": "Blood Moon",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Blood Moon"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Garnet"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Lake"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Glowing"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Bronze"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Blade"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "name": "Hound #030 - Shadow Realm",
+      "image": "030_shadow_realm.png",
+      "rarity": "Common",
+      "theme": "Shadow",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Common"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Shadow"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Nether"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Realm"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Golden"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Burning"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Platinum"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Void"
+        }
+      ]
+    },
+    {
+      "id": 31,
+      "name": "Hound #031 - Frost Tundra",
+      "image": "031_frost_tundra.png",
+      "rarity": "Uncommon",
+      "theme": "Frost",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Frost"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Blue"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Tundra"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Curved"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Frozen"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Silver"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Frostbite"
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "name": "Hound #032 - Frost Cavern",
+      "image": "032_frost_cavern.png",
+      "rarity": "Uncommon",
+      "theme": "Frost",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Frost"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "White"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Cavern"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Frozen"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Frostbite"
+        }
+      ]
+    },
+    {
+      "id": 33,
+      "name": "Hound #033 - Frost Lake",
+      "image": "033_frost_lake.png",
+      "rarity": "Uncommon",
+      "theme": "Frost",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Frost"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Ice"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Lake"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Twisted"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Etched"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Platinum"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Blade"
+        }
+      ]
+    },
+    {
+      "id": 34,
+      "name": "Hound #034 - Frost Ship",
+      "image": "034_frost_ship.png",
+      "rarity": "Uncommon",
+      "theme": "Frost",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Frost"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Arctic"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Ship"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Broken"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Glowing"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Silver"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Frostbite"
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "name": "Hound #035 - Frost Castle",
+      "image": "035_frost_castle.png",
+      "rarity": "Uncommon",
+      "theme": "Frost",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Frost"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Frostbite"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Castle"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Bone"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Floating"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Gold"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Claw"
+        }
+      ]
+    },
+    {
+      "id": 36,
+      "name": "Hound #036 - Frost Glacier",
+      "image": "036_frost_glacier.png",
+      "rarity": "Uncommon",
+      "theme": "Frost",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Frost"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Pale Blue"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Glacier"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Obsidian"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ancient"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Divine"
+        }
+      ]
+    },
+    {
+      "id": 37,
+      "name": "Hound #037 - Frost Battlefield",
+      "image": "037_frost_battlefield.png",
+      "rarity": "Uncommon",
+      "theme": "Frost",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Frost"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Glacial"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Battlefield"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Molten"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Frozen"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Platinum"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Blade"
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "name": "Hound #038 - Toxic Wasteland",
+      "image": "038_toxic_wasteland.png",
+      "rarity": "Uncommon",
+      "theme": "Toxic",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Toxic"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Acid Green"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Wasteland"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Curved"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Burning"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Iron"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Acid"
+        }
+      ]
+    },
+    {
+      "id": 39,
+      "name": "Hound #039 - Toxic Nuclear",
+      "image": "039_toxic_nuclear.png",
+      "rarity": "Uncommon",
+      "theme": "Toxic",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Toxic"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Toxic Yellow"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Nuclear"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Twisted"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Glowing"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Bronze"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Acid"
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "name": "Hound #040 - Toxic Chemical",
+      "image": "040_toxic_chemical.png",
+      "rarity": "Uncommon",
+      "theme": "Toxic",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Toxic"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Radioactive Green"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Chemical"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Broken"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Floating"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Silver"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Burn"
+        }
+      ]
+    },
+    {
+      "id": 41,
+      "name": "Hound #041 - Toxic Swamp",
+      "image": "041_toxic_swamp.png",
+      "rarity": "Uncommon",
+      "theme": "Toxic",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Toxic"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Neon Green"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Swamp"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Bone"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Etched"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Bone"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Acid"
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "name": "Hound #042 - Toxic Sewers",
+      "image": "042_toxic_sewers.png",
+      "rarity": "Uncommon",
+      "theme": "Toxic",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Toxic"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Bile"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Sewers"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Burning"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Iron"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Claw"
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "name": "Hound #043 - Toxic Lab",
+      "image": "043_toxic_lab.png",
+      "rarity": "Uncommon",
+      "theme": "Toxic",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Toxic"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Venom"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Lab"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Obsidian"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ancient"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Bronze"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Acid"
+        }
+      ]
+    },
+    {
+      "id": 44,
+      "name": "Hound #044 - Toxic Rain",
+      "image": "044_toxic_rain.png",
+      "rarity": "Uncommon",
+      "theme": "Toxic",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Toxic"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Chartreuse"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Rain"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Molten"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Floating"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Silver"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Electrical"
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "name": "Hound #045 - Storm Thunder",
+      "image": "045_storm_thunder.png",
+      "rarity": "Uncommon",
+      "theme": "Storm",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Storm"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Lightning Blue"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Thunder"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Curved"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Glowing"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Silver"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Electrical"
+        }
+      ]
+    },
+    {
+      "id": 46,
+      "name": "Hound #046 - Storm Hurricane",
+      "image": "046_storm_hurricane.png",
+      "rarity": "Uncommon",
+      "theme": "Storm",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Storm"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Electric White"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Hurricane"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Twisted"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Floating"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Platinum"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Electrical"
+        }
+      ]
+    },
+    {
+      "id": 47,
+      "name": "Hound #047 - Storm Grid",
+      "image": "047_storm_grid.png",
+      "rarity": "Uncommon",
+      "theme": "Storm",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Storm"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Storm Gray"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Grid"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Broken"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Etched"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Gold"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Burn"
+        }
+      ]
+    },
+    {
+      "id": 48,
+      "name": "Hound #048 - Storm Tesla",
+      "image": "048_storm_tesla.png",
+      "rarity": "Uncommon",
+      "theme": "Storm",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Storm"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Plasma"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Tesla"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Glowing"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Silver"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Electrical"
+        }
+      ]
+    },
+    {
+      "id": 49,
+      "name": "Hound #049 - Storm Peak",
+      "image": "049_storm_peak.png",
+      "rarity": "Uncommon",
+      "theme": "Storm",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Storm"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Voltaic"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Peak"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Obsidian"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Burning"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Platinum"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Blade"
+        }
+      ]
+    },
+    {
+      "id": 50,
+      "name": "Hound #050 - Storm Tornado",
+      "image": "050_storm_tornado.png",
+      "rarity": "Uncommon",
+      "theme": "Storm",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Uncommon"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Storm"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Thunder"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Tornado"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Molten"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Frozen"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Gold"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Divine"
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "name": "Hound #051 - Cyber Neon",
+      "image": "051_cyber_neon.png",
+      "rarity": "Rare",
+      "theme": "Cyberpunk",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Rare"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Cyberpunk"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Neon Pink"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Neon"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Curved"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Digital"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Neon"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Electrical"
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "name": "Hound #052 - Cyber Matrix",
+      "image": "052_cyber_matrix.png",
+      "rarity": "Rare",
+      "theme": "Cyberpunk",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Rare"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Cyberpunk"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Neon Green"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Matrix"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Twisted"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Digital"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Neon"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Void"
+        }
+      ]
+    },
+    {
+      "id": 53,
+      "name": "Hound #053 - Cyber Mech",
+      "image": "053_cyber_mech.png",
+      "rarity": "Rare",
+      "theme": "Cyberpunk",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Rare"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Cyberpunk"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Neon Blue"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Mech"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Broken"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Digital"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Neon"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Acid"
+        }
+      ]
+    },
+    {
+      "id": 54,
+      "name": "Hound #054 - Cyber Rooftop",
+      "image": "054_cyber_rooftop.png",
+      "rarity": "Rare",
+      "theme": "Cyberpunk",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Rare"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Cyberpunk"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Glitch"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Rooftop"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Obsidian"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Digital"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Neon"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Blade"
+        }
+      ]
+    },
+    {
+      "id": 55,
+      "name": "Hound #055 - Cosmic Nebula",
+      "image": "055_cosmic_nebula.png",
+      "rarity": "Rare",
+      "theme": "Cosmic",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Rare"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Cosmic"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Purple"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Nebula"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Cosmic"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Platinum"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Divine"
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "name": "Hound #056 - Cosmic Planet",
+      "image": "056_cosmic_planet.png",
+      "rarity": "Rare",
+      "theme": "Cosmic",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Rare"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Cosmic"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Gold"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Planet"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Spectral"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Cosmic"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Void"
+        }
+      ]
+    },
+    {
+      "id": 57,
+      "name": "Hound #057 - Cosmic Blackhole",
+      "image": "057_cosmic_blackhole.png",
+      "rarity": "Rare",
+      "theme": "Cosmic",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Rare"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Cosmic"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Starlight"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Blackhole"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Golden"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Cosmic"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Platinum"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Burn"
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "name": "Hound #058 - Void Abyss",
+      "image": "058_void_abyss.png",
+      "rarity": "Rare",
+      "theme": "Void",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Rare"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Void"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Void Purple"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Abyss"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Curved"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ethereal"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Void"
+        }
+      ]
+    },
+    {
+      "id": 59,
+      "name": "Hound #059 - Void Rift",
+      "image": "059_void_rift.png",
+      "rarity": "Rare",
+      "theme": "Void",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Rare"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Void"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Abyssal Black"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Rift"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Twisted"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ethereal"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Spectral"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Electrical"
+        }
+      ]
+    },
+    {
+      "id": 60,
+      "name": "Hound #060 - Void Entropy",
+      "image": "060_void_entropy.png",
+      "rarity": "Rare",
+      "theme": "Void",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Rare"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Void"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Dark Matter"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Entropy"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Spectral"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ethereal"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Blade"
+        }
+      ]
+    },
+    {
+      "id": 61,
+      "name": "Hound #061 - Medieval Castle",
+      "image": "061_medieval_castle.png",
+      "rarity": "Epic",
+      "theme": "Medieval",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Epic"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Medieval"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Torch Orange"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Castle"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Curved"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ancient"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Gold"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Blade"
+        }
+      ]
+    },
+    {
+      "id": 62,
+      "name": "Hound #062 - Medieval Siege",
+      "image": "062_medieval_siege.png",
+      "rarity": "Epic",
+      "theme": "Medieval",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Epic"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Medieval"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Ember"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Siege"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Twisted"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ancient"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Platinum"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Claw"
+        }
+      ]
+    },
+    {
+      "id": 63,
+      "name": "Hound #063 - Underworld Gate",
+      "image": "063_underworld_gate.png",
+      "rarity": "Epic",
+      "theme": "Underworld",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Epic"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Underworld"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Hellfire Red"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Gate"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Bone"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Burning"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Gold"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Divine"
+        }
+      ]
+    },
+    {
+      "id": 64,
+      "name": "Hound #064 - Underworld River",
+      "image": "064_underworld_river.png",
+      "rarity": "Epic",
+      "theme": "Underworld",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Epic"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Underworld"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Brimstone"
+        },
+        {
+          "trait_type": "Background",
+          "value": "River"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Molten"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Burning"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Platinum"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Acid"
+        }
+      ]
+    },
+    {
+      "id": 65,
+      "name": "Hound #065 - Plague Town",
+      "image": "065_plague_town.png",
+      "rarity": "Epic",
+      "theme": "Plague",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Epic"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Plague"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Sickly Green"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Town"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Broken"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ghostly"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Bone"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Acid"
+        }
+      ]
+    },
+    {
+      "id": 66,
+      "name": "Hound #066 - Plague Grave",
+      "image": "066_plague_grave.png",
+      "rarity": "Epic",
+      "theme": "Plague",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Epic"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Plague"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Decay"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Grave"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Spectral"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ghostly"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Bone"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Divine"
+        }
+      ]
+    },
+    {
+      "id": 67,
+      "name": "Hound #067 - Legendary Diamond",
+      "image": "067_legendary_diamond.png",
+      "rarity": "Legendary",
+      "theme": "Diamond",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Legendary"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Diamond"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Crystalline White"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Diamond"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ethereal"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Crystal"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Divine"
+        }
+      ]
+    },
+    {
+      "id": 68,
+      "name": "Hound #068 - Legendary Golden",
+      "image": "068_legendary_golden.png",
+      "rarity": "Legendary",
+      "theme": "Golden",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Legendary"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Golden"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Golden Flame"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Golden"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Golden"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Glowing"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Gold"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Divine"
+        }
+      ]
+    },
+    {
+      "id": 69,
+      "name": "Hound #069 - Legendary Ghost",
+      "image": "069_legendary_ghost.png",
+      "rarity": "Legendary",
+      "theme": "Ghost",
+      "attributes": [
+        {
+          "trait_type": "Rarity",
+          "value": "Legendary"
+        },
+        {
+          "trait_type": "Theme",
+          "value": "Ghost"
+        },
+        {
+          "trait_type": "Flame Color",
+          "value": "Spectral Blue"
+        },
+        {
+          "trait_type": "Background",
+          "value": "Ghost"
+        },
+        {
+          "trait_type": "Horn Type",
+          "value": "Spectral"
+        },
+        {
+          "trait_type": "Pentagram Style",
+          "value": "Ghostly"
+        },
+        {
+          "trait_type": "Collar Type",
+          "value": "Spectral"
+        },
+        {
+          "trait_type": "Scar Type",
+          "value": "Void"
+        }
+      ]
+    }
+  ]
+}
