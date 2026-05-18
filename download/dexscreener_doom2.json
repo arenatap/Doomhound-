@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://dexscreener.com",
+    "name": "DEX Screener",
+    "snippet": "Realtime price charts and trading history on DEXes across Ethereum, BSC, Polygon, Avalanche, Fantom, Harmony, Cronos, Arbitrum, Optimism and more.",
+    "host_name": "dexscreener.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dexscreener.com/ethereum/0x26b73e77f7b2cfc05d28a8978b917eced1cdf7915862292cfbb507731d5120fd",
+    "name": "18 BUX110% 6h - DEX Screener",
+    "snippet": "Realtime price charts and trading history on DEXes across Ethereum, BSC, Polygon, Avalanche, Fantom, Harmony, Cronos, Arbitrum, Optimism and more.",
+    "host_name": "dexscreener.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dexscreener.com/ethereum/0xf4725f691981ec64445f8699ea942b931e2dd56e",
+    "name": "HOUND / WETH on Ethereum / Uniswap - DEX Screener",
+    "snippet": "HOUND (HOUND) realtime price charts, trading history and info - HOUND / WETH on Ethereum / Uniswap.",
+    "host_name": "dexscreener.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dexscreener.com/base/0x8d20c12e690db6bed5970f1d31872bf387fae743",
+    "name": "BaseHoundBot by Virtuals / VIRTUAL on Base / Uniswap",
+    "snippet": "BaseHoundBot by Virtuals ($HOUND) realtime price charts, trading history and info - $HOUND / VIRTUAL on Base / Uniswap.",
+    "host_name": "dexscreener.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dexscreener.com/solana/84nbd3gefeaixc9lp3pquuomxzbccwshgkejez49mxqt",
+    "name": "DOOM / SOL on Solana / Raydium - DexScreener",
+    "snippet": "DOOM (DOOM) realtime price charts, trading history and info - DOOM / SOL on Solana / Raydium.",
+    "host_name": "dexscreener.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://dexscreener.com",
+    "name": "DEX Screener",
+    "snippet": "Realtime price charts and trading history on DEXes across Ethereum, BSC, Polygon, Avalanche, Fantom, Harmony, Cronos, Arbitrum, Optimism and more.",
+    "host_name": "dexscreener.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dexscreener.com/avalanche",
+    "name": "Avalanche DEX Screener",
+    "snippet": "Realtime Avalanche price charts and trading history.",
+    "host_name": "dexscreener.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://marketplace.dexscreener.com/product/token-info",
+    "name": "Enhanced Token Info - DEX Screener Marketplace",
+    "snippet": "Quickly update your DEX Screener token page with accurate and up-to-date info and socials.",
+    "host_name": "marketplace.dexscreener.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dexscreener.com/avalanchedfk",
+    "name": "Avalanche DFK DEX Screener",
+    "snippet": "Realtime Avalanche DFK price charts and trading history.",
+    "host_name": "dexscreener.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://www.antiersolutions.com/blogs/mastering-dex-analytics-a-complete-guide-to-dex-screener-development-in-2025",
+    "name": "How To Create a High-Performance DEX Screener in 2025?",
+    "snippet": "Discover how to create a high-performance DEX screener with advanced analytics, multi-chain integration, and real-time insights.",
+    "host_name": "www.antiersolutions.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]

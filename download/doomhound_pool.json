@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://www.geckoterminal.com/avax/pools",
+    "name": "Top Avalanche Pools Trending Today - GeckoTerminal",
+    "snippet": "The number of transactions in the last 24 hours on Avalanche is 246.66K with a trading volume of $72.48M, a +48.33% change as compared to yesterday.",
+    "host_name": "www.geckoterminal.com",
+    "rank": 0,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dexscreener.com/avalanche",
+    "name": "Avalanche DEX Screener",
+    "snippet": "Realtime Avalanche price charts and trading history.",
+    "host_name": "dexscreener.com",
+    "rank": 1,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dexscreener.com/avalanche/0x980db2246f1a12a5568cefb1fc85682062184751",
+    "name": "DEX Screener",
+    "snippet": "Realtime price charts and trading history on DEXes across Ethereum, BSC, Polygon, Avalanche, Fantom, Harmony, Cronos, Arbitrum, Optimism and more.",
+    "host_name": "dexscreener.com",
+    "rank": 2,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dexscreener.com/avalanchedfk",
+    "name": "Avalanche DFK DEX Screener",
+    "snippet": "Realtime Avalanche DFK price charts and trading history.",
+    "host_name": "dexscreener.com",
+    "rank": 3,
+    "date": "",
+    "favicon": ""
+  },
+  {
+    "url": "https://dexscreener.com/polygon/0x83af3ec743869d72d6d334d95d188ca5d82da1f3",
+    "name": "AVAX $171.61K - Avalanche Token / USDC on Polygon / QuickSwap",
+    "snippet": "Avalanche Token (AVAX) realtime price charts, trading history and info - AVAX / USDC on Polygon / QuickSwap.",
+    "host_name": "dexscreener.com",
+    "rank": 4,
+    "date": "",
+    "favicon": ""
+  }
+]
