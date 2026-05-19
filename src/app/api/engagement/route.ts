@@ -37,11 +37,11 @@ function generateReferralCode(handle: string): string {
 
 // ===== DEFAULT MISSIONS =====
 const DEFAULT_MISSIONS = [
-  { missionId: "M01", name: "Retweet Ufficiale", description: "Retweet di un post ufficiale @DoomhoundAVAX", points: 2, cooldownHours: 24, maxLifetime: null },
-  { missionId: "M02", name: "Tag 3 Amici", description: "Tagga 3 utenti reali sotto un post ufficiale", points: 3, cooldownHours: 48, maxLifetime: 10 },
-  { missionId: "M03", name: "Crea un Meme", description: "Crea e posta un meme $DOOMHOUND con hashtag ufficiale", points: 5, cooldownHours: 72, maxLifetime: 20 },
-  { missionId: "M04", name: "Discord Attivo", description: "Invia almeno 10 messaggi in un canale ufficiale Discord", points: 3, cooldownHours: 24, maxLifetime: null },
-  { missionId: "M05", name: "Invita su Discord", description: "Un nuovo utente entra nel Discord tramite il tuo invito", points: 2, cooldownHours: 0, maxLifetime: 50 },
+  { missionId: "M01", name: "Official Retweet", description: "Retweet an official @DoomhoundAVAX post", points: 2, cooldownHours: 24, maxLifetime: null },
+  { missionId: "M02", name: "Tag 3 Friends", description: "Tag 3 real users under an official post", points: 3, cooldownHours: 48, maxLifetime: 10 },
+  { missionId: "M03", name: "Create a Meme", description: "Create and post a $DOOMHOUND meme with the official hashtag", points: 5, cooldownHours: 72, maxLifetime: 20 },
+  { missionId: "M04", name: "Active on Discord", description: "Send at least 10 messages in an official Discord channel", points: 3, cooldownHours: 24, maxLifetime: null },
+  { missionId: "M05", name: "Discord Invite", description: "A new user joins Discord via your invite", points: 2, cooldownHours: 0, maxLifetime: 50 },
 ];
 
 async function ensureMissionsExist() {
