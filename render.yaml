@@ -14,7 +14,7 @@ services:
       - key: HOSTNAME
         value: 0.0.0.0
       - key: DATABASE_URL
-        sync: false
+        value: file:./data/doomhound.db
       - key: ARENA_API_KEY
         sync: false
       - key: DOOMHOUND_CONTRACT

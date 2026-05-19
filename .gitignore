@@ -59,6 +59,7 @@ server.log
 
 # Local SQLite database
 /db/
+/data/
 *.db
 *.db-journal
 src/.next
