@@ -70,7 +70,7 @@ function generateReferralCode(handle: string): string {
 const DEFAULT_MISSIONS = [
   { missionId: "M01", name: "Community Post", description: "Post about $DOOMHOUND in the Arena community", points: 2, cooldownHours: 2, maxLifetime: null },
   { missionId: "M02", name: "Tag 3 Pack Members", description: "Tag 3 real users in an Arena post about $DOOMHOUND", points: 3, cooldownHours: 2, maxLifetime: 10 },
-  { missionId: "M03", name: "Create a Meme", description: "Create and post a $DOOMHOUND meme on Arena with the official hashtag", points: 5, cooldownHours: 2, maxLifetime: 20 },
+  { missionId: "M03", name: "Create a Meme", description: "Post a $DOOMHOUND meme on Arena with an image and the official hashtag", points: 5, cooldownHours: 2, maxLifetime: 20 },
   { missionId: "M04", name: "Engage with Official", description: "Like and reply to an official $DOOMHOUND Arena post", points: 3, cooldownHours: 2, maxLifetime: null },
   { missionId: "M05", name: "Share Referral Link", description: "Share your $DOOMHOUND referral link on Arena", points: 2, cooldownHours: 2, maxLifetime: 50 },
 ];
@@ -205,6 +205,27 @@ function countMentions(thread: any): number {
 function containsReferralLink(thread: any): boolean {
   const content = stripHtml(thread.content || "").toLowerCase();
   return content.includes("doomhound.onrender.com") || content.includes("doomhound.fun");
+}
+
+// Check if a thread contains an image (for Meme mission)
+function hasImage(thread: any): boolean {
+  // Arena API returns an "images" array on each thread
+  // Posts with images have threadType: "text_media" and images: [{url, width, height, ...}]
+  // Posts without images have threadType: "text" and images: []
+  const images = thread.images;
+  if (Array.isArray(images) && images.length > 0) {
+    return true;
+  }
+  // Fallback: check threadType
+  if (thread.threadType === "text_media") {
+    return true;
+  }
+  // Also check content for <img> tags (some edge cases)
+  const content = thread.content || "";
+  if (content.includes("<img")) {
+    return true;
+  }
+  return false;
 }
 
 // ===== TIMEZONE HELPERS =====
@@ -370,10 +391,15 @@ export async function POST(request: NextRequest) {
         }
 
         case "M03": {
-          // Create a Meme: must be $DOOMHOUND related (community post or mentions $DOOMHOUND)
+          // Create a Meme: must be $DOOMHOUND related AND contain an image
           if (!isDoomhoundRelated(thread)) {
             return NextResponse.json({
               error: "This post doesn't mention $DOOMHOUND. Create a meme about $DOOMHOUND on Arena!",
+            }, { status: 400 });
+          }
+          if (!hasImage(thread)) {
+            return NextResponse.json({
+              error: "A meme must include an image! Your post has no image attached. Add an image to your meme post on Arena.",
             }, { status: 400 });
           }
           break;
