@@ -68,11 +68,11 @@ function generateReferralCode(handle: string): string {
 // ===== DEFAULT MISSIONS =====
 // All missions require Arena post URL as proof and are verified via The Arena API.
 const DEFAULT_MISSIONS = [
-  { missionId: "M01", name: "Community Post", description: "Post about $DOOMHOUND in the Arena community", points: 2, cooldownHours: 24, maxLifetime: null },
-  { missionId: "M02", name: "Tag 3 Pack Members", description: "Tag 3 real users in an Arena post about $DOOMHOUND", points: 3, cooldownHours: 48, maxLifetime: 10 },
-  { missionId: "M03", name: "Create a Meme", description: "Create and post a $DOOMHOUND meme on Arena with the official hashtag", points: 5, cooldownHours: 72, maxLifetime: 20 },
-  { missionId: "M04", name: "Engage with Official", description: "Like and reply to an official $DOOMHOUND Arena post", points: 3, cooldownHours: 24, maxLifetime: null },
-  { missionId: "M05", name: "Share Referral Link", description: "Share your $DOOMHOUND referral link on Arena", points: 2, cooldownHours: 0, maxLifetime: 50 },
+  { missionId: "M01", name: "Community Post", description: "Post about $DOOMHOUND in the Arena community", points: 2, cooldownHours: 2, maxLifetime: null },
+  { missionId: "M02", name: "Tag 3 Pack Members", description: "Tag 3 real users in an Arena post about $DOOMHOUND", points: 3, cooldownHours: 2, maxLifetime: 10 },
+  { missionId: "M03", name: "Create a Meme", description: "Create and post a $DOOMHOUND meme on Arena with the official hashtag", points: 5, cooldownHours: 2, maxLifetime: 20 },
+  { missionId: "M04", name: "Engage with Official", description: "Like and reply to an official $DOOMHOUND Arena post", points: 3, cooldownHours: 2, maxLifetime: null },
+  { missionId: "M05", name: "Share Referral Link", description: "Share your $DOOMHOUND referral link on Arena", points: 2, cooldownHours: 2, maxLifetime: 50 },
 ];
 
 async function ensureMissionsExist() {
