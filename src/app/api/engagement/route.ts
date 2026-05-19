@@ -263,7 +263,7 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      return NextResponse.json({ referralCode: code, referralLink: `https://doomhound.fun/pack?ref=${code}` });
+      return NextResponse.json({ referralCode: code, referralLink: `https://doomhound.onrender.com/pack?ref=${code}` });
     }
 
     // ===== REFERRAL: register_referral =====
@@ -418,7 +418,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         referralCode: code,
-        referralLink: `https://doomhound.fun/pack?ref=${code}`,
+        referralLink: `https://doomhound.onrender.com/pack?ref=${code}`,
         totalReferrals: referrals.length,
         activeReferralsForPoints: member.referralCount,
         maxReferrals: 50,
