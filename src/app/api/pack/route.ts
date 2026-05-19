@@ -41,6 +41,26 @@ const STAKING_TIERS = [
   { minBalance: 1_000_000,   tier: "bronze",  emoji: "🥉", label: "Bronze",  ptsPerDay: 3,  apy: 3  },
 ];
 
+// ===== STAKING BOOST SYSTEM =====
+// Reads from DaoSettings: "staking_boost" = JSON { multiplier, endsAt, label }
+// e.g. { "multiplier": 2, "endsAt": "2026-05-25T00:00:00Z", "label": "2X STAKING BOOST" }
+async function getStakingBoost(): Promise<{ multiplier: number; endsAt: string; label: string } | null> {
+  try {
+    const setting = await db.daoSettings.findUnique({ where: { key: "staking_boost" } });
+    if (!setting) return null;
+    const boost = JSON.parse(setting.value);
+    // Check if boost has expired
+    if (boost.endsAt && new Date(boost.endsAt) <= new Date()) {
+      // Auto-expire the boost
+      await db.daoSettings.update({ where: { key: "staking_boost" }, data: { value: "expired" } });
+      return null;
+    }
+    return boost;
+  } catch {
+    return null;
+  }
+}
+
 function getStakingTier(balance: number) {
   return STAKING_TIERS.find((t) => balance >= t.minBalance) || null;
 }
@@ -134,7 +154,14 @@ async function autoUpdateStaking(handle: string): Promise<{
     rewardedDays = Math.max(0, dayDiff);
     if (rewardedDays > 0) {
       const oldTierInfo = STAKING_TIERS.find(t => t.tier === oldTier);
-      const rate = oldTierInfo ? oldTierInfo.ptsPerDay : 0;
+      let rate = oldTierInfo ? oldTierInfo.ptsPerDay : 0;
+
+      // Apply staking boost multiplier if active
+      const boost = await getStakingBoost();
+      if (boost && boost.multiplier > 1) {
+        rate = Math.ceil(rate * boost.multiplier);
+      }
+
       newPending += rate * rewardedDays;
     }
   }

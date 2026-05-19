@@ -72,10 +72,29 @@ export function StakingSection({ member, onRewardClaimed }: StakingSectionProps)
   const [claimResult, setClaimResult] = useState<{ claimedReward: number; stakingTier: string } | null>(null);
   const [stats, setStats] = useState<StakingStats | null>(null);
   const [showStats, setShowStats] = useState(false);
+  const [activeBoost, setActiveBoost] = useState<{ multiplier: number; endsAt: string; label: string } | null>(null);
 
   const tierInfo = getStakingTierInfo(member.stakingTier);
   const hasStake = member.stakingTier !== "none" && member.stakedAmount > 0;
   const hasPendingReward = member.pendingStakingReward > 0;
+
+  // Check for active staking boost
+  useEffect(() => {
+    const checkBoost = async () => {
+      try {
+        const res = await fetch("/api/dao?action=settings");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.activeBoost) {
+            setActiveBoost(data.activeBoost);
+          }
+        }
+      } catch {}
+    };
+    checkBoost();
+    const interval = setInterval(checkBoost, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Auto-update staking on mount (reads on-chain balance, updates tier)
   useEffect(() => {
@@ -153,6 +172,32 @@ export function StakingSection({ member, onRewardClaimed }: StakingSectionProps)
           </button>
         </div>
 
+        {/* Staking Boost Banner */}
+        {activeBoost && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-4 bg-gradient-to-r from-orange-900/40 to-yellow-900/40 border border-orange-500/50 rounded-lg p-3 text-center"
+          >
+            <p className="text-orange-400 font-bold text-sm animate-pulse">
+              ⚡ {activeBoost.label} ⚡
+            </p>
+            <p className="text-yellow-300 text-xs mt-1">
+              {activeBoost.multiplier}x staking rewards for {(() => {
+                const diff = new Date(activeBoost.endsAt).getTime() - Date.now();
+                const days = Math.floor(diff / 86400000);
+                const hours = Math.floor((diff % 86400000) / 3600000);
+                return days > 0 ? `${days}d ${hours}h` : `${hours}h`;
+              })()} more
+            </p>
+            {tierInfo && (
+              <p className="text-green-400 text-[10px] mt-1">
+                Your {tierInfo.label}: {tierInfo.ptsPerDay} → <span className="font-bold">{Math.ceil(tierInfo.ptsPerDay * activeBoost.multiplier)} pts/day</span>
+              </p>
+            )}
+          </motion.div>
+        )}
+
         <AnimatePresence mode="wait">
           {!showStats ? (
             <motion.div key="my-stake" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
@@ -178,7 +223,10 @@ export function StakingSection({ member, onRewardClaimed }: StakingSectionProps)
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-500 text-xs uppercase tracking-wider">Daily Reward</span>
-                      <span className="text-yellow-400 font-bold text-sm sm:text-base">{tierInfo?.ptsPerDay || 0} pts/day</span>
+                      <span className="text-yellow-400 font-bold text-sm sm:text-base">
+                        {activeBoost ? Math.ceil(tierInfo.ptsPerDay * activeBoost.multiplier) : tierInfo?.ptsPerDay || 0} pts/day
+                        {activeBoost && <span className="text-orange-400 text-[10px] ml-1">({activeBoost.multiplier}x BOOST!)</span>}
+                      </span>
                     </div>
                     {member.lastStakingUpdate && (
                       <div className="flex items-center justify-between">

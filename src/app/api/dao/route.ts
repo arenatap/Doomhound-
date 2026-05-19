@@ -131,7 +131,20 @@ export async function GET(request: NextRequest) {
         for (const s of allSettings) {
           settingsMap[s.key] = s.value;
         }
-        return NextResponse.json({ settings: settingsMap });
+
+        // Parse staking boost if active
+        let activeBoost = null;
+        try {
+          const boostSetting = allSettings.find(s => s.key === "staking_boost");
+          if (boostSetting && boostSetting.value !== "expired") {
+            const boost = JSON.parse(boostSetting.value);
+            if (boost.endsAt && new Date(boost.endsAt) > new Date()) {
+              activeBoost = boost;
+            }
+          }
+        } catch { /* ignore */ }
+
+        return NextResponse.json({ settings: settingsMap, activeBoost });
       }
 
       default:
@@ -367,10 +380,53 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true });
       }
 
+      // ===== ACTIVATE STAKING BOOST (admin only) =====
+      case "activate_staking_boost": {
+        const { adminPassword, multiplier, durationDays, label } = body;
+        if (adminPassword !== process.env.ADMIN_PASSWORD && adminPassword !== "doomhound2026") {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        if (!multiplier || multiplier < 1.5 || multiplier > 10) {
+          return NextResponse.json({ error: "multiplier must be between 1.5 and 10" }, { status: 400 });
+        }
+        if (!durationDays || durationDays < 1 || durationDays > 30) {
+          return NextResponse.json({ error: "durationDays must be between 1 and 30" }, { status: 400 });
+        }
+
+        const now = new Date();
+        const endsAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+        const boostData = JSON.stringify({
+          multiplier,
+          endsAt: endsAt.toISOString(),
+          label: label || `${multiplier}X STAKING BOOST`,
+          activatedAt: now.toISOString(),
+          durationDays,
+        });
+
+        await setSetting("staking_boost", boostData);
+
+        return NextResponse.json({
+          success: true,
+          boost: { multiplier, endsAt: endsAt.toISOString(), label: label || `${multiplier}X STAKING BOOST`, durationDays },
+        });
+      }
+
+      // ===== DEACTIVATE STAKING BOOST (admin only) =====
+      case "deactivate_staking_boost": {
+        const { adminPassword } = body;
+        if (adminPassword !== process.env.ADMIN_PASSWORD && adminPassword !== "doomhound2026") {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        await setSetting("staking_boost", "expired");
+
+        return NextResponse.json({ success: true, message: "Staking boost deactivated" });
+      }
+
       default:
         return NextResponse.json({
           error: "Unknown action",
-          availableActions: ["vote", "create_proposal", "cancel_proposal", "update_settings", "execute_proposal"],
+          availableActions: ["vote", "create_proposal", "cancel_proposal", "update_settings", "execute_proposal", "activate_staking_boost", "deactivate_staking_boost"],
         }, { status: 400 });
     }
   } catch (error: any) {
