@@ -5,7 +5,7 @@ services:
     plan: free
     region: frankfurt
     buildCommand: npm install && npx prisma generate && npx prisma db push --accept-data-loss && npm run build
-    startCommand: NODE_ENV=production node .next/standalone/server.js
+    startCommand: next start -H 0.0.0.0 -p 10000
     envVars:
       - key: NODE_ENV
         value: production
