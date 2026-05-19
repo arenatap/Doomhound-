@@ -156,6 +156,42 @@ async function autoUpdateStaking(handle: string): Promise<{
     },
   });
 
+  // Auto-trigger referral stake bonus: if this member just gained a staking tier
+  // and was referred by someone, award +10 pts to their referrer (once per referral)
+  if (tierGained && member.referredBy) {
+    try {
+      const referralRecord = await db.referralRecord.findFirst({
+        where: { refereeHandle: handle },
+      });
+      if (referralRecord && !referralRecord.stakeBonusAwarded) {
+        const referrer = await db.packMember.findUnique({ where: { handle: referralRecord.referrerHandle } });
+        if (referrer) {
+          // Award +10 bonus to referrer
+          await db.activityLog.create({
+            data: {
+              memberHandle: referrer.handle,
+              type: "referral_stake_bonus",
+              description: `@${handle} started staking! Referral bonus!`,
+              points: 10,
+            },
+          });
+          await db.packMember.update({
+            where: { handle: referrer.handle },
+            data: { points: { increment: 10 } },
+          });
+          // Mark bonus as awarded
+          await db.referralRecord.update({
+            where: { id: referralRecord.id },
+            data: { stakeBonusAwarded: true },
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to award referral stake bonus:", err);
+      // Non-critical — don't break staking update
+    }
+  }
+
   return {
     stakedAmount: newBalance,
     stakingTier: newTier,
@@ -783,31 +819,92 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Referral — always lowercase the ref code to match DB handles
+        // Referral — supports both referral CODE (8-char uppercase from engagement system)
+        // and handle-based referral (legacy fallback).
+        // The ?ref= param from the URL is stored as the referralCode by the client.
         // SAFEGUARD: Only process referral for NEW members who don't already have a referredBy.
-        // This prevents any edge case where an existing member's referrer could be overwritten.
         // Also check for duplicate referral activities to prevent double-awarding points.
         const rawRef = body.referral as string | undefined;
         const cleanRef = rawRef ? rawRef.replace("@", "").trim().toLowerCase() : undefined;
         const freshMember = await db.packMember.findUnique({ where: { handle: cleanHandle } });
         if (cleanRef && cleanRef !== cleanHandle && freshMember && !freshMember.referredBy) {
-          const referrer = await db.packMember.findUnique({ where: { handle: cleanRef } });
+          // Try to find referrer by referralCode first (8-char uppercase code), then by handle
+          let referrer = await db.packMember.findFirst({
+            where: { referralCode: cleanRef.toUpperCase() },
+          });
+          if (!referrer) {
+            // Fallback: try finding by handle (legacy compatibility)
+            referrer = await db.packMember.findUnique({ where: { handle: cleanRef } });
+          }
           if (referrer) {
             // Check for duplicate referral activity (prevent double-awarding)
             const existingReferralActivity = await db.activityLog.findFirst({
               where: {
-                memberHandle: cleanRef,
+                memberHandle: referrer.handle,
                 type: "referral",
                 description: { contains: cleanHandle },
               },
             });
             if (!existingReferralActivity) {
-              // First set referredBy, then award points — if points fail, referredBy prevents re-processing
+              // Check referrer's active referral count (max 50 for points)
+              const referrerActiveCount = await db.referralRecord.count({
+                where: { referrerHandle: referrer.handle, registrationPointsGiven: true },
+              });
+              const canAwardPoints = referrerActiveCount < 50;
+
+              // Set referredBy on the new member
               await db.packMember.update({
                 where: { handle: cleanHandle },
-                data: { referredBy: cleanRef },
+                data: { referredBy: referrer.handle },
               });
-              await addActivity(cleanRef, "referral", `Recruited @${cleanHandle} to the pack!`, POINTS_CONFIG.referral.value);
+
+              // Create ReferralRecord for the engagement system
+              await db.referralRecord.create({
+                data: {
+                  referrerHandle: referrer.handle,
+                  refereeHandle: cleanHandle,
+                  registrationPointsGiven: canAwardPoints,
+                },
+              });
+
+              if (canAwardPoints) {
+                // Award +75 pts to referrer (pack route legacy)
+                await addActivity(referrer.handle, "referral", `Recruited @${cleanHandle} to the pack!`, POINTS_CONFIG.referral.value);
+
+                // Also award +3 welcome pts to referee via engagement system
+                await db.activityLog.create({
+                  data: { memberHandle: cleanHandle, type: "referral_welcome", description: `Joined via @${referrer.handle}'s referral!`, points: 3 },
+                });
+                await db.packMember.update({
+                  where: { handle: cleanHandle },
+                  data: { points: { increment: 3 } },
+                });
+
+                // Increment referrer's referral count
+                await db.packMember.update({
+                  where: { handle: referrer.handle },
+                  data: { referralCount: { increment: 1 } },
+                });
+
+                // Register daily activity for referrer (for streak tracking)
+                const PACK_TZ_REG = "Europe/Rome";
+                const regParts = new Intl.DateTimeFormat("en-US", {
+                  timeZone: PACK_TZ_REG,
+                  year: "numeric", month: "2-digit", day: "2-digit",
+                }).formatToParts(new Date());
+                const regYear = regParts.find(p => p.type === "year")!.value;
+                const regMonth = regParts.find(p => p.type === "month")!.value;
+                const regDay = regParts.find(p => p.type === "day")!.value;
+                const regTodayStr = `${regYear}-${regMonth}-${regDay}`;
+                try {
+                  await db.dailyActivity.create({
+                    data: { memberHandle: referrer.handle, activityDate: new Date(regTodayStr + "T00:00:00Z"), actionType: "referral" },
+                  });
+                } catch { /* already exists, fine */ }
+              } else {
+                // Referrer hit cap — still record referral but no points
+                await addActivity(referrer.handle, "referral", `Recruited @${cleanHandle} (cap reached, no pts)`, 0);
+              }
             }
           }
         }
@@ -923,6 +1020,16 @@ export async function POST(request: NextRequest) {
           where: { handle: cleanHandle },
           data: { lastCheckIn: new Date(), streakCount: newStreakCount, lastStreakAt: new Date() },
         });
+
+        // Register daily activity for streak tracking (engagement system reads this for "Last 7 Days" display)
+        const todayDate = new Date(todayStr + "T00:00:00Z");
+        try {
+          await db.dailyActivity.create({
+            data: { memberHandle: cleanHandle, activityDate: todayDate, actionType: "claim" },
+          });
+        } catch {
+          // Unique constraint = already registered today, that's fine
+        }
 
         // Auto-update staking (reads on-chain balance, calculates pending rewards)
         const stakingResult = await autoUpdateStaking(cleanHandle);
