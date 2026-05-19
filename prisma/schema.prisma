@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -44,6 +44,13 @@ model PackMember {
 
   // Referral
   referredBy       String?
+  referralCode         String?   @unique    // Auto-generated referral code
+  referralCount        Int       @default(0) // Active referral count (max 50 for points)
+
+  // Streak Rewards
+  freezeAvailable      Int       @default(0) // Number of streak freezes available (max 2)
+  freezeUsedTotal      Int       @default(0) // Total freezes ever used
+  streakMultiplier     Float     @default(1.0) // Current streak multiplier (1.0, 1.2, 1.5, 1.8, 2.0)
 
   // Staking (auto-updated from on-chain balance)
   stakedAmount        Float     @default(0)    // Last verified DOOMHOUND balance
@@ -59,6 +66,11 @@ model PackMember {
 
   activities       ActivityLog[]
   raffleTickets    RaffleTicket[]
+  missionCompletions MissionCompletion[]
+  streakFreezes    StreakFreeze[]
+  dailyActivities  DailyActivity[]
+  referredMembers  ReferralRecord[]     @relation("ReferrerReferrals")
+  refereeRecords   ReferralRecord[]     @relation("RefereeReferrals")
 
   @@index([handle])
   @@index([points])
@@ -174,4 +186,69 @@ model PriceSnapshot {
   createdAt       DateTime @default(now())
 
   @@index([createdAt])
+}
+
+// ===== SOCIAL MISSIONS =====
+model SocialMission {
+  id            String   @id @default(cuid())
+  missionId     String   @unique   // M01, M02, M03, M04, M05
+  name          String
+  description   String
+  points        Int
+  cooldownHours Int
+  maxLifetime   Int?               // null = unlimited
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  completions   MissionCompletion[]
+}
+
+model MissionCompletion {
+  id             String   @id @default(cuid())
+  memberHandle   String
+  missionId      String
+  proofUrl       String?
+  pointsAwarded  Int
+  completedAt    DateTime @default(now())
+  member         PackMember @relation(fields: [memberHandle], references: [handle], onDelete: Cascade)
+  mission        SocialMission @relation(fields: [missionId], references: [missionId], onDelete: Cascade)
+  @@unique([memberHandle, missionId, completedAt])
+  @@index([memberHandle])
+  @@index([missionId])
+}
+
+model ReferralRecord {
+  id                      String   @id @default(cuid())
+  referrerHandle          String
+  refereeHandle           String
+  registrationPointsGiven Boolean  @default(false)
+  stakeBonusAwarded       Boolean  @default(false)
+  registeredAt            DateTime @default(now())
+  referrer                PackMember @relation("ReferrerReferrals", fields: [referrerHandle], references: [handle], onDelete: Cascade)
+  referee                 PackMember @relation("RefereeReferrals", fields: [refereeHandle], references: [handle], onDelete: Cascade)
+  @@unique([referrerHandle, refereeHandle])
+  @@index([referrerHandle])
+  @@index([refereeHandle])
+}
+
+model StreakFreeze {
+  id           String   @id @default(cuid())
+  memberHandle String
+  activatedAt  DateTime @default(now())
+  targetDate   DateTime
+  member       PackMember @relation(fields: [memberHandle], references: [handle], onDelete: Cascade)
+  @@unique([memberHandle, targetDate])
+  @@index([memberHandle])
+}
+
+model DailyActivity {
+  id           String   @id @default(cuid())
+  memberHandle String
+  activityDate DateTime
+  actionType   String   // staking, mission, referral, claim
+  createdAt    DateTime @default(now())
+  member       PackMember @relation(fields: [memberHandle], references: [handle], onDelete: Cascade)
+  @@unique([memberHandle, activityDate, actionType])
+  @@index([memberHandle])
+  @@index([activityDate])
 }
