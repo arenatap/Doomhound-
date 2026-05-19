@@ -15,6 +15,36 @@ async function getAuthenticatedHandle(request: NextRequest): Promise<string | nu
   return member?.handle || null;
 }
 
+// ===== ARENA API =====
+const ARENA_API_BASE = "https://api.starsarena.com";
+const ARENA_API_KEY = process.env.ARENA_API_KEY;
+const DOOMHOUND_COMMUNITY_ID = "4b326b82-46e7-4ac7-a34b-8e8d00913f0b";
+
+const arenaCache = new Map<string, { data: any; expires: number }>();
+const CACHE_TTL = 60_000;
+
+async function arenaFetch(endpoint: string, cacheTtl = CACHE_TTL) {
+  const cacheKey = endpoint;
+  const cached = arenaCache.get(cacheKey);
+  if (cached && Date.now() < cached.expires) return cached.data;
+
+  const res = await fetch(`${ARENA_API_BASE}${endpoint}`, {
+    headers: { "X-API-Key": ARENA_API_KEY || "", "Content-Type": "application/json" },
+  });
+  if (!res.ok) {
+    if (res.status === 429 && cached) return cached.data;
+    const text = await res.text().catch(() => "");
+    throw new Error(`Arena API error: ${res.status} ${text}`);
+  }
+  const data = await res.json();
+  arenaCache.set(cacheKey, { data, expires: Date.now() + cacheTtl });
+  return data;
+}
+
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, "").trim();
+}
+
 // ===== STREAK MULTIPLIER LOGIC =====
 const STREAK_TIERS = [
   { minDays: 30, multiplier: 2.0, label: "x2.0", color: "gold" },
@@ -36,6 +66,7 @@ function generateReferralCode(handle: string): string {
 }
 
 // ===== DEFAULT MISSIONS =====
+// All missions require Arena post URL as proof and are verified via The Arena API.
 const DEFAULT_MISSIONS = [
   { missionId: "M01", name: "Community Post", description: "Post about $DOOMHOUND in the Arena community", points: 2, cooldownHours: 24, maxLifetime: null },
   { missionId: "M02", name: "Tag 3 Pack Members", description: "Tag 3 real users in an Arena post about $DOOMHOUND", points: 3, cooldownHours: 48, maxLifetime: 10 },
@@ -65,6 +96,115 @@ async function awardPoints(handle: string, type: string, description: string, ba
     data: { points: { increment: finalPoints } },
   });
   return finalPoints;
+}
+
+// ===== ARENA POST VERIFICATION =====
+// Verifies that an Arena post URL is real, belongs to the user, and is $DOOMHOUND-related.
+// Returns the verified thread object or null.
+async function verifyArenaPost(proofUrl: string, userHandle: string): Promise<{
+  verified: boolean;
+  thread?: any;
+  reason?: string;
+}> {
+  const trimmedUrl = proofUrl.trim();
+
+  // Must be from arena.social
+  if (!trimmedUrl.includes("arena.social")) {
+    return { verified: false, reason: "Invalid URL. Must be a link from arena.social" };
+  }
+
+  // Extract thread ID from Arena URL patterns
+  const threadIdMatch = trimmedUrl.match(
+    /arena\.social\/(?:thread\/|(?:[^/]+\/)?(?:status\/)?)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\d+)/i
+  );
+  const threadId = threadIdMatch ? threadIdMatch[1] : null;
+
+  if (!threadId) {
+    return { verified: false, reason: "Could not extract thread ID from URL. Make sure it's a valid Arena post link." };
+  }
+
+  // Strategy 1: Fetch user's Arena profile and search their threads
+  try {
+    const arenaProfile = await arenaFetch(
+      `/agents/user/handle?handle=${encodeURIComponent(userHandle)}`
+    );
+    const arenaUserId = arenaProfile.user?.id;
+
+    if (arenaUserId) {
+      const userThreadsData = await arenaFetch(
+        `/agents/threads/feed/user?userId=${arenaUserId}&page=1&pageSize=25`
+      );
+      const userThreads = userThreadsData.threads || [];
+      const foundThread = userThreads.find((t: any) => t.id === threadId);
+
+      if (foundThread) {
+        // Verify ownership
+        const threadHandle = (foundThread.userHandle || foundThread.user?.handle || "").toLowerCase();
+        if (threadHandle !== userHandle) {
+          return { verified: false, reason: "This post doesn't belong to your Arena account. Submit your own post!" };
+        }
+        return { verified: true, thread: foundThread };
+      }
+    }
+  } catch (err: any) {
+    console.log("User thread feed lookup failed:", err?.message || err);
+  }
+
+  // Strategy 2: Search DOOMHOUND community feed for this thread
+  try {
+    const communityFeed = await arenaFetch(
+      `/agents/threads/feed/community?communityId=${DOOMHOUND_COMMUNITY_ID}&page=1&pageSize=50`
+    );
+    const communityThreads = communityFeed.threads || [];
+    const foundThread = communityThreads.find((t: any) => t.id === threadId);
+
+    if (foundThread) {
+      const threadHandle = (foundThread.userHandle || foundThread.user?.handle || "").toLowerCase();
+      if (threadHandle !== userHandle) {
+        return { verified: false, reason: "This post doesn't belong to your Arena account." };
+      }
+      return { verified: true, thread: foundThread };
+    }
+  } catch (err: any) {
+    console.log("Community feed lookup failed:", err?.message || err);
+  }
+
+  return { verified: false, reason: "Post not found on Arena. Make sure the URL is correct and the post is public." };
+}
+
+// Check if a thread is $DOOMHOUND related
+function isDoomhoundRelated(thread: any): boolean {
+  const content = stripHtml(thread.content || "").toLowerCase();
+  const communityTicker = (thread.community?.ticker || "").toLowerCase();
+  const communityId = thread.communityId;
+
+  return (
+    content.includes("doomhound") ||
+    content.includes("$doomhound") ||
+    content.includes("doom") ||
+    communityTicker === "doomhound" ||
+    communityId === DOOMHOUND_COMMUNITY_ID
+  );
+}
+
+// Check if a thread is in the DOOMHOUND community
+function isInDoomhoundCommunity(thread: any): boolean {
+  return thread.communityId === DOOMHOUND_COMMUNITY_ID ||
+    (thread.community?.ticker || "").toLowerCase() === "doomhound";
+}
+
+// Count @mentions in a post (for Tag mission)
+function countMentions(thread: any): number {
+  const content = stripHtml(thread.content || "");
+  // Match @username patterns
+  const mentions = content.match(/@([a-zA-Z0-9_]+)/g);
+  return mentions ? mentions.length : 0;
+}
+
+// Check if thread contains a referral link (doomhound.onrender.com)
+function containsReferralLink(thread: any): boolean {
+  const content = stripHtml(thread.content || "").toLowerCase();
+  return content.includes("doomhound.onrender.com") || content.includes("doomhound.fun");
 }
 
 // ===== TIMEZONE HELPERS =====
@@ -121,7 +261,7 @@ export async function POST(request: NextRequest) {
   const { action, handle } = body;
 
   try {
-    // ===== MISSIONS: complete_mission =====
+    // ===== MISSIONS: complete_mission (ARENA API VERIFIED) =====
     if (action === "complete_mission") {
       if (!handle) return NextResponse.json({ error: "handle is required" }, { status: 400 });
       const cleanHandle = handle.replace("@", "").trim().toLowerCase();
@@ -168,25 +308,147 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Get streak multiplier
+      // ===== ARENA API VERIFICATION =====
+      // All missions require an Arena post URL as proof
+      if (!proofUrl || !proofUrl.trim()) {
+        return NextResponse.json({
+          error: "Arena post URL required! Paste the link to your Arena post as proof.",
+        }, { status: 400 });
+      }
+
+      // Verify the post via Arena API
+      const verification = await verifyArenaPost(proofUrl, cleanHandle);
+      if (!verification.verified) {
+        return NextResponse.json({
+          error: verification.reason || "Could not verify your Arena post. Make sure the URL is correct.",
+        }, { status: 400 });
+      }
+
+      const thread = verification.thread;
+
+      // Check for duplicate proof (same thread already used for this mission)
+      const threadId = thread?.id || "";
+      if (threadId) {
+        const existingProof = await db.missionCompletion.findFirst({
+          where: {
+            memberHandle: cleanHandle,
+            missionId,
+            proofUrl: { contains: threadId },
+          },
+        });
+        if (existingProof) {
+          return NextResponse.json({ error: "This post has already been used for this mission!" }, { status: 400 });
+        }
+      }
+
+      // ===== MISSION-SPECIFIC VERIFICATION =====
+      switch (missionId) {
+        case "M01": {
+          // Community Post: must be in the DOOMHOUND community
+          if (!isInDoomhoundCommunity(thread) && !isDoomhoundRelated(thread)) {
+            return NextResponse.json({
+              error: "This post is not in the $DOOMHOUND community or doesn't mention $DOOMHOUND. Post in the community on Arena!",
+            }, { status: 400 });
+          }
+          break;
+        }
+
+        case "M02": {
+          // Tag 3 Pack Members: post must mention 3+ users AND be $DOOMHOUND related
+          if (!isDoomhoundRelated(thread)) {
+            return NextResponse.json({
+              error: "This post doesn't mention $DOOMHOUND. Tag users in a $DOOMHOUND post!",
+            }, { status: 400 });
+          }
+          const mentionCount = countMentions(thread);
+          if (mentionCount < 3) {
+            return NextResponse.json({
+              error: `Only ${mentionCount} user(s) tagged. You need to tag at least 3 users in the post!`,
+            }, { status: 400 });
+          }
+          break;
+        }
+
+        case "M03": {
+          // Create a Meme: must be $DOOMHOUND related (community post or mentions $DOOMHOUND)
+          if (!isDoomhoundRelated(thread)) {
+            return NextResponse.json({
+              error: "This post doesn't mention $DOOMHOUND. Create a meme about $DOOMHOUND on Arena!",
+            }, { status: 400 });
+          }
+          break;
+        }
+
+        case "M04": {
+          // Engage with Official: must be a reply/quote to an official DOOMHOUND post
+          // Check if the post is a reply (has parentThreadId or quotedThread)
+          // OR if it's in the DOOMHOUND community (engaging with official content)
+          const isReply = !!(thread.parentThreadId || thread.quotedThread || thread.replyTo);
+          const isCommunityPost = isInDoomhoundCommunity(thread);
+          if (!isReply && !isCommunityPost) {
+            // Fallback: check if content mentions the official account or is a reply
+            const content = stripHtml(thread.content || "").toLowerCase();
+            const engagesOfficial = content.includes("@doomhoundavax") || content.includes("doomhoundavax");
+            if (!engagesOfficial) {
+              return NextResponse.json({
+                error: "This post doesn't engage with the official $DOOMHOUND account. Reply to or quote an official post!",
+              }, { status: 400 });
+            }
+          }
+          if (!isDoomhoundRelated(thread) && !isCommunityPost) {
+            return NextResponse.json({
+              error: "This post isn't $DOOMHOUND related. Engage with official $DOOMHOUND content!",
+            }, { status: 400 });
+          }
+          break;
+        }
+
+        case "M05": {
+          // Share Referral Link: post must contain a doomhound link
+          if (!containsReferralLink(thread) && !isDoomhoundRelated(thread)) {
+            return NextResponse.json({
+              error: "This post doesn't contain your $DOOMHOUND referral link. Share your doomhound.onrender.com link on Arena!",
+            }, { status: 400 });
+          }
+          break;
+        }
+
+        default: {
+          // Generic: just needs to be $DOOMHOUND related
+          if (!isDoomhoundRelated(thread)) {
+            return NextResponse.json({
+              error: "This post isn't $DOOMHOUND related.",
+            }, { status: 400 });
+          }
+          break;
+        }
+      }
+
+      // ===== ALL VERIFIED — AWARD POINTS =====
       const member = await db.packMember.findUnique({ where: { handle: cleanHandle } });
       if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
 
       const { multiplier } = getStreakMultiplier(member.streakCount);
       const pointsAwarded = Math.ceil(mission.points * multiplier);
 
-      // Create completion record
+      // Create completion record with proof URL
       const completion = await db.missionCompletion.create({
         data: {
           memberHandle: cleanHandle,
           missionId,
-          proofUrl: proofUrl || null,
+          proofUrl: proofUrl.trim(),
           pointsAwarded,
         },
       });
 
       // Award points
-      const totalPoints = await awardPoints(cleanHandle, "social_mission", `Completed mission: ${mission.name}`, mission.points, multiplier);
+      const totalPoints = await awardPoints(
+        cleanHandle,
+        "social_mission",
+        `Completed mission: ${mission.name} [arena:${threadId}]`,
+        mission.points,
+        multiplier
+      );
 
       // Register daily activity (for streak)
       const todayStr = getDateInTz(new Date());
@@ -198,7 +460,7 @@ export async function POST(request: NextRequest) {
         // Unique constraint = already registered today, that's fine
       }
 
-      return NextResponse.json({ success: true, completion, pointsAwarded: totalPoints, multiplier });
+      return NextResponse.json({ success: true, completion, pointsAwarded: totalPoints, multiplier, verified: true });
     }
 
     // ===== MISSIONS: mission_status =====
@@ -240,6 +502,7 @@ export async function POST(request: NextRequest) {
           cooldownRemaining,
           onCooldown: cooldownRemaining > 0,
           lastCompletedAt: lastCompletion?.completedAt || null,
+          requiresProof: true, // All missions require Arena post URL
         };
       });
 
@@ -273,18 +536,15 @@ export async function POST(request: NextRequest) {
       const { referralCode } = body;
       if (!referralCode) return NextResponse.json({ error: "referralCode is required" }, { status: 400 });
 
-      // Find referrer by code
       const referrer = await db.packMember.findFirst({
         where: { referralCode: referralCode.toUpperCase() },
       });
       if (!referrer) return NextResponse.json({ error: "Invalid referral code" }, { status: 404 });
 
-      // Self-referral check
       if (referrer.handle === cleanHandle) {
         return NextResponse.json({ error: "Cannot use own referral code" }, { status: 400 });
       }
 
-      // Check if already referred
       const existingReferral = await db.referralRecord.findUnique({
         where: { referrerHandle_refereeHandle: { referrerHandle: referrer.handle, refereeHandle: cleanHandle } },
       });
@@ -292,20 +552,17 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Referral already registered", alreadyRegistered: true });
       }
 
-      // Check if referee already has a referrer (via referredBy field)
       const referee = await db.packMember.findUnique({ where: { handle: cleanHandle } });
       if (!referee) return NextResponse.json({ error: "Member not found" }, { status: 404 });
       if (referee.referredBy && referee.referredBy !== referrer.handle) {
         return NextResponse.json({ error: "Already referred by someone else" }, { status: 400 });
       }
 
-      // Check referrer's active referral count (max 50 for points)
       const referrerActiveCount = await db.referralRecord.count({
         where: { referrerHandle: referrer.handle, registrationPointsGiven: true },
       });
       const canAwardPoints = referrerActiveCount < 50;
 
-      // Create referral record
       const record = await db.referralRecord.create({
         data: {
           referrerHandle: referrer.handle,
@@ -314,29 +571,23 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Set referredBy on PackMember
       await db.packMember.update({
         where: { handle: cleanHandle },
         data: { referredBy: referrer.handle },
       });
 
-      // Award points
       if (canAwardPoints) {
-        // Get streak multiplier for referrer
         const { multiplier } = getStreakMultiplier(referrer.streakCount);
         const refPoints = await awardPoints(referrer.handle, "referral", `Recruited @${cleanHandle} via referral system!`, 5, multiplier);
-        
-        // +3 to referee
+
         const refereeMultiplier = getStreakMultiplier(referee.streakCount).multiplier;
         const refPoints2 = await awardPoints(cleanHandle, "referral_welcome", `Joined via @${referrer.handle}'s referral!`, 3, refereeMultiplier);
 
-        // Increment referral count
         await db.packMember.update({
           where: { handle: referrer.handle },
           data: { referralCount: { increment: 1 } },
         });
 
-        // Register daily activity for both
         const todayStr = getDateInTz(new Date());
         const todayDate = new Date(todayStr + "T00:00:00Z");
         try {
@@ -355,31 +606,26 @@ export async function POST(request: NextRequest) {
       if (!refereeHandle) return NextResponse.json({ error: "refereeHandle is required" }, { status: 400 });
       const cleanReferee = refereeHandle.replace("@", "").trim().toLowerCase();
 
-      // Auth check
       const authHandle = await getAuthenticatedHandle(request);
       if (!authHandle) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
-      // Find the referral record
       const record = await db.referralRecord.findFirst({
         where: { refereeHandle: cleanReferee },
       });
       if (!record) return NextResponse.json({ error: "No referral record found" }, { status: 404 });
       if (record.stakeBonusAwarded) return NextResponse.json({ error: "Stake bonus already awarded" }, { status: 400 });
 
-      // Check if referee actually has a staking tier
       const referee = await db.packMember.findUnique({ where: { handle: cleanReferee } });
       if (!referee || referee.stakingTier === "none") {
         return NextResponse.json({ error: "Referee is not staking" }, { status: 400 });
       }
 
-      // Award +10 to referrer with streak multiplier
       const referrer = await db.packMember.findUnique({ where: { handle: record.referrerHandle } });
       if (!referrer) return NextResponse.json({ error: "Referrer not found" }, { status: 404 });
 
       const { multiplier } = getStreakMultiplier(referrer.streakCount);
       const pointsAwarded = await awardPoints(record.referrerHandle, "referral_stake_bonus", `@${cleanReferee} started staking! Referral bonus!`, 10, multiplier);
 
-      // Mark as awarded
       await db.referralRecord.update({
         where: { id: record.id },
         data: { stakeBonusAwarded: true },
@@ -396,7 +642,6 @@ export async function POST(request: NextRequest) {
       const member = await db.packMember.findUnique({ where: { handle: cleanHandle } });
       if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
 
-      // Generate code if missing
       let code = member.referralCode;
       if (!code) {
         code = generateReferralCode(cleanHandle);
@@ -450,7 +695,6 @@ export async function POST(request: NextRequest) {
 
       const { multiplier, label, color } = getStreakMultiplier(member.streakCount);
 
-      // Auto-award freezes: 1 per 30 days of streak, max 2 accumulated
       let updatedFreezeAvailable = member.freezeAvailable;
       const earnedFreezes = Math.floor(member.streakCount / 30);
       const totalEarned = earnedFreezes + member.freezeUsedTotal;
@@ -463,7 +707,6 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Update streak multiplier on member
       if (member.streakMultiplier !== multiplier) {
         await db.packMember.update({
           where: { handle: cleanHandle },
@@ -471,12 +714,10 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Next milestone
       const nextTier = STREAK_TIERS.find(t => t.minDays > member.streakCount);
       const nextMilestone = nextTier ? nextTier.minDays : null;
       const progressToNext = nextMilestone ? (member.streakCount / nextMilestone) * 100 : 100;
 
-      // Last 7 days activity
       const todayStr = getDateInTz(new Date());
       const last7Days = [];
       for (let i = 6; i >= 0; i--) {
@@ -520,7 +761,6 @@ export async function POST(request: NextRequest) {
       const member = await db.packMember.findUnique({ where: { handle: cleanHandle } });
       if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
 
-      // Check if already claimed today
       const todayStr = getDateInTz(new Date());
       const todayDate = new Date(todayStr + "T00:00:00Z");
       const existingClaim = await db.dailyActivity.findUnique({
@@ -530,12 +770,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Already claimed today" }, { status: 400 });
       }
 
-      // Register daily activity
       await db.dailyActivity.create({
         data: { memberHandle: cleanHandle, activityDate: todayDate, actionType: "claim" },
       });
 
-      // Award +1 base point with streak multiplier
       const { multiplier } = getStreakMultiplier(member.streakCount);
       const pointsAwarded = Math.ceil(1 * multiplier);
 
@@ -575,7 +813,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Target date must be in the future" }, { status: 400 });
       }
 
-      // Check if already frozen for this date
       const existingFreeze = await db.streakFreeze.findUnique({
         where: { memberHandle_targetDate: { memberHandle: cleanHandle, targetDate: target } },
       });
@@ -583,7 +820,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Already frozen for this date" }, { status: 400 });
       }
 
-      // Activate freeze
       await db.streakFreeze.create({
         data: { memberHandle: cleanHandle, targetDate: target },
       });
