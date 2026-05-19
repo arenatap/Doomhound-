@@ -77,10 +77,14 @@ export function CopyPastaSection() {
     });
   };
 
-  const handleShareOnX = (text: string) => {
+  const handleShareOnArena = (text: string) => {
     const fullText = `${text}\n\n${SHILL_LINK}\n\n${HASHTAGS}`;
-    const encoded = encodeURIComponent(fullText);
-    window.open(`https://twitter.com/intent/tweet?text=${encoded}`, "_blank");
+    navigator.clipboard.writeText(fullText);
+    window.open("https://arena.social", "_blank");
+    toast({
+      title: "Copied to clipboard!",
+      description: "Text copied — paste it in your Arena post!",
+    });
   };
 
   return (
@@ -138,10 +142,10 @@ export function CopyPastaSection() {
                     </button>
                   </BloodSplash>
                   <button
-                    onClick={() => handleShareOnX(text)}
-                    className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-blue-900/20 border border-blue-800/30 rounded-lg text-blue-400 hover:bg-blue-900/30 hover:border-blue-600/50 hover:shadow-[0_0_10px_rgba(59,130,246,0.2)] transition-all duration-300 text-xs sm:text-sm md:text-base"
+                    onClick={() => handleShareOnArena(text)}
+                    className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 bg-red-900/20 border border-red-900/30 rounded-lg text-red-400 hover:bg-red-900/30 hover:border-red-600/50 hover:shadow-[0_0_10px_rgba(220,38,38,0.2)] transition-all duration-300 text-xs sm:text-sm md:text-base"
                   >
-                    <Share2 className="w-4 h-4" /> SHARE ON X
+                    <Share2 className="w-4 h-4" /> SHARE ON ARENA
                   </button>
                 </div>
               </div>

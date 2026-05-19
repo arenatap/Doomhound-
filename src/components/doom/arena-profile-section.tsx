@@ -259,7 +259,7 @@ export function ArenaProfileSection() {
                   </div>
                   <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg p-3 sm:p-4 text-center">
                     <p className="text-gray-500 text-[10px] sm:text-xs uppercase tracking-wider mb-1">
-                      X Followers
+                      Social Reach
                     </p>
                     <p className="text-white font-bold text-sm sm:text-lg md:text-xl">
                       {profile.twitterFollowers

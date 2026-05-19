@@ -43,7 +43,7 @@ export function SocialMissionsSection() {
   const [completing, setCompleting] = useState<string | null>(null);
   const [proofUrl, setProofUrl] = useState("");
   const [showProofDialog, setShowProofDialog] = useState<string | null>(null);
-  const [result, setResult] = useState<{ mission: string; points: number; multiplier: number } | null>(null);
+  const [result, setResult] = useState<{ mission: string; points: number; multiplier: number; errorMsg?: string } | null>(null);
 
   // Read handle from localStorage (same pattern as ArenaGameSection)
   useEffect(() => {
@@ -76,6 +76,10 @@ export function SocialMissionsSection() {
 
   const completeMission = async (missionId: string) => {
     if (completing || !handle) return;
+    if (!proofUrl.trim()) {
+      setResult({ mission: missionId, points: -1, multiplier: 0, errorMsg: "Arena post URL is required!" });
+      return;
+    }
     setCompleting(missionId);
     setResult(null);
     try {
@@ -86,7 +90,7 @@ export function SocialMissionsSection() {
           action: "complete_mission",
           handle,
           missionId,
-          proofUrl: proofUrl || undefined,
+          proofUrl: proofUrl.trim(),
         }),
       });
       const data = await res.json();
@@ -98,7 +102,7 @@ export function SocialMissionsSection() {
       } else if (data.cooldown) {
         setResult({ mission: missionId, points: 0, multiplier: 0 });
       } else {
-        setResult({ mission: missionId, points: -1, multiplier: 0 });
+        setResult({ mission: missionId, points: -1, multiplier: 0, errorMsg: data.error || "Verification failed" });
       }
     } catch (err) {
       console.error("Failed to complete mission:", err);
@@ -212,12 +216,12 @@ export function SocialMissionsSection() {
                     <h4 className="font-creepster text-xl text-red-500">
                       Complete {missions.find(m => m.missionId === showProofDialog)?.name}
                     </h4>
-                    <p className="text-gray-400 text-xs">Submit proof URL (optional but recommended)</p>
+                    <p className="text-gray-400 text-xs">Paste your Arena post URL as proof (required)</p>
                     <input
                       type="url"
                       value={proofUrl}
                       onChange={(e) => setProofUrl(e.target.value)}
-                      placeholder="https://x.com/..."
+                      placeholder="https://arena.social/..."
                       className="w-full px-3 py-2 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg text-white text-sm placeholder:text-gray-700 focus:border-red-600 focus:outline-none"
                     />
                     <div className="flex gap-3">
@@ -253,7 +257,10 @@ export function SocialMissionsSection() {
                   ) : result.points === 0 ? (
                     <p className="text-red-400 text-sm font-bold">Cooldown still active</p>
                   ) : (
-                    <p className="text-red-400 text-sm font-bold">Error completing mission</p>
+                    <div>
+                      <p className="text-red-400 text-sm font-bold">Verification failed</p>
+                      {result.errorMsg && <p className="text-red-300 text-xs mt-1">{result.errorMsg}</p>}
+                    </div>
                   )}
                   <button onClick={() => setResult(null)} className="text-gray-500 text-[10px] mt-1 hover:text-gray-300">Dismiss</button>
                 </motion.div>
