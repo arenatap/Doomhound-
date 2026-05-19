@@ -61,6 +61,4 @@ server.log
 /db/
 *.db
 *.db-journal
-bun.lock
-bun.lockb
 src/.next

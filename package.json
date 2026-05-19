@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
     "build": "prisma db push --accept-data-loss && next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/ && mkdir -p .next/standalone/prisma && cp prisma/schema.prisma .next/standalone/prisma/ && cp -r prisma/migrations .next/standalone/prisma/migrations && cp prisma/migrations/migration_lock.toml .next/standalone/prisma/migrations/migration_lock.toml 2>/dev/null || true",
-    "start": "next start -H 0.0.0.0 -p ${PORT:-3000}",
+    "start": "NODE_ENV=production node .next/standalone/server.js",
     "lint": "eslint .",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
