@@ -60,4 +60,7 @@ server.log
 # Local SQLite database
 /db/
 *.db
-*.db-journalsrc/.next
+*.db-journal
+bun.lock
+bun.lockb
+src/.next
