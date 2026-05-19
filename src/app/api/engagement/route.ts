@@ -48,7 +48,7 @@ async function ensureMissionsExist() {
   for (const mission of DEFAULT_MISSIONS) {
     await db.socialMission.upsert({
       where: { missionId: mission.missionId },
-      update: {},
+      update: { name: mission.name, description: mission.description, points: mission.points, cooldownHours: mission.cooldownHours, maxLifetime: mission.maxLifetime },
       create: mission,
     });
   }
