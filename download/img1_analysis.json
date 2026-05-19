@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "The image is a **screenshot** of a mobile app interface (likely a cryptocurrency or community platform) focused on a proposal for a \"Pack Launchpad\" related to the $DOOMHOUND token. Here’s a detailed breakdown:  \n\n\n### 1. Header & Status Bar  \n- **Top-left**: A circular logo with a dog-like icon and the text `$DOOMHOUND` in red, stylized font.  \n- **Top-right**: A hamburger menu icon (three horizontal lines) for navigation.  \n\n\n### 2. Proposal Status & Labels  \n- A brown label with a money bag icon: `COMMUNITY_FUND`  \n- A green label: `ACTIVE` (indicating the proposal is live).  \n- A red clock icon with text: `2d 23h left` (time remaining for the proposal/voting).  \n\n\n### 3. Main Proposal Title  \n- Large, bold text: `PACK LAUNCHPAD: Free token airdrops for DOOMHOUND holders`  \n\n\n### 4. Proposal Details (Text Content)  \nThe proposal explains a system where $DOOMHOUND holders receive free token airdrops from new tokens on a platform called “Arena.” Key sections:  \n\n- **Concept**: New token developers donate a percentage of their supply to the “Pack” in exchange for visibility and instant holders; Pack members get free tokens.  \n- **Process** (numbered steps):  \n  1. New token dev applies and donates supply.  \n  2. Token gets scanned by AVAX Shield for scams/rugs.  \n  3. Pack DAO votes to accept/reject.  \n  4. If approved → tokens airdropped to members by points.  \n- **Why This Matters** (checkmarked benefits):  \n  - Free tokens for the pack.  \n  - New tokens get instant community.  \n  - $DOOMHOUND becomes a gateway for Arena launches.  \n  - Anti-scam protection (tokens scanned before DAO review).  \n  - More reason to hold/buy $DOOMHOUND.  \n  - Zero cost for the pack.  \n- **Safety Note**: Emphasizes no rugs, honeypots, or scam devs—only clean tokens are voted on.  \n- **Call to Action**: `Vote YES to open the Launchpad` / `Vote NO to keep things as they are.`  \n- **Token Symbol**: `$DOOMHOUND` (repeated at the bottom).  \n\n\n### 5. UI Elements & Design  \n- **Background**: Dark (black/dark gray) with subtle, abstract patterns (possibly gothic or crypto-themed).  \n- **Text Styling**: White text on dark background for readability; bold headers, regular body text, and checkmarks (✓) for bullet points.  \n- **Icons**: Dog-like icons (🐕) frame the proposal title; a clock icon for time remaining; a money bag for “Community Fund.”  \n\n\nThis screenshot captures a community-driven proposal for a token launchpad, emphasizing free airdrops, anti-scam measures, and governance (DAO voting) for $DOOMHOUND holders.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779191591,
+  "id": "202605191952584d9fc03891b34f30",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "202605191952584d9fc03891b34f30",
+  "usage": {
+    "completion_tokens": 650,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 2686,
+    "prompt_tokens_details": {
+      "cached_tokens": 5
+    },
+    "total_tokens": 3336
+  }
+}

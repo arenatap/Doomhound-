@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "This image is a **screenshot** of a digital interface (likely from a blockchain or gaming platform) displaying a **voting proposal** for a \"Staking Boost\" event. Here’s a detailed breakdown:  \n\n\n### 1. Header & Status Elements  \n- Top-left: A purple badge with `PACK_PERKS` (stylized with a chain icon) and a green `ACTIVE` tag, indicating the proposal is live.  \n- Top-right: A clock icon with `23h 57m left`, showing the time remaining for the vote.  \n\n\n### 2. Proposal Title & Description  \n- Title: `STAKING BOOST: 2X rewards for 5 days` (bold, white text).  \n- Description:  \n  - `PACK PERKS PROPOSAL` (with wolf emojis) introduces the event: *“For the next 5 days, ALL staking rewards are DOUBLED!”*  \n  - Reward breakdown (current → boosted):  \n    - Bronze: `3 → 6 pts/day` (bronze medal icon)  \n    - Silver: `8 → 16 pts/day` (silver medal icon)  \n    - Gold: `20 → 40 pts/day` (gold medal icon)  \n    - Diamond: `40 → 80 pts/day` (diamond icon)  \n  - Call to action: *“5 DAYS OF DOUBLE POINTS. Stack hard or stay behind. This is the moment to hold. Every day counts double. Vote YES to double the rewards.”*  \n  - Token: `$DOOMHOUND` (with a wolf emoji).  \n\n\n### 3. Voting Results & Progress  \n- `YES 217 pts` (green text) vs. `NO 0 pts` (red text).  \n- A green progress bar (full, indicating “YES” is leading).  \n- `Quorum: 1/5` (minimum voters needed) and `Approval: 100% / 50%` (current approval vs. required threshold).  \n\n\n### 4. Voting Power Section  \n- `VOTING POWER` (gray text) with a value of `3648 / 3648 pts` (red text, indicating full voting power).  \n- A slider (set to “MAX,” with a red dot) and buttons: `1 pt`, `25%`, `50%`, `75%`, `MAX` (red button, selected).  \n- Note: `Points committed will be deducted from your balance` (yellow text, warning about vote cost).  \n\n\n### 5. Vote Buttons  \n- Green button: `✓ YES (3648)` (selected, indicating the user’s vote).  \n- Red button: `✗ NO (3648)` (unselected).  \n\n\n### 6. Timeline  \n- `Created 19 May 2026, 12:04` (when the proposal launched).  \n- `Ends 20 May 2026, 12:04` (when voting closes).  \n\n\n### 7. UI & Design  \n- Dark theme (black background) with high-contrast text (white, green, red) for readability.  \n- Icons (medals, wolf, clock, checkmark, X) and color-coding (green for “YES,” red for “NO”) guide user interaction.  \n\n\nThis interface is designed to let users vote on a temporary staking reward boost, with clear visuals for progress, voting power, and deadlines.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779191612,
+  "id": "2026051919531922c172b8fd2b427b",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "2026051919531922c172b8fd2b427b",
+  "usage": {
+    "completion_tokens": 720,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 2413,
+    "prompt_tokens_details": {
+      "cached_tokens": 5
+    },
+    "total_tokens": 3133
+  }
+}
