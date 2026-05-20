@@ -103,13 +103,20 @@ const RANK_TIERS = [
   { title: "Lost Soul", minPoints: 0, emoji: "👻", color: "text-gray-500" },
 ];
 
-// ===== STAKING TIERS (must match server) =====
-const STAKING_TIERS = [
+// ===== STAKING TIERS (must match server — with boost if active) =====
+const STAKING_BOOST_END = new Date("2026-05-25T23:59:59+02:00");
+const STAKING_BOOST_ACTIVE = typeof window !== "undefined" && Date.now() < STAKING_BOOST_END.getTime();
+
+const STAKING_TIERS_BASE = [
   { minBalance: 100_000_000, tier: "diamond", emoji: "💎", label: "Diamond", ptsPerDay: 40, apy: 40, color: "text-cyan-400" },
   { minBalance: 50_000_000,  tier: "gold",    emoji: "🟡", label: "Gold",    ptsPerDay: 20, apy: 20, color: "text-yellow-400" },
   { minBalance: 10_000_000,  tier: "silver",  emoji: "🥈", label: "Silver",  ptsPerDay: 8,  apy: 8,  color: "text-gray-300" },
   { minBalance: 1_000_000,   tier: "bronze",  emoji: "🥉", label: "Bronze",  ptsPerDay: 3,  apy: 3,  color: "text-orange-400" },
 ];
+
+const STAKING_TIERS = STAKING_BOOST_ACTIVE
+  ? STAKING_TIERS_BASE.map(t => ({ ...t, ptsPerDay: t.ptsPerDay * 2, apy: t.apy * 2 }))
+  : STAKING_TIERS_BASE;
 
 function getStakingTierInfo(tier: string) {
   return STAKING_TIERS.find(t => t.tier === tier) || null;

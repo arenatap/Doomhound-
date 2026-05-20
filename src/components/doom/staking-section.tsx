@@ -42,13 +42,35 @@ interface StakingSectionProps {
   onRewardClaimed: (updatedMember: any) => void;
 }
 
-// ===== STAKING TIERS (must match server) =====
-const STAKING_TIERS: StakingTierInfo[] = [
+// ===== STAKING BOOST EVENT =====
+// 2x staking points! Must match server STAKING_BOOST_END
+const STAKING_BOOST_END = new Date("2026-05-25T23:59:59+02:00"); // Sunday midnight Rome
+const STAKING_BOOST_ACTIVE = typeof window !== "undefined" && Date.now() < STAKING_BOOST_END.getTime();
+
+function getCountdown(endDate: Date): string {
+  const now = Date.now();
+  const diff = endDate.getTime() - now;
+  if (diff <= 0) return "ENDED";
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const secs = Math.floor((diff % (1000 * 60)) / 1000);
+  if (days > 0) return `${days}d ${hours}h ${mins}m ${secs}s`;
+  if (hours > 0) return `${hours}h ${mins}m ${secs}s`;
+  return `${mins}m ${secs}s`;
+}
+
+// ===== STAKING TIERS (must match server — with boost if active) =====
+const STAKING_TIERS_BASE: StakingTierInfo[] = [
   { minBalance: 100_000_000, tier: "diamond", emoji: "💎", label: "Diamond", ptsPerDay: 40, apy: 40, color: "text-cyan-400" },
   { minBalance: 50_000_000,  tier: "gold",    emoji: "🟡", label: "Gold",    ptsPerDay: 20, apy: 20, color: "text-yellow-400" },
   { minBalance: 10_000_000,  tier: "silver",  emoji: "🥈", label: "Silver",  ptsPerDay: 8,  apy: 8,  color: "text-gray-300" },
   { minBalance: 1_000_000,   tier: "bronze",  emoji: "🥉", label: "Bronze",  ptsPerDay: 3,  apy: 3,  color: "text-orange-400" },
 ];
+
+const STAKING_TIERS: StakingTierInfo[] = STAKING_BOOST_ACTIVE
+  ? STAKING_TIERS_BASE.map(t => ({ ...t, ptsPerDay: t.ptsPerDay * 2, apy: t.apy * 2 }))
+  : STAKING_TIERS_BASE;
 
 function getStakingTierInfo(tier: string): StakingTierInfo | null {
   return STAKING_TIERS.find(t => t.tier === tier) || null;
@@ -72,29 +94,20 @@ export function StakingSection({ member, onRewardClaimed }: StakingSectionProps)
   const [claimResult, setClaimResult] = useState<{ claimedReward: number; stakingTier: string } | null>(null);
   const [stats, setStats] = useState<StakingStats | null>(null);
   const [showStats, setShowStats] = useState(false);
-  const [activeBoost, setActiveBoost] = useState<{ multiplier: number; endsAt: string; label: string } | null>(null);
+  const [boostCountdown, setBoostCountdown] = useState("");
+
+  // Boost countdown timer
+  useEffect(() => {
+    if (!STAKING_BOOST_ACTIVE) return;
+    const update = () => setBoostCountdown(getCountdown(STAKING_BOOST_END));
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const tierInfo = getStakingTierInfo(member.stakingTier);
   const hasStake = member.stakingTier !== "none" && member.stakedAmount > 0;
   const hasPendingReward = member.pendingStakingReward > 0;
-
-  // Check for active staking boost
-  useEffect(() => {
-    const checkBoost = async () => {
-      try {
-        const res = await fetch("/api/dao?action=settings");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.activeBoost) {
-            setActiveBoost(data.activeBoost);
-          }
-        }
-      } catch {}
-    };
-    checkBoost();
-    const interval = setInterval(checkBoost, 60000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Auto-update staking on mount (reads on-chain balance, updates tier)
   useEffect(() => {
@@ -161,6 +174,22 @@ export function StakingSection({ member, onRewardClaimed }: StakingSectionProps)
   return (
     <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden animate-flame-border">
       <div className="p-5 sm:p-6 md:p-8">
+        {/* 2x Boost Banner */}
+        {STAKING_BOOST_ACTIVE && (
+          <div className="mb-4 bg-gradient-to-r from-yellow-900/40 via-orange-900/40 to-red-900/40 border border-yellow-500/50 rounded-lg p-3 text-center animate-pulse">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <span className="text-xl">🔥</span>
+              <span className="font-creepster text-lg sm:text-xl text-yellow-400">2X STAKING BOOST!</span>
+              <span className="text-xl">🔥</span>
+            </div>
+            <p className="text-yellow-300/80 text-[10px] sm:text-xs">Celebrating $6K MC — Double staking points!</p>
+            <div className="mt-1.5 inline-flex items-center gap-1.5 bg-black/40 rounded-full px-3 py-1">
+              <span className="text-red-400 text-[10px] sm:text-xs font-bold">⏱</span>
+              <span className="text-white font-mono text-xs sm:text-sm font-bold">{boostCountdown}</span>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-creepster text-2xl sm:text-3xl text-red-500">🔥 STAKING</h3>
@@ -173,29 +202,19 @@ export function StakingSection({ member, onRewardClaimed }: StakingSectionProps)
         </div>
 
         {/* Staking Boost Banner */}
-        {activeBoost && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mb-4 bg-gradient-to-r from-orange-900/40 to-yellow-900/40 border border-orange-500/50 rounded-lg p-3 text-center"
-          >
-            <p className="text-orange-400 font-bold text-sm animate-pulse">
-              ⚡ {activeBoost.label} ⚡
-            </p>
-            <p className="text-yellow-300 text-xs mt-1">
-              {activeBoost.multiplier}x staking rewards for {(() => {
-                const diff = new Date(activeBoost.endsAt).getTime() - Date.now();
-                const days = Math.floor(diff / 86400000);
-                const hours = Math.floor((diff % 86400000) / 3600000);
-                return days > 0 ? `${days}d ${hours}h` : `${hours}h`;
-              })()} more
-            </p>
-            {tierInfo && (
-              <p className="text-green-400 text-[10px] mt-1">
-                Your {tierInfo.label}: {tierInfo.ptsPerDay} → <span className="font-bold">{Math.ceil(tierInfo.ptsPerDay * activeBoost.multiplier)} pts/day</span>
-              </p>
-            )}
-          </motion.div>
+        {STAKING_BOOST_ACTIVE && (
+          <div className="mb-4 bg-gradient-to-r from-yellow-900/40 via-orange-900/40 to-red-900/40 border border-yellow-500/50 rounded-lg p-3 text-center animate-pulse">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <span className="text-xl">🔥</span>
+              <span className="font-creepster text-lg sm:text-xl text-yellow-400">2X STAKING BOOST!</span>
+              <span className="text-xl">🔥</span>
+            </div>
+            <p className="text-yellow-300/80 text-[10px] sm:text-xs">Celebrating $6K MC — Double staking points!</p>
+            <div className="mt-1.5 inline-flex items-center gap-1.5 bg-black/40 rounded-full px-3 py-1">
+              <span className="text-red-400 text-[10px] sm:text-xs font-bold">⏱</span>
+              <span className="text-white font-mono text-xs sm:text-sm font-bold">{boostCountdown}</span>
+            </div>
+          </div>
         )}
 
         <AnimatePresence mode="wait">
@@ -224,8 +243,8 @@ export function StakingSection({ member, onRewardClaimed }: StakingSectionProps)
                     <div className="flex items-center justify-between">
                       <span className="text-gray-500 text-xs uppercase tracking-wider">Daily Reward</span>
                       <span className="text-yellow-400 font-bold text-sm sm:text-base">
-                        {activeBoost ? Math.ceil(tierInfo.ptsPerDay * activeBoost.multiplier) : tierInfo?.ptsPerDay || 0} pts/day
-                        {activeBoost && <span className="text-orange-400 text-[10px] ml-1">({activeBoost.multiplier}x BOOST!)</span>}
+                        {tierInfo?.ptsPerDay || 0} pts/day
+                        {STAKING_BOOST_ACTIVE && <span className="text-orange-400 text-[10px] ml-1">(2x BOOST!)</span>}
                       </span>
                     </div>
                     {member.lastStakingUpdate && (

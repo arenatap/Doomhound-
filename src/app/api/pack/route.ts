@@ -33,33 +33,28 @@ const BALANCE_TIERS = [
   { minBalance: 100_000, bonus: 25, label: "Pup Holder" },
 ];
 
+// ===== STAKING BOOST EVENT =====
+// 2x staking points to celebrate $6K MC! Active until Sunday May 25 2026 23:59:59 Rome time
+const STAKING_BOOST_MULTIPLIER = 2; // 2x points
+const STAKING_BOOST_END = new Date("2026-05-25T23:59:59+02:00"); // Sunday midnight Rome time
+const STAKING_BOOST_ACTIVE = Date.now() < STAKING_BOOST_END.getTime();
+
 // ===== STAKING TIERS (auto-updated from on-chain balance) =====
-const STAKING_TIERS = [
+const STAKING_TIERS_BASE = [
   { minBalance: 100_000_000, tier: "diamond", emoji: "💎", label: "Diamond", ptsPerDay: 40, apy: 40 },
   { minBalance: 50_000_000,  tier: "gold",    emoji: "🟡", label: "Gold",    ptsPerDay: 20, apy: 20 },
   { minBalance: 10_000_000,  tier: "silver",  emoji: "🥈", label: "Silver",  ptsPerDay: 8,  apy: 8  },
   { minBalance: 1_000_000,   tier: "bronze",  emoji: "🥉", label: "Bronze",  ptsPerDay: 3,  apy: 3  },
 ];
 
-// ===== STAKING BOOST SYSTEM =====
-// Reads from DaoSettings: "staking_boost" = JSON { multiplier, endsAt, label }
-// e.g. { "multiplier": 2, "endsAt": "2026-05-25T00:00:00Z", "label": "2X STAKING BOOST" }
-async function getStakingBoost(): Promise<{ multiplier: number; endsAt: string; label: string } | null> {
-  try {
-    const setting = await db.daoSettings.findUnique({ where: { key: "staking_boost" } });
-    if (!setting) return null;
-    const boost = JSON.parse(setting.value);
-    // Check if boost has expired
-    if (boost.endsAt && new Date(boost.endsAt) <= new Date()) {
-      // Auto-expire the boost
-      await db.daoSettings.update({ where: { key: "staking_boost" }, data: { value: "expired" } });
-      return null;
-    }
-    return boost;
-  } catch {
-    return null;
-  }
-}
+// Apply boost multiplier if event is active
+const STAKING_TIERS = STAKING_BOOST_ACTIVE
+  ? STAKING_TIERS_BASE.map(t => ({
+      ...t,
+      ptsPerDay: t.ptsPerDay * STAKING_BOOST_MULTIPLIER,
+      apy: t.apy * STAKING_BOOST_MULTIPLIER,
+    }))
+  : STAKING_TIERS_BASE;
 
 function getStakingTier(balance: number) {
   return STAKING_TIERS.find((t) => balance >= t.minBalance) || null;
@@ -154,13 +149,7 @@ async function autoUpdateStaking(handle: string): Promise<{
     rewardedDays = Math.max(0, dayDiff);
     if (rewardedDays > 0) {
       const oldTierInfo = STAKING_TIERS.find(t => t.tier === oldTier);
-      let rate = oldTierInfo ? oldTierInfo.ptsPerDay : 0;
-
-      // Apply staking boost multiplier if active
-      const boost = await getStakingBoost();
-      if (boost && boost.multiplier > 1) {
-        rate = Math.ceil(rate * boost.multiplier);
-      }
+      const rate = oldTierInfo ? oldTierInfo.ptsPerDay : 0;
 
       newPending += rate * rewardedDays;
     }
@@ -546,7 +535,11 @@ export async function GET(request: NextRequest) {
         const sessionReferralCount = await db.packMember.count({
           where: { referredBy: member.handle },
         });
-        return NextResponse.json({ member, referralCount: sessionReferralCount });
+        return NextResponse.json({
+          member,
+          referralCount: sessionReferralCount,
+          stakingBoost: STAKING_BOOST_ACTIVE ? { active: true, multiplier: STAKING_BOOST_MULTIPLIER, endsAt: STAKING_BOOST_END.toISOString() } : { active: false },
+        });
       }
 
       case "restore_session": {
@@ -617,6 +610,8 @@ export async function GET(request: NextRequest) {
           topStakers,
           tierCounts,
           totalRewardsDistributed: totalRewards._sum.points || 0,
+          stakingBoost: STAKING_BOOST_ACTIVE ? { active: true, multiplier: STAKING_BOOST_MULTIPLIER, endsAt: STAKING_BOOST_END.toISOString() } : { active: false },
+          stakingTiers: STAKING_TIERS,
         });
       }
 
