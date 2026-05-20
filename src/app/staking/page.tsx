@@ -119,33 +119,11 @@ export default function StakingPage() {
   const [shareCopied, setShareCopied] = useState(false);
   const [countdown, setCountdown] = useState(getTimeLeft(AIRDROP_DEADLINE));
 
-  // Staking boost countdown
-  const STAKING_BOOST_END = new Date("2026-05-25T23:59:59+02:00");
-  const STAKING_BOOST_ACTIVE = Date.now() < STAKING_BOOST_END.getTime();
-  const [boostCountdown, setBoostCountdown] = useState("");
-
   // Live countdown timers
   useEffect(() => {
     const interval = setInterval(() => {
       setCountdown(getTimeLeft(AIRDROP_DEADLINE));
     }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Boost countdown timer
-  useEffect(() => {
-    if (!STAKING_BOOST_ACTIVE) return;
-    const update = () => {
-      const diff = STAKING_BOOST_END.getTime() - Date.now();
-      if (diff <= 0) { setBoostCountdown("ENDED"); return; }
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const secs = Math.floor((diff % (1000 * 60)) / 1000);
-      setBoostCountdown(days > 0 ? `${days}d ${hours}h ${mins}m ${secs}s` : `${hours}h ${mins}m ${secs}s`);
-    };
-    update();
-    const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -343,24 +321,6 @@ export default function StakingPage() {
             </ScrollReveal>
           </div>
         </section>
-
-        {/* 2x Staking Boost Banner */}
-        {STAKING_BOOST_ACTIVE && (
-          <div className="bg-gradient-to-r from-yellow-900/60 via-orange-900/60 to-red-900/60 border-b border-yellow-500/50 py-4">
-            <div className="max-w-4xl mx-auto px-6 sm:px-10 text-center">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <span className="text-2xl">🔥</span>
-                <span className="font-creepster text-2xl sm:text-3xl text-yellow-400 animate-pulse">2X STAKING BOOST!</span>
-                <span className="text-2xl">🔥</span>
-              </div>
-              <p className="text-yellow-300/80 text-xs sm:text-sm mb-2">Celebrating $6K MC — Double staking points for everyone!</p>
-              <div className="inline-flex items-center gap-2 bg-black/50 rounded-full px-4 py-1.5">
-                <span className="text-red-400 text-sm font-bold">⏱</span>
-                <span className="text-white font-mono text-sm sm:text-base font-bold">{boostCountdown}</span>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Tab Switcher */}
         <section className="bg-[#0a0a0a] border-b border-[#2a2a2a]">
