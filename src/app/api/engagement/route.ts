@@ -476,15 +476,13 @@ export async function POST(request: NextRequest) {
         multiplier
       );
 
-      // Register daily activity (for streak)
+      // Register daily activity (for streak) — use upsert to avoid unique constraint errors
       const todayStr = getDateInTz(new Date());
-      try {
-        await db.dailyActivity.create({
-          data: { memberHandle: cleanHandle, activityDate: new Date(todayStr + "T00:00:00Z"), actionType: "mission" },
-        });
-      } catch {
-        // Unique constraint = already registered today, that's fine
-      }
+      await db.dailyActivity.upsert({
+        where: { memberHandle_activityDate_actionType: { memberHandle: cleanHandle, activityDate: new Date(todayStr + "T00:00:00Z"), actionType: "mission" } },
+        create: { memberHandle: cleanHandle, activityDate: new Date(todayStr + "T00:00:00Z"), actionType: "mission" },
+        update: {},
+      });
 
       return NextResponse.json({ success: true, completion, pointsAwarded: totalPoints, multiplier, verified: true });
     }
@@ -616,9 +614,11 @@ export async function POST(request: NextRequest) {
 
         const todayStr = getDateInTz(new Date());
         const todayDate = new Date(todayStr + "T00:00:00Z");
-        try {
-          await db.dailyActivity.create({ data: { memberHandle: referrer.handle, activityDate: todayDate, actionType: "referral" } });
-        } catch { /* already exists */ }
+        await db.dailyActivity.upsert({
+          where: { memberHandle_activityDate_actionType: { memberHandle: referrer.handle, activityDate: todayDate, actionType: "referral" } },
+          create: { memberHandle: referrer.handle, activityDate: todayDate, actionType: "referral" },
+          update: {},
+        });
 
         return NextResponse.json({ success: true, record, referrerPoints: refPoints, refereePoints: refPoints2 });
       }
@@ -796,8 +796,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Already claimed today" }, { status: 400 });
       }
 
-      await db.dailyActivity.create({
-        data: { memberHandle: cleanHandle, activityDate: todayDate, actionType: "claim" },
+      await db.dailyActivity.upsert({
+        where: { memberHandle_activityDate_actionType: { memberHandle: cleanHandle, activityDate: todayDate, actionType: "claim" } },
+        create: { memberHandle: cleanHandle, activityDate: todayDate, actionType: "claim" },
+        update: {},
       });
 
       const { multiplier } = getStreakMultiplier(member.streakCount);
