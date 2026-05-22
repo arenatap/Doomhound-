@@ -115,6 +115,7 @@ model DaoProposal {
   updatedAt      DateTime @updatedAt
 
   votes          DaoVote[]
+  launchpadApp   LaunchpadApplication?
 
   @@index([status])
   @@index([category])
@@ -251,4 +252,41 @@ model DailyActivity {
   @@unique([memberHandle, activityDate, actionType])
   @@index([memberHandle])
   @@index([activityDate])
+}
+
+// ===== PACK LAUNCHPAD =====
+model LaunchpadApplication {
+  id              String   @id @default(cuid())
+  projectName     String                     // Token/project name
+  contractAddress String?                    // AVAX contract address (null if pre-launch)
+  description     String                     // Project description
+  supplyPercent   Float                      // % of supply for airdrop (min 1%)
+  tokenAmount     String                     // Total token amount for airdrop
+  arenaLink       String?                    // Dev's Arena profile link
+  contactInfo     String?                    // Telegram/Discord/email
+
+  // AVAX Shield scan results
+  shieldScore     Int       @default(-1)     // -1 = not scanned yet
+  shieldVerdict   String    @default("pending") // pending, SAFE, RISKY
+  shieldData      String    @default("{}")   // JSON: full shield analysis
+
+  // Status flow: submitted → shield_scanned → approved/rejected → dao_voting → passed/failed → airdropping → completed
+  status          String    @default("submitted")
+
+  // DAO integration
+  daoProposalId   String?                    // FK to DaoProposal (created on approve)
+  airdropWallet   String?                    // Wallet address where dev sends tokens
+
+  // Metadata
+  submittedAt     DateTime  @default(now())
+  reviewedAt      DateTime?                  // When admin approved/rejected
+  adminNotes      String?                    // Admin notes
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  daoProposal     DaoProposal?  @relation(fields: [daoProposalId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([contractAddress])
 }
