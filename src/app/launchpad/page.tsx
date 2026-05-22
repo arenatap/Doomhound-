@@ -279,7 +279,7 @@ export default function LaunchpadPage() {
                           />
                         </div>
                         <div>
-                          <label className="text-xs uppercase tracking-wider text-gray-500 mb-1.5 block">Contact (Telegram/Discord)</label>
+                          <label className="text-xs uppercase tracking-wider text-gray-500 mb-1.5 block">Contact (Telegram)</label>
                           <input
                             type="text"
                             value={form.contactInfo}

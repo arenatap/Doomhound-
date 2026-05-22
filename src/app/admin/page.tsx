@@ -159,6 +159,14 @@ export default function AdminPage() {
   const [airdropInitResult, setAirdropInitResult] = useState<string | null>(null);
   const [confirmAirdropInit, setConfirmAirdropInit] = useState(false);
 
+  // Launchpad State
+  const [launchpadApps, setLaunchpadApps] = useState<any[]>([]);
+  const [launchpadLoading, setLaunchpadLoading] = useState(false);
+  const [launchpadActionLoading, setLaunchpadActionLoading] = useState<string | null>(null);
+  const [approveWallet, setApproveWallet] = useState("");
+  const [approveNotes, setApproveNotes] = useState("");
+  const [rejectNotes, setRejectNotes] = useState("");
+
   // Restore session
   useEffect(() => {
     const p = getPassword();
@@ -180,6 +188,7 @@ export default function AdminPage() {
     if (!authed || !storedPw) return;
     loadData(storedPw);
     loadDaoData(storedPw);
+    loadLaunchpadData();
     const interval = setInterval(() => loadData(storedPw), 30000);
     return () => clearInterval(interval);
   }, [authed, storedPw]);
@@ -398,6 +407,44 @@ export default function AdminPage() {
     setStoredPw(null);
     setPassword("");
   }, []);
+
+  // Load Launchpad data
+  const loadLaunchpadData = useCallback(async () => {
+    setLaunchpadLoading(true);
+    try {
+      const res = await fetch("/api/launchpad?action=list");
+      const data = await res.json();
+      if (data.applications) setLaunchpadApps(data.applications);
+    } catch (err) {
+      console.error("Launchpad load error:", err);
+    } finally {
+      setLaunchpadLoading(false);
+    }
+  }, []);
+
+  // Launchpad admin actions
+  const launchpadAction = useCallback(async (action: string, body: Record<string, any>) => {
+    if (!storedPw) return;
+    setLaunchpadActionLoading(action);
+    try {
+      const res = await fetch("/api/launchpad", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, adminPassword: storedPw, ...body }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`✅ ${action} done!`);
+        loadLaunchpadData();
+      } else {
+        showToast(data.error || "Action failed");
+      }
+    } catch {
+      showToast("Action failed");
+    } finally {
+      setLaunchpadActionLoading(null);
+    }
+  }, [storedPw, loadLaunchpadData]);
 
   // ===== LOGIN SCREEN =====
   if (!authed) {
@@ -1027,6 +1074,184 @@ export default function AdminPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Launchpad Controls */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="font-creepster text-xl sm:text-2xl text-red-500">🚀 LAUNCHPAD APPLICATIONS</h2>
+            <button
+              onClick={loadLaunchpadData}
+              className="text-gray-600 hover:text-gray-400 text-xs transition-colors"
+            >
+              {launchpadLoading ? "..." : "↻ Refresh"}
+            </button>
+          </div>
+
+          {launchpadApps.length === 0 ? (
+            <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-8 text-center">
+              <p className="text-4xl mb-2">📭</p>
+              <p className="text-gray-400 text-sm">No applications yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {launchpadApps.map((app: any) => {
+                const STATUS_MAP: Record<string, { bg: string; text: string }> = {
+                  submitted: { bg: "bg-gray-600/20", text: "text-gray-400" },
+                  shield_scanned: { bg: "bg-blue-600/20", text: "text-blue-400" },
+                  approved: { bg: "bg-green-600/20", text: "text-green-400" },
+                  rejected: { bg: "bg-red-600/20", text: "text-red-400" },
+                  dao_voting: { bg: "bg-orange-600/20", text: "text-orange-400" },
+                  passed: { bg: "bg-yellow-600/20", text: "text-yellow-400" },
+                  failed: { bg: "bg-red-600/20", text: "text-red-400" },
+                  completed: { bg: "bg-cyan-600/20", text: "text-cyan-400" },
+                };
+                const st = STATUS_MAP[app.status] || STATUS_MAP.submitted;
+                return (
+                  <div key={app.id} className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-4 sm:p-5">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-creepster text-lg text-white">{app.projectName}</h3>
+                        <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded ${st.bg} ${st.text}`}>
+                          {app.status.replace(/_/g, " ")}
+                        </span>
+                      </div>
+                      <span className="text-gray-600 text-[10px]">{timeAgo(app.submittedAt)}</span>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      <span className="text-xs bg-[#0a0a0a] border border-[#2a2a2a] rounded px-2 py-1">
+                        🛡️ Shield: <strong className={app.shieldScore <= 30 ? "text-green-400" : app.shieldScore <= 70 ? "text-yellow-400" : "text-red-400"}>
+                          {app.shieldScore >= 0 ? `${app.shieldScore}/100` : "N/A"}
+                        </strong>
+                      </span>
+                      <span className="text-xs bg-[#0a0a0a] border border-[#2a2a2a] rounded px-2 py-1">
+                        🎁 {app.supplyPercent}% supply
+                      </span>
+                      <span className="text-xs bg-[#0a0a0a] border border-[#2a2a2a] rounded px-2 py-1">
+                        🪙 {app.tokenAmount} tokens
+                      </span>
+                      {app.contactInfo && (
+                        <span className="text-xs bg-[#0a0a0a] border border-[#2a2a2a] rounded px-2 py-1 text-purple-400">
+                          📱 {app.contactInfo}
+                        </span>
+                      )}
+                      {app.arenaLink && (
+                        <a href={app.arenaLink} target="_blank" rel="noopener noreferrer"
+                          className="text-xs bg-[#0a0a0a] border border-[#2a2a2a] rounded px-2 py-1 text-blue-400 hover:text-blue-300">
+                          🔗 Arena
+                        </a>
+                      )}
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-gray-400 text-xs mb-3 line-clamp-2">{app.description}</p>
+
+                    {/* Contract */}
+                    {app.contractAddress && (
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-gray-600 text-[10px]">Contract:</span>
+                        <code className="text-gray-400 text-[10px] font-mono truncate flex-1">{app.contractAddress}</code>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(app.contractAddress).catch(() => {})}
+                          className="text-[9px] px-2 py-0.5 bg-[#2a2a2a] text-gray-400 rounded hover:text-white"
+                        >
+                          COPY
+                        </button>
+                      </div>
+                    )}
+
+                    {/* DAO Vote info */}
+                    {app.daoProposal && (
+                      <div className="flex items-center gap-2 mb-3 text-xs">
+                        <span className="text-orange-400">🗳️ DAO:</span>
+                        <span className="text-white">{app.daoProposal.title}</span>
+                        <span className={`px-1.5 py-0.5 text-[9px] rounded ${
+                          app.daoProposal.status === "active" ? "bg-orange-600/20 text-orange-400" :
+                          app.daoProposal.status === "passed" ? "bg-green-600/20 text-green-400" :
+                          "bg-red-600/20 text-red-400"
+                        }`}>{app.daoProposal.status}</span>
+                      </div>
+                    )}
+
+                    {/* Airdrop Wallet */}
+                    {app.airdropWallet && (
+                      <div className="flex items-center gap-2 mb-3 text-xs">
+                        <span className="text-purple-400">👛 Wallet:</span>
+                        <code className="text-green-400 font-mono text-[10px] truncate flex-1">{app.airdropWallet}</code>
+                      </div>
+                    )}
+
+                    {/* Admin Notes */}
+                    {app.adminNotes && (
+                      <div className="mb-3 text-xs">
+                        <span className="text-gray-500">Notes: </span>
+                        <span className="text-gray-300">{app.adminNotes}</span>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex flex-wrap gap-2">
+                      {/* Re-scan Shield */}
+                      {(app.status === "submitted" || app.status === "shield_scanned") && app.contractAddress && (
+                        <button
+                          onClick={() => launchpadAction("scan_shield", { applicationId: app.id })}
+                          disabled={launchpadActionLoading !== null}
+                          className="px-3 py-1.5 text-[10px] font-bold bg-blue-600/20 border border-blue-600/40 text-blue-400 rounded hover:bg-blue-600/30 transition-colors disabled:opacity-50"
+                        >
+                          {launchpadActionLoading === "scan_shield" ? "SCANNING..." : "🛡️ RE-SCAN"}
+                        </button>
+                      )}
+
+                      {/* Approve */}
+                      {(app.status === "submitted" || app.status === "shield_scanned") && (
+                        <button
+                          onClick={() => {
+                            const wallet = prompt("Enter Launchpad Wallet address for this project:", approveWallet);
+                            if (wallet === null) return;
+                            const notes = prompt("Admin notes (optional):") || "";
+                            launchpadAction("approve", { applicationId: app.id, airdropWallet: wallet, adminNotes: notes });
+                          }}
+                          disabled={launchpadActionLoading !== null}
+                          className="px-3 py-1.5 text-[10px] font-bold bg-green-600/20 border border-green-600/40 text-green-400 rounded hover:bg-green-600/30 transition-colors disabled:opacity-50"
+                        >
+                          {launchpadActionLoading === "approve" ? "APPROVING..." : "✅ APPROVE → DAO"}
+                        </button>
+                      )}
+
+                      {/* Reject */}
+                      {(app.status === "submitted" || app.status === "shield_scanned") && (
+                        <button
+                          onClick={() => {
+                            const notes = prompt("Reason for rejection:", "");
+                            if (notes === null) return;
+                            launchpadAction("reject", { applicationId: app.id, adminNotes: notes });
+                          }}
+                          disabled={launchpadActionLoading !== null}
+                          className="px-3 py-1.5 text-[10px] font-bold bg-red-600/20 border border-red-600/40 text-red-400 rounded hover:bg-red-600/30 transition-colors disabled:opacity-50"
+                        >
+                          ❌ REJECT
+                        </button>
+                      )}
+
+                      {/* Mark Airdropped */}
+                      {app.status === "dao_voting" && app.daoProposal?.status === "passed" && (
+                        <button
+                          onClick={() => launchpadAction("mark_airdropped", { applicationId: app.id })}
+                          disabled={launchpadActionLoading !== null}
+                          className="px-3 py-1.5 text-[10px] font-bold bg-purple-600/20 border border-purple-600/40 text-purple-400 rounded hover:bg-purple-600/30 transition-colors disabled:opacity-50"
+                        >
+                          {launchpadActionLoading === "mark_airdropped" ? "..." : "🎁 MARK AIRDROPPED"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* DAO Controls */}
