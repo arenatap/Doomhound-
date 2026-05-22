@@ -263,7 +263,7 @@ model LaunchpadApplication {
   supplyPercent   Float                      // % of supply for airdrop (min 1%)
   tokenAmount     String                     // Total token amount for airdrop
   arenaLink       String?                    // Dev's Arena profile link
-  contactInfo     String?                    // Telegram/Discord/email
+  contactInfo     String?                    // Telegram/email
 
   // AVAX Shield scan results
   shieldScore     Int       @default(-1)     // -1 = not scanned yet
