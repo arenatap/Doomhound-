@@ -446,7 +446,7 @@ export default function LaunchpadPage() {
                         { step: "2", emoji: "🛡️", title: "AVAX Shield Scan", desc: "Your token contract is analyzed by AVAX Shield automatically. It checks for honeypots, rug pull risks, liquidity locks, and more. Minimum $1K market cap required. A risk score from 0-100 is assigned." },
                         { step: "3", emoji: "👤", title: "Admin Review", desc: "The DOOMHOUND team reviews your application and the Shield results. If everything looks good, your project gets approved and a DAO proposal is created automatically." },
                         { step: "4", emoji: "🗳️", title: "Pack DAO Vote", desc: "The community votes for 24 hours. Your voting power is based on your mission points. Majority wins — the Pack decides which projects launch." },
-                        { step: "5", emoji: "🎁", title: "Airdrop to Top 20", desc: "If the DAO votes YES, send your tokens to the Launchpad Wallet. The airdrop is distributed equally to the Top 20 on the DOOMHOUND leaderboard." },
+                        { step: "5", emoji: "🎁", title: "Airdrop Distribution (50/50)", desc: "If the DAO votes YES, send your tokens to the Launchpad Wallet. The airdrop is split 50/50: half goes equally to the Top 20 on the leaderboard, and half goes proportionally to all holders with 1M+ $DOOMHOUND. This rewards active community members AND loyal holders." },
                       ].map((item) => (
                         <div key={item.step} className="flex gap-4 bg-[#0a0a0a] border border-[#2a2a2a] rounded-xl p-4">
                           <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-600/20 border border-red-600/40 flex items-center justify-center">

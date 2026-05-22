@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
           return sd.marketCapUsd ? `\nMC: $${Math.round(sd.marketCapUsd).toLocaleString()}` : "";
         } catch { return ""; }
       })();
-      const airdropInfo = `Airdrop: ${app.supplyPercent}% supply (${app.tokenAmount} tokens) → Top 20`;
+      const airdropInfo = `Airdrop: ${app.supplyPercent}% supply (${app.tokenAmount} tokens) → 50% Top 20 leaderboard + 50% holders (1M+ $DOOMHOUND, proportional)`;
       const walletInfo = airdropWallet ? `\nLaunchpad Wallet: ${airdropWallet}` : "";
 
       const proposal = await db.daoProposal.create({
