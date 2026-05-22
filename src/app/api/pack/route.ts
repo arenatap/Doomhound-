@@ -674,12 +674,6 @@ export async function GET(request: NextRequest) {
           airdropPrizes: AIRDROP_PRIZES,
           totalPool: 200_000_000,
           airdropInitialized,
-          airdropDistribution: {
-            method: "50/50",
-            leaderboardShare: "50% → Top 20 leaderboard (equal split)",
-            holdersShare: "50% → Holders with 1M+ $DOOMHOUND (proportional to balance)",
-            description: "Half rewards active community members, half rewards loyal holders",
-          },
         });
       }
 

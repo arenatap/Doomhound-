@@ -232,7 +232,7 @@ export default function StakingPage() {
   const shareRank = useCallback(() => {
     if (!member) return;
     const rankEmoji = userAirdropRank === 1 ? "🥇" : userAirdropRank === 2 ? "🥈" : userAirdropRank === 3 ? "🥉" : "🐺";
-    const text = `${rankEmoji} I'm #${userAirdropRank || "?"} on the $DOOMHOUND Airdrop Leaderboard with ${userAirdropPoints} pts!\n\n🏆 200M $DOOMHOUND — 50/50 distribution: Top 20 leaderboard + holders with 1M+!\n🔥 Join the race:\nhttps://doomhound.onrender.com/staking\n\n#DOOMHOUND #Avalanche #Airdrop #Memecoin`;
+    const text = `${rankEmoji} I'm #${userAirdropRank || "?"} on the $DOOMHOUND Airdrop Leaderboard with ${userAirdropPoints} pts!\n\n🏆 200M $DOOMHOUND prize pool — Top 3 win at graduation!\n🔥 Join the race:\nhttps://doomhound.onrender.com/staking\n\n#DOOMHOUND #Avalanche #Airdrop #Memecoin`;
     
     if (navigator.share) {
       navigator.share({ title: "DOOMHOUND Airdrop", text }).catch(() => {});
@@ -442,26 +442,6 @@ export default function StakingPage() {
                         <p className="text-gray-600 text-xs">$DOOMHOUND</p>
                       </div>
 
-                      {/* 50/50 Distribution Banner */}
-                      <div className="bg-gradient-to-r from-purple-900/30 to-orange-900/30 border border-purple-500/30 rounded-lg p-3 mb-4">
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                          <span className="text-lg">⚖️</span>
-                          <p className="text-white font-bold text-xs uppercase tracking-wider">50/50 Distribution</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="bg-[#0a0a0a] rounded-lg p-2 text-center">
-                            <p className="text-purple-400 font-bold text-sm">50%</p>
-                            <p className="text-gray-400 text-[9px]">Top 20 Leaderboard</p>
-                            <p className="text-gray-500 text-[8px]">(equal split)</p>
-                          </div>
-                          <div className="bg-[#0a0a0a] rounded-lg p-2 text-center">
-                            <p className="text-orange-400 font-bold text-sm">50%</p>
-                            <p className="text-gray-400 text-[9px]">Holders 1M+</p>
-                            <p className="text-gray-500 text-[8px]">(proportional)</p>
-                          </div>
-                        </div>
-                      </div>
-
                       {/* Prizes */}
                       <div className="grid grid-cols-3 gap-3 mb-4">
                         {airdropData?.airdropPrizes?.map((prize) => (
@@ -660,8 +640,7 @@ export default function StakingPage() {
                       <p>🔥 <strong className="text-gray-300">Every point counts</strong> — check-ins, staking claims, wheel spins, achievements</p>
                       <p>💎 <strong className="text-gray-300">Staking multiplies</strong> — Diamond tier earns 40 pts/day automatically</p>
                       <p>⏰ <strong className="text-orange-400">7 days to grind</strong> — deadline May 25, 23:59 CET</p>
-                      <p>🏆 <strong className="text-orange-400">Top 3 at deadline</strong> win 100M / 60M / 40M $DOOMHOUND</p>
-                      <p>⚖️ <strong className="text-purple-400">50/50 Distribution</strong> — 50% to Top 20 leaderboard (equal) + 50% to holders with 1M+ $DOOMHOUND (proportional)</p>
+                      <p>🏆 <strong className="text-orange-400">Top 3 at deadline</strong> split 200M $DOOMHOUND (100M / 60M / 40M)</p>
                     </div>
                   </div>
 
