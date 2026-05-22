@@ -35,9 +35,14 @@ const BALANCE_TIERS = [
 
 // ===== STAKING BOOST EVENT =====
 // 2x staking points to celebrate $6K MC! Active until Sunday May 25 2026 23:59:59 Rome time
+// IMPORTANT: Boost status is checked at RUNTIME (inside functions), not at module load time.
+// This ensures the boost expires correctly even if the server stays running past the end date.
 const STAKING_BOOST_MULTIPLIER = 2; // 2x points
 const STAKING_BOOST_END = new Date("2026-05-25T23:59:59+02:00"); // Sunday midnight Rome time
-const STAKING_BOOST_ACTIVE = Date.now() < STAKING_BOOST_END.getTime();
+
+function isStakingBoostActive(): boolean {
+  return Date.now() < STAKING_BOOST_END.getTime();
+}
 
 // ===== STAKING TIERS (auto-updated from on-chain balance) =====
 const STAKING_TIERS_BASE = [
@@ -47,17 +52,20 @@ const STAKING_TIERS_BASE = [
   { minBalance: 1_000_000,   tier: "bronze",  emoji: "🥉", label: "Bronze",  ptsPerDay: 3,  apy: 3  },
 ];
 
-// Apply boost multiplier if event is active
-const STAKING_TIERS = STAKING_BOOST_ACTIVE
-  ? STAKING_TIERS_BASE.map(t => ({
-      ...t,
-      ptsPerDay: t.ptsPerDay * STAKING_BOOST_MULTIPLIER,
-      apy: t.apy * STAKING_BOOST_MULTIPLIER,
-    }))
-  : STAKING_TIERS_BASE;
+// Returns the current staking tiers, applying the boost multiplier if the event is still active.
+// Called at runtime so the boost expires correctly without a server restart.
+function getStakingTiers() {
+  return isStakingBoostActive()
+    ? STAKING_TIERS_BASE.map(t => ({
+        ...t,
+        ptsPerDay: t.ptsPerDay * STAKING_BOOST_MULTIPLIER,
+        apy: t.apy * STAKING_BOOST_MULTIPLIER,
+      }))
+    : STAKING_TIERS_BASE;
+}
 
 function getStakingTier(balance: number) {
-  return STAKING_TIERS.find((t) => balance >= t.minBalance) || null;
+  return getStakingTiers().find((t) => balance >= t.minBalance) || null;
 }
 
 /**
@@ -114,9 +122,9 @@ async function autoUpdateStaking(handle: string): Promise<{
   // Detect tier changes
   const oldTier = member.stakingTier;
   const tierUpgraded = oldTier !== "none" && newTier !== "none" &&
-    STAKING_TIERS.findIndex(t => t.tier === newTier) < STAKING_TIERS.findIndex(t => t.tier === oldTier);
+    getStakingTiers().findIndex(t => t.tier === newTier) < getStakingTiers().findIndex(t => t.tier === oldTier);
   const tierDowngraded = oldTier !== "none" && newTier !== "none" &&
-    STAKING_TIERS.findIndex(t => t.tier === newTier) > STAKING_TIERS.findIndex(t => t.tier === oldTier);
+    getStakingTiers().findIndex(t => t.tier === newTier) > getStakingTiers().findIndex(t => t.tier === oldTier);
   const tierLost = oldTier !== "none" && newTier === "none";
   const tierGained = oldTier === "none" && newTier !== "none";
 
@@ -148,7 +156,7 @@ async function autoUpdateStaking(handle: string): Promise<{
     const dayDiff = Math.round((todayDate.getTime() - lastDate.getTime()) / 86400000);
     rewardedDays = Math.max(0, dayDiff);
     if (rewardedDays > 0) {
-      const oldTierInfo = STAKING_TIERS.find(t => t.tier === oldTier);
+      const oldTierInfo = getStakingTiers().find(t => t.tier === oldTier);
       const rate = oldTierInfo ? oldTierInfo.ptsPerDay : 0;
 
       newPending += rate * rewardedDays;
@@ -538,7 +546,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           member,
           referralCount: sessionReferralCount,
-          stakingBoost: STAKING_BOOST_ACTIVE ? { active: true, multiplier: STAKING_BOOST_MULTIPLIER, endsAt: STAKING_BOOST_END.toISOString() } : { active: false },
+          stakingBoost: isStakingBoostActive() ? { active: true, multiplier: STAKING_BOOST_MULTIPLIER, endsAt: STAKING_BOOST_END.toISOString() } : { active: false },
         });
       }
 
@@ -610,8 +618,8 @@ export async function GET(request: NextRequest) {
           topStakers,
           tierCounts,
           totalRewardsDistributed: totalRewards._sum.points || 0,
-          stakingBoost: STAKING_BOOST_ACTIVE ? { active: true, multiplier: STAKING_BOOST_MULTIPLIER, endsAt: STAKING_BOOST_END.toISOString() } : { active: false },
-          stakingTiers: STAKING_TIERS,
+          stakingBoost: isStakingBoostActive() ? { active: true, multiplier: STAKING_BOOST_MULTIPLIER, endsAt: STAKING_BOOST_END.toISOString() } : { active: false },
+          stakingTiers: getStakingTiers(),
         });
       }
 
@@ -1340,21 +1348,30 @@ export async function POST(request: NextRequest) {
           });
         }
 
-        // Recalculate total points from all activities
-        const allActivities = await db.activityLog.findMany({
-          where: { memberHandle: cleanHandle },
-        });
-        const totalPoints = allActivities.reduce((sum, a) => sum + a.points, 0);
+        // Update points atomically: adjust the difference between new and old balance bonus.
+        // This avoids the race condition of summing ALL activity logs.
+        const pointsAdjustment = newBonus - oldBonus;
 
         await db.packMember.update({
           where: { handle: cleanHandle },
           data: {
             doomhoundBalance: balanceResult.balance,
             balanceCheckedAt: new Date(),
-            points: totalPoints,
-            rank: getRank(totalPoints),
+            ...(pointsAdjustment !== 0 ? { points: { increment: pointsAdjustment } } : {}),
           },
         });
+
+        // Update rank based on the adjusted points
+        const updatedForRank = await db.packMember.findUnique({ where: { handle: cleanHandle } });
+        if (updatedForRank) {
+          const newRank = getRank(updatedForRank.points);
+          if (updatedForRank.rank !== newRank) {
+            await db.packMember.update({
+              where: { handle: cleanHandle },
+              data: { rank: newRank },
+            });
+          }
+        }
 
         // Also update staking data when balance is checked (keeps tier in sync)
         await autoUpdateStaking(cleanHandle);
@@ -1520,36 +1537,15 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          // Strategy 3: URL-based verification
-          // If the URL contains the user's handle and a valid thread UUID,
-          // and we have duplicate detection, accept it
-          if (!verified && urlHandle === cleanHandle) {
-            verified = true;
-            verificationDetail = "Arena post URL verified (handle match + thread ID)";
-          }
+          // Strategy 3 is REMOVED: Previously, if the URL contained the user's handle,
+          // the post was accepted without actually verifying it via the Arena API.
+          // This allowed users to craft fake URLs and farm 30 pts every 10 min.
+          // Now, posts must be verified via the Arena API (Strategy 1 or 2).
         }
 
-        // Strategy 4: Fallback — check if threadCount has increased
-        if (!verified) {
-          try {
-            const arenaData = await arenaFetch(
-              `/agents/user/handle?handle=${encodeURIComponent(cleanHandle)}`
-            );
-            if (arenaData.user) {
-              const currentThreadCount = arenaData.user.threadCount || 0;
-              if (currentThreadCount > member.lastThreadCount) {
-                verified = true;
-                verificationDetail = "New post activity detected on Arena";
-                await db.packMember.update({
-                  where: { handle: cleanHandle },
-                  data: { lastThreadCount: currentThreadCount },
-                });
-              }
-            }
-          } catch (err) {
-            console.error("Arena profile fetch failed:", err);
-          }
-        }
+        // Strategy 4 is REMOVED: Previously, if threadCount increased, the post was accepted.
+        // This could be gamed by deleting and re-posting, and didn't verify $DOOMHOUND content.
+        // Now, posts must be verified via the Arena API (Strategy 1 or 2).
 
         if (!verified) {
           return NextResponse.json({
