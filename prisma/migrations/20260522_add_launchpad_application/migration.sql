@@ -29,5 +29,8 @@ CREATE INDEX "LaunchpadApplication_status_idx" ON "LaunchpadApplication"("status
 -- CreateIndex
 CREATE INDEX "LaunchpadApplication_contractAddress_idx" ON "LaunchpadApplication"("contractAddress");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "LaunchpadApplication_daoProposalId_key" ON "LaunchpadApplication"("daoProposalId");
+
 -- AddForeignKey
 ALTER TABLE "LaunchpadApplication" ADD CONSTRAINT "LaunchpadApplication_daoProposalId_fkey" FOREIGN KEY ("daoProposalId") REFERENCES "DaoProposal"("id") ON DELETE SET NULL ON UPDATE CASCADE;

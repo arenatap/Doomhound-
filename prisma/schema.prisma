@@ -274,7 +274,7 @@ model LaunchpadApplication {
   status          String    @default("submitted")
 
   // DAO integration
-  daoProposalId   String?                    // FK to DaoProposal (created on approve)
+  daoProposalId   String?   @unique           // FK to DaoProposal (created on approve)
   airdropWallet   String?                    // Wallet address where dev sends tokens
 
   // Metadata
