@@ -359,8 +359,8 @@ async function checkAndAwardAchievements(handle: string): Promise<{ newAchieveme
     achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "7_day_streak")!);
   }
 
-  // Howler — 10+ Arena posts verified (meme_generated = verified Arena posts)
-  const arenaPostCount = activities.filter((a) => a.type === "meme_generated" || a.type === "arena_post").length;
+  // Howler — 10+ Arena posts verified (meme_generated + social_mission = verified Arena posts)
+  const arenaPostCount = activities.filter((a) => a.type === "meme_generated" || a.type === "arena_post" || a.type === "social_mission").length;
   if (arenaPostCount >= 10) {
     achievements = awardAchievement(achievements, ACHIEVEMENT_DEFS.find((d) => d.id === "howler")!);
   }
