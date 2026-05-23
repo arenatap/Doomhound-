@@ -244,6 +244,18 @@ const ACHIEVEMENT_DEFS: AchievementDef[] = [
   { id: "meme_lord", name: "Meme Lord", emoji: "🎨", description: "5+ memes forged" },
 ];
 
+// Points awarded when each achievement is unlocked
+const ACHIEVEMENT_POINTS: Record<string, number> = {
+  first_blood: 10,
+  pack_starter: 25,
+  "7_day_streak": 50,
+  howler: 100,
+  whale_spotter: 75,
+  trending_demon: 150,
+  og_hound: 200,
+  meme_lord: 100,
+};
+
 // Launch: 22:00 Rome (CEST) = 20:00 UTC May 5
 const SITE_LAUNCH_DATE = new Date("2026-05-05T20:00:00Z");
 
@@ -392,12 +404,21 @@ async function checkAndAwardAchievements(handle: string): Promise<{ newAchieveme
   const afterIds = new Set(achievements.map((a) => a.id));
   const newIds = [...afterIds].filter((id) => !beforeIds.has(id));
 
-  // Save if changed
+  // Save if changed and award points for new achievements
   if (newIds.length > 0) {
     await db.packMember.update({
       where: { handle },
       data: { achievements: stringifyAchievements(achievements) },
     });
+
+    // Award points for each newly unlocked achievement
+    for (const achId of newIds) {
+      const pts = ACHIEVEMENT_POINTS[achId] || 0;
+      if (pts > 0) {
+        const def = ACHIEVEMENT_DEFS.find(d => d.id === achId);
+        await addActivity(handle, "achievement_unlock", `Unlocked ${def?.emoji || ""} ${def?.name || achId}!`, pts);
+      }
+    }
   }
 
   return { newAchievements: newIds };
