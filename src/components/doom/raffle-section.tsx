@@ -82,6 +82,7 @@ export function RaffleSection({ memberHandle, memberPoints, onPointsSpent }: Raf
   const [timeLeft, setTimeLeft] = useState("");
   const [loading, setLoading] = useState(true);
   const [showParticipants, setShowParticipants] = useState(false);
+  const [confirmBuy, setConfirmBuy] = useState(false);
 
   // Load raffle data
   const loadRaffle = useCallback(async () => {
@@ -124,9 +125,10 @@ export function RaffleSection({ memberHandle, memberPoints, onPointsSpent }: Raf
     return () => clearInterval(interval);
   }, [raffle]);
 
-  // Buy tickets
+  // Confirm and buy tickets
   const buyTickets = useCallback(async () => {
     if (!raffle || !memberHandle) return;
+    setConfirmBuy(false);
     setBuying(true);
     setError(null);
     setSuccessMsg(null);
@@ -294,7 +296,7 @@ export function RaffleSection({ memberHandle, memberPoints, onPointsSpent }: Raf
 
           <BloodSplash>
             <button
-              onClick={buyTickets}
+              onClick={() => { if (canAfford && raffle && memberPoints >= raffle.ticketPrice) setConfirmBuy(true); }}
               disabled={!canAfford || buying || memberPoints < raffle.ticketPrice}
               className={`w-full px-4 py-3 text-sm sm:text-base font-bold rounded-lg transition-all ${
                 canAfford && !buying && memberPoints >= raffle.ticketPrice
@@ -305,6 +307,58 @@ export function RaffleSection({ memberHandle, memberPoints, onPointsSpent }: Raf
               {buying ? "⏳ BUYING..." : !canAfford ? "NOT ENOUGH POINTS" : `🎟️ BUY ${ticketQty} TICKET${ticketQty > 1 ? "S" : ""} (${totalCost} PTS)`}
             </button>
           </BloodSplash>
+
+          {/* Confirm Purchase Dialog */}
+          <AnimatePresence>
+            {confirmBuy && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+                onClick={() => setConfirmBuy(false)}
+              >
+                <div
+                  className="bg-[#1a1a1a] border border-red-600/50 rounded-xl p-6 max-w-sm w-full shadow-[0_0_30px_rgba(220,38,38,0.2)]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="text-center mb-4">
+                    <span className="text-3xl">🎟️</span>
+                    <h3 className="text-white font-bold text-lg mt-2">Confirm Purchase</h3>
+                  </div>
+                  <div className="bg-[#0a0a0a] rounded-lg p-3 mb-4">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-gray-400">Tickets:</span>
+                      <span className="text-white font-bold">{ticketQty}</span>
+                    </div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-gray-400">Price each:</span>
+                      <span className="text-gray-300">{raffle.ticketPrice} pts</span>
+                    </div>
+                    <div className="border-t border-[#2a2a2a] pt-2 mt-2 flex justify-between text-sm">
+                      <span className="text-gray-400 font-bold">Total cost:</span>
+                      <span className="text-red-400 font-bold text-lg">{totalCost} pts</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-500 text-[10px] text-center mb-4">Points are non-refundable after purchase.</p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setConfirmBuy(false)}
+                      className="flex-1 px-4 py-2.5 bg-[#2a2a2a] hover:bg-[#333] text-gray-300 font-bold text-sm rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={buyTickets}
+                      className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-sm rounded-lg transition-colors shadow-[0_0_10px_rgba(220,38,38,0.3)]"
+                    >
+                      🎟️ Confirm
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Success/Error Messages */}
