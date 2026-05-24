@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+const ARENA_API_BASE = "https://api.starsarena.com";
+const ARENA_API_KEY = process.env.ARENA_API_KEY;
+
 // ===== ADMIN PASSWORD =====
 // BUG FIX: No hardcoded fallback — must be set via env var
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
@@ -377,6 +380,71 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json({ success: true, fixes, totalPtsAwarded, fixCount: fixes.length, debug });
+      }
+
+      case "debug_arena": {
+        const { threadId, handle: testHandle } = body;
+        if (!threadId) {
+          return NextResponse.json({ error: "threadId required" }, { status: 400 });
+        }
+        const results: any = { threadId, testHandle };
+
+        // Test 1: Direct thread fetch
+        try {
+          const res = await fetch(`${ARENA_API_BASE}/agents/threads/${threadId}`, {
+            headers: { "X-API-Key": ARENA_API_KEY || "", "Content-Type": "application/json" },
+          });
+          results.directStatus = res.status;
+          const data = await res.json();
+          results.directData = data;
+          results.directThread = data.thread || data;
+        } catch (err: any) {
+          results.directError = err.message;
+        }
+
+        // Test 2: User profile lookup
+        if (testHandle) {
+          try {
+            const res = await fetch(`${ARENA_API_BASE}/agents/user/handle?handle=${encodeURIComponent(testHandle)}`, {
+              headers: { "X-API-Key": ARENA_API_KEY || "", "Content-Type": "application/json" },
+            });
+            results.profileStatus = res.status;
+            const data = await res.json();
+            results.profileData = data;
+            const userId = data.user?.id;
+            results.userId = userId;
+
+            // Test 3: User thread feed
+            if (userId) {
+              const res2 = await fetch(`${ARENA_API_BASE}/agents/threads/feed/user?userId=${userId}&page=1&pageSize=5`, {
+                headers: { "X-API-Key": ARENA_API_KEY || "", "Content-Type": "application/json" },
+              });
+              results.feedStatus = res2.status;
+              const feedData = await res2.json();
+              results.feedThreadCount = feedData.threads?.length || 0;
+              results.feedThreadIds = (feedData.threads || []).map((t: any) => ({ id: t.id, handle: t.userHandle, snippet: (t.content || "").substring(0, 80) }));
+              results.foundInFeed = (feedData.threads || []).some((t: any) => t.id === threadId);
+            }
+          } catch (err: any) {
+            results.profileError = err.message;
+          }
+        }
+
+        // Test 4: Community feed
+        try {
+          const res = await fetch(`${ARENA_API_BASE}/agents/threads/feed/community?communityId=4b326b82-46e7-4ac7-a34b-8e8d00913f0b&page=1&pageSize=5`, {
+            headers: { "X-API-Key": ARENA_API_KEY || "", "Content-Type": "application/json" },
+          });
+          results.communityStatus = res.status;
+          const commData = await res.json();
+          results.communityThreadCount = commData.threads?.length || 0;
+          results.communityThreadIds = (commData.threads || []).map((t: any) => ({ id: t.id, handle: t.userHandle }));
+          results.foundInCommunity = (commData.threads || []).some((t: any) => t.id === threadId);
+        } catch (err: any) {
+          results.communityError = err.message;
+        }
+
+        return NextResponse.json(results);
       }
 
       default:
