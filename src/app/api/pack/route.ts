@@ -1052,16 +1052,27 @@ export async function POST(request: NextRequest) {
             // Yesterday — continue streak
             newStreakCount = member.streakCount + 1;
           } else if (dayDiff === 2) {
-            // Missed one calendar day but within ~48h raw — grace period
+            // Missed one calendar day — grace period (48h from last check-in)
             // This handles edge cases like late-night check-ins across date boundaries
             const hoursSinceLastCheck = (now.getTime() - lastDate.getTime()) / (1000 * 60 * 60);
             if (hoursSinceLastCheck < 48) {
               // Grace period applies — continue streak
               newStreakCount = member.streakCount + 1;
+            } else {
+              // More than 48h but within 2 calendar days — still allow streak continuation
+              // to be more forgiving for users in different timezones or with busy schedules
+              newStreakCount = member.streakCount + 1;
             }
-            // Otherwise: missed a day, streak resets to 1 (default)
+          } else if (dayDiff === 3) {
+            // Missed 2 calendar days — still generous grace period
+            const hoursSinceLastCheck = (now.getTime() - lastDate.getTime()) / (1000 * 60 * 60);
+            if (hoursSinceLastCheck < 72) {
+              // Within 72h — continue streak (allows skipping one full day)
+              newStreakCount = member.streakCount + 1;
+            }
+            // Otherwise: missed too many days, streak resets to 1
           }
-          // dayDiff >= 3: definitely missed days, streak resets to 1 (default)
+          // dayDiff >= 4: definitely missed too many days, streak resets to 1 (default)
         }
 
         await addActivity(cleanHandle, "daily_checkin", `Daily summon completed (streak: ${newStreakCount})`, POINTS_CONFIG.daily_checkin.value);
