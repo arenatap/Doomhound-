@@ -55,22 +55,39 @@ export async function POST(request: NextRequest) {
       results.profileUserKeys = data.user ? Object.keys(data.user) : [];
       const userId = data.user?.id;
 
-      // Test 3: User thread feed
+      // Test 3: User thread feed — search multiple pages
       if (userId) {
-        const res2 = await fetch(`${ARENA_API_BASE}/agents/threads/feed/user?userId=${userId}&page=1&pageSize=10`, {
-          headers: { "X-API-Key": ARENA_API_KEY || "", "Content-Type": "application/json" },
-        });
-        results.feedStatus = res2.status;
-        const feedData = await res2.json();
-        results.feedRawKeys = Object.keys(feedData);
-        results.feedThreadCount = feedData.threads?.length || 0;
-        results.feedThreadIds = (feedData.threads || []).map((t: any) => ({
-          id: t.id,
-          handle: t.userHandle,
-          snippet: stripHtml(t.content || "").substring(0, 80),
-          communityId: t.communityId,
-        }));
-        results.foundInFeed = (feedData.threads || []).some((t: any) => t.id === threadId);
+        results.feedSearchPages = [];
+        let foundOnPage = 0;
+        for (let page = 1; page <= 10 && !foundOnPage; page++) {
+          const res2 = await fetch(`${ARENA_API_BASE}/agents/threads/feed/user?userId=${userId}&page=${page}&pageSize=50`, {
+            headers: { "X-API-Key": ARENA_API_KEY || "", "Content-Type": "application/json" },
+          });
+          const feedData = await res2.json();
+          const threads = feedData.threads || [];
+          const found = threads.some((t: any) => t.id === threadId);
+          results.feedSearchPages.push({
+            page,
+            threadCount: threads.length,
+            totalCount: feedData.count,
+            found,
+            threadIds: threads.map((t: any) => t.id),
+          });
+          if (found) {
+            foundOnPage = page;
+            const foundThread = threads.find((t: any) => t.id === threadId);
+            results.foundThread = {
+              id: foundThread.id,
+              handle: foundThread.userHandle,
+              content: stripHtml(foundThread.content || "").substring(0, 200),
+              communityId: foundThread.communityId,
+              communityTicker: foundThread.community?.ticker,
+            };
+          }
+          // If no more threads, stop
+          if (threads.length === 0) break;
+        }
+        results.foundOnPage = foundOnPage;
       }
     } catch (err: any) {
       results.profileError = err.message;
