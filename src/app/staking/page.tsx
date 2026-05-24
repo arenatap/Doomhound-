@@ -117,6 +117,7 @@ export default function StakingPage() {
   const [airdropData, setAirdropData] = useState<AirdropData | null>(null);
   const [airdropLoading, setAirdropLoading] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+  const [shareError, setShareError] = useState(false);
   const [countdown, setCountdown] = useState(getTimeLeft(AIRDROP_DEADLINE));
 
   // Live countdown timers
@@ -234,15 +235,65 @@ export default function StakingPage() {
     const rankEmoji = userAirdropRank === 1 ? "🥇" : userAirdropRank === 2 ? "🥈" : userAirdropRank === 3 ? "🥉" : "🐺";
     const text = `${rankEmoji} I'm #${userAirdropRank || "?"} on the $DOOMHOUND Airdrop Leaderboard with ${userAirdropPoints} pts!\n\n🏆 200M $DOOMHOUND prize pool — Top 3 win at graduation!\n🔥 Join the race:\nhttps://doomhound.onrender.com/staking\n\n#DOOMHOUND #Avalanche #Airdrop #Memecoin`;
     
+    setShareError(false);
+
+    // Try Web Share API first (works on mobile, allows sharing to Arena/social)
     if (navigator.share) {
-      navigator.share({ title: "DOOMHOUND Airdrop", text }).catch(() => {});
+      navigator.share({ title: "DOOMHOUND Airdrop", text }).then(() => {
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2000);
+      }).catch(() => {
+        // User cancelled or share failed — try clipboard as fallback
+        copyToClipboard(text);
+      });
     } else {
+      copyToClipboard(text);
+    }
+  }, [member, userAirdropRank, userAirdropPoints]);
+
+  const copyToClipboard = useCallback((text: string) => {
+    // Try clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(() => {
         setShareCopied(true);
         setTimeout(() => setShareCopied(false), 2000);
+      }).catch(() => {
+        // Clipboard API failed (e.g. not in secure context, or iframe restriction)
+        // Fallback: use a textarea trick
+        fallbackCopy(text);
       });
+    } else {
+      fallbackCopy(text);
     }
-  }, [member, userAirdropRank, userAirdropPoints]);
+  }, []);
+
+  const fallbackCopy = useCallback((text: string) => {
+    // Fallback: create a temporary textarea and copy from it
+    // This works in older browsers and some restricted contexts
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      textarea.style.top = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const success = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      if (success) {
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2000);
+      } else {
+        // Last resort: show the text in a prompt for manual copy
+        setShareError(true);
+        window.prompt("Copy this text to share:", text);
+      }
+    } catch {
+      setShareError(true);
+      window.prompt("Copy this text to share:", text);
+    }
+  }, []);
 
   if (sessionLoading) {
     return (
@@ -525,6 +576,8 @@ export default function StakingPage() {
                       >
                         {shareCopied ? (
                           <>✅ Copied to clipboard!</>
+                        ) : shareError ? (
+                          <>⚠️ Copy from popup below</>
                         ) : (
                           <>📢 Share Your Rank</>
                         )}
