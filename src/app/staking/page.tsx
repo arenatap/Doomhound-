@@ -118,6 +118,8 @@ export default function StakingPage() {
   const [airdropLoading, setAirdropLoading] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const [shareError, setShareError] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareText, setShareText] = useState("");
   const [countdown, setCountdown] = useState(getTimeLeft(AIRDROP_DEADLINE));
 
   // Live countdown timers
@@ -229,11 +231,17 @@ export default function StakingPage() {
     ? airdropData.leaderboard.filter(e => e.airdropPoints > userAirdropPoints).length + 1
     : null;
 
+  // Build share text
+  const buildShareText = useCallback(() => {
+    if (!member) return "";
+    const rankEmoji = userAirdropRank === 1 ? "🥇" : userAirdropRank === 2 ? "🥈" : userAirdropRank === 3 ? "🥉" : "🐺";
+    return `${rankEmoji} I'm #${userAirdropRank || "?"} on the $DOOMHOUND Airdrop Leaderboard with ${userAirdropPoints} pts!\n\n🏆 200M $DOOMHOUND prize pool — Top 3 win at graduation!\n🔥 Join the race:\nhttps://doomhound.onrender.com/staking\n\n#DOOMHOUND #Avalanche #Airdrop #Memecoin`;
+  }, [member, userAirdropRank, userAirdropPoints]);
+
   // Share rank function
   const shareRank = useCallback(() => {
     if (!member) return;
-    const rankEmoji = userAirdropRank === 1 ? "🥇" : userAirdropRank === 2 ? "🥈" : userAirdropRank === 3 ? "🥉" : "🐺";
-    const text = `${rankEmoji} I'm #${userAirdropRank || "?"} on the $DOOMHOUND Airdrop Leaderboard with ${userAirdropPoints} pts!\n\n🏆 200M $DOOMHOUND prize pool — Top 3 win at graduation!\n🔥 Join the race:\nhttps://doomhound.onrender.com/staking\n\n#DOOMHOUND #Avalanche #Airdrop #Memecoin`;
+    const text = buildShareText();
     
     setShareError(false);
 
@@ -249,7 +257,7 @@ export default function StakingPage() {
     } else {
       copyToClipboard(text);
     }
-  }, [member, userAirdropRank, userAirdropPoints]);
+  }, [member, buildShareText]);
 
   const copyToClipboard = useCallback((text: string) => {
     // Try clipboard API
@@ -285,13 +293,41 @@ export default function StakingPage() {
         setShareCopied(true);
         setTimeout(() => setShareCopied(false), 2000);
       } else {
-        // Last resort: show the text in a prompt for manual copy
-        setShareError(true);
-        window.prompt("Copy this text to share:", text);
+        // All clipboard methods failed — show visual modal for manual copy
+        setShareText(text);
+        setShowShareModal(true);
       }
     } catch {
-      setShareError(true);
-      window.prompt("Copy this text to share:", text);
+      // All clipboard methods failed — show visual modal for manual copy
+      setShareText(text);
+      setShowShareModal(true);
+    }
+  }, []);
+
+  // Copy from modal textarea
+  const copyFromModal = useCallback(() => {
+    const textarea = document.getElementById("share-textarea") as HTMLTextAreaElement;
+    if (textarea) {
+      textarea.select();
+      textarea.setSelectionRange(0, 99999);
+      // Try execCommand first
+      try {
+        const success = document.execCommand("copy");
+        if (success) {
+          setShareCopied(true);
+          setTimeout(() => { setShareCopied(false); setShowShareModal(false); }, 2000);
+          return;
+        }
+      } catch {}
+      // Try clipboard API
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textarea.value).then(() => {
+          setShareCopied(true);
+          setTimeout(() => { setShareCopied(false); setShowShareModal(false); }, 2000);
+        }).catch(() => {
+          // Text is selected — user can Ctrl+C manually
+        });
+      }
     }
   }, []);
 
@@ -569,19 +605,26 @@ export default function StakingPage() {
                     </div>
 
                     {/* Share Rank Button */}
-                    {member && airdropData?.airdropInitialized && (
-                      <button
-                        onClick={shareRank}
-                        className="w-full mt-3 py-2.5 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white text-xs sm:text-sm font-bold rounded-lg flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_25px_rgba(220,38,38,0.5)] transition-all"
-                      >
-                        {shareCopied ? (
-                          <>✅ Copied to clipboard!</>
-                        ) : shareError ? (
-                          <>⚠️ Copy from popup below</>
-                        ) : (
-                          <>📢 Share Your Rank</>
-                        )}
-                      </button>
+                    {member && (
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          onClick={shareRank}
+                          className="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white text-xs sm:text-sm font-bold rounded-lg flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_25px_rgba(220,38,38,0.5)] transition-all"
+                        >
+                          {shareCopied ? (
+                            <>✅ Copied!</>
+                          ) : (
+                            <>📢 Share Your Rank</>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => { setShareText(buildShareText()); setShowShareModal(true); }}
+                          className="py-2.5 px-4 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-gray-300 text-xs sm:text-sm font-bold rounded-lg transition-all"
+                          title="Copy manually"
+                        >
+                          📋
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -704,6 +747,60 @@ export default function StakingPage() {
           </div>
         </section>
       </div>
+
+      {/* Share Rank Modal — shown when clipboard APIs fail (e.g. in Arena iframe) */}
+      <AnimatePresence>
+        {showShareModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            onClick={() => setShowShareModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#1a1a1a] border border-red-600/50 rounded-xl p-5 max-w-md w-full shadow-[0_0_30px_rgba(220,38,38,0.3)]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-creepster text-xl text-red-500">📢 SHARE YOUR RANK</h3>
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  className="text-gray-500 hover:text-white text-lg"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-gray-400 text-xs mb-3">Select the text below and copy it to share on Arena:</p>
+              <textarea
+                id="share-textarea"
+                readOnly
+                value={shareText}
+                className="w-full h-32 bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg p-3 text-white text-xs sm:text-sm resize-none focus:border-red-600 focus:outline-none select-all"
+                onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+              />
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={copyFromModal}
+                  className="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white text-xs sm:text-sm font-bold rounded-lg transition-all"
+                >
+                  {shareCopied ? "✅ Copied!" : "📋 Copy Text"}
+                </button>
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  className="px-4 py-2.5 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-gray-400 text-xs sm:text-sm font-bold rounded-lg transition-all"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <Footer />
     </DoomShell>
   );
