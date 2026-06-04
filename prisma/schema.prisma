@@ -310,13 +310,14 @@ model NftWhitelist {
 }
 
 model BurnMintRequest {
-  id               String   @id @default(cuid())
-  walletAddress    String   @unique    // Wallet address
-  txHash           String              // The burn transaction hash (ERC20 transfer to 0xdead)
+  id               Int      @id @default(autoincrement())
+  walletAddress    String               // Wallet address (not unique — allows re-burn on new contract)
+  txHash           String   @unique     // The burn transaction hash (ERC20 transfer to 0xdead)
+  burnAmount       String?              // Amount of $DOOMHOUND burned (in wei)
   verified         Boolean  @default(false) // Whether the burn was verified on-chain
   minted           Boolean  @default(false) // Whether the NFT was minted (adminMint)
-  mintTxHash       String?             // TX hash of the adminMint transaction
-  contractAddress  String?             // NFT contract address at time of mint (for migration)
+  mintTxHash       String?              // TX hash of the adminMint transaction
+  contractAddress  String?              // NFT contract address at time of mint (for migration)
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

@@ -499,7 +499,6 @@ export async function GET(request: NextRequest) {
       }
 
       // Also check burn mint status for this wallet (current contract only)
-      // Old-contract mints should NOT count as "minted" for the new contract
       const currentNftAddr = (NFT_CONTRACT_ADDRESS || "0x350661c692003cC9D8b350B88e5cc2Fd989E4DCb").toLowerCase();
       try {
         const burnRequest = await db.burnMintRequest.findFirst({
@@ -528,36 +527,7 @@ export async function GET(request: NextRequest) {
           };
         }
       } catch (burnErr: any) {
-        // Fallback to raw SQL if contractAddress column is missing
-        if (burnErr.message?.includes("contractAddress") || burnErr.message?.includes("does not exist")) {
-          try {
-            const rawResult = await db.$queryRaw`
-              SELECT verified, minted, "txHash", "mintTxHash"
-              FROM "BurnMintRequest"
-              WHERE "walletAddress" = ${walletLower}
-              ORDER BY "createdAt" DESC
-              LIMIT 1
-            ` as any[];
-            if (rawResult && rawResult.length > 0) {
-              // Same check for old contract mints
-              let effectiveMinted = rawResult[0].minted;
-              if (effectiveMinted && rawResult[0].mintTxHash) {
-                try {
-                  const provider4 = new ethers.JsonRpcProvider(AVAX_RPC);
-                  const mintReceipt = await provider4.getTransactionReceipt(rawResult[0].mintTxHash);
-                  if (mintReceipt && mintReceipt.to?.toLowerCase() !== currentNftAddr) {
-                    effectiveMinted = false;
-                  }
-                } catch {}
-              }
-              burnMintStatus = {
-                verified: rawResult[0].verified,
-                minted: effectiveMinted,
-                txHash: rawResult[0].txHash,
-              };
-            }
-          } catch {}
-        }
+        console.warn(`[NFT GET] Burn mint status query failed for ${walletLower}: ${burnErr.message}`);
       }
     }
 
@@ -1052,13 +1022,10 @@ export async function PUT(request: NextRequest) {
     }
 
     const walletLower = wallet.toLowerCase();
+    const currentNftAddress = (NFT_CONTRACT_ADDRESS || "0x350661c692003cC9D8b350B88e5cc2Fd989E4DCb").toLowerCase();
 
     // Check: no duplicate verified burn requests for this wallet ON THE CURRENT CONTRACT
-    // Old-contract burn records should NOT block burns on the new contract
-    // We verify the mintTxHash was actually sent to the current NFT contract
-    const currentNftAddress = (NFT_CONTRACT_ADDRESS || "0x350661c692003cC9D8b350B88e5cc2Fd989E4DCb").toLowerCase();
     let existingBurn: any = null;
-    let existingBurnIsOnCurrentContract = false;
     try {
       existingBurn = await db.burnMintRequest.findFirst({
         where: {
@@ -1068,21 +1035,7 @@ export async function PUT(request: NextRequest) {
         orderBy: { createdAt: "desc" },
       });
     } catch (findErr: any) {
-      if (findErr.message?.includes("contractAddress") || findErr.message?.includes("does not exist")) {
-        // Fallback to raw SQL
-        const rawResult = await db.$queryRaw`
-          SELECT id, "walletAddress", "txHash", "burnAmount", verified, minted, "mintTxHash"
-          FROM "BurnMintRequest"
-          WHERE "walletAddress" = ${walletLower} AND verified = true
-          ORDER BY "createdAt" DESC
-          LIMIT 1
-        ` as any[];
-        if (rawResult && rawResult.length > 0) {
-          existingBurn = rawResult[0];
-        }
-      } else {
-        throw findErr;
-      }
+      console.warn(`[NFT verify_burn] DB findFirst failed: ${findErr.message}`);
     }
 
     // Variables for the skip-on-chain-verify flow
@@ -1091,43 +1044,36 @@ export async function PUT(request: NextRequest) {
     let existingBurnAmount: string | null = null;
 
     // If there's an existing burn, check if the mint was actually done on the CURRENT contract
-    // Old-contract mints should NOT count as "already minted" for the new contract
     if (existingBurn && existingBurn.minted && existingBurn.mintTxHash) {
       try {
         const provider2 = new ethers.JsonRpcProvider(AVAX_RPC);
         const mintReceipt = await provider2.getTransactionReceipt(existingBurn.mintTxHash);
         if (mintReceipt && mintReceipt.to?.toLowerCase() !== currentNftAddress) {
-          console.log(`[NFT verify_burn] Existing mint TX ${existingBurn.mintTxHash} was to OLD contract ${mintReceipt.to}, not current ${currentNftAddress}. Allowing new burn.`);
-          existingBurnIsOnCurrentContract = false;
-          // Don't block — treat as if no valid mint exists
+          console.log(`[NFT verify_burn] Existing mint TX ${existingBurn.mintTxHash} was to OLD contract, not current. Allowing new burn.`);
           existingBurn = null;
-        } else {
-          existingBurnIsOnCurrentContract = true;
         }
       } catch (e: any) {
         console.warn(`[NFT verify_burn] Could not verify mint TX contract: ${e.message}`);
-        // If we can't verify, assume it's on current contract to be safe
-        existingBurnIsOnCurrentContract = true;
       }
     }
     if (existingBurn) {
-      // Already have a verified burn
       if (existingBurn.minted) {
-        // Already minted — return success
+        // Already minted on current contract — return success
+        const burnAmountDisplay = existingBurn.burnAmount
+          ? (Number(existingBurn.burnAmount) / 1e18).toFixed(0) + " $DOOMHOUND"
+          : "11M $DOOMHOUND";
         return NextResponse.json({
           success: true,
           verified: true,
           minted: true,
           mintTxHash: existingBurn.mintTxHash,
           message: "Burn already verified and NFT already minted!",
-          burnAmount: existingBurn.burnAmount,
+          burnAmount: burnAmountDisplay,
           txHash: existingBurn.txHash,
         });
       }
       // Verified but NOT yet minted — retry auto-mint
       console.log(`[NFT verify_burn] Found existing verified burn for ${walletLower} but not yet minted. Retrying auto-mint...`);
-      // Fall through to the auto-mint section below (skip on-chain re-verification)
-      // We'll use the existing txHash for the DB update
       skipOnChainVerify = true;
       existingTxHash = existingBurn.txHash;
       existingBurnAmount = existingBurn.burnAmount;
@@ -1136,17 +1082,15 @@ export async function PUT(request: NextRequest) {
     // Verify the burn transaction on-chain (skip if already verified from DB)
     const provider = new ethers.JsonRpcProvider(AVAX_RPC);
     let burnAmountStr: string;
-    let dbTxHash: string; // The txHash to use for DB lookups
+    let dbTxHash: string;
 
-    if (skipOnChainVerify && existingTxHash && existingBurnAmount) {
-      // Already verified in a previous call — skip re-verification
-      burnAmountStr = existingBurnAmount;
+    if (skipOnChainVerify && existingTxHash) {
+      burnAmountStr = existingBurnAmount || "11000000000000000000000000";
       dbTxHash = existingTxHash;
       console.log(`[NFT verify_burn] Skipping on-chain re-verification for ${walletLower}, using existing record`);
     } else {
       // First time verification — verify on-chain
       const receipt = await provider.getTransactionReceipt(txHash);
-
       if (!receipt || receipt.status !== 1) {
         return NextResponse.json(
           { error: "Transaction not found or failed" },
@@ -1154,7 +1098,6 @@ export async function PUT(request: NextRequest) {
         );
       }
 
-      // Verify it's a transfer of $DOOMHOUND to the burn address
       const tx = await provider.getTransaction(txHash);
       if (!tx) {
         return NextResponse.json(
@@ -1171,86 +1114,138 @@ export async function PUT(request: NextRequest) {
         );
       }
 
-      // Check: to address is the DOOMHOUND token contract (for transfer calls)
-      if (tx.to?.toLowerCase() !== DOOMHOUND_TOKEN.toLowerCase()) {
+      // Check: to address is the DOOMHOUND token contract (for direct transfer calls)
+      // OR the NFT contract (for mintWithToken calls which burn internally)
+      const txTo = tx.to?.toLowerCase();
+      if (txTo !== DOOMHOUND_TOKEN.toLowerCase() && txTo !== currentNftAddress) {
         return NextResponse.json(
-          { error: "Transaction is not a $DOOMHOUND transfer" },
+          { error: "Transaction is not a $DOOMHOUND transfer or NFT mintWithToken call" },
           { status: 400 }
         );
+      }
+
+      // If it's a mintWithToken call to the NFT contract, the burn+mint is atomic on-chain
+      // The user should already have the NFT — verify on-chain
+      if (txTo === currentNftAddress) {
+        // This was a mintWithToken call — check if the NFT was actually minted
+        try {
+          const nftRead = new ethers.Contract(
+            NFT_CONTRACT_ADDRESS || "0x350661c692003cC9D8b350B88e5cc2Fd989E4DCb",
+            ["function tokenMintClaimed(address) view returns (uint256)", "function balanceOf(address) view returns (uint256)"],
+            provider
+          );
+          const tokenMintCount = Number(await nftRead.tokenMintClaimed(walletLower));
+          const balance = Number(await nftRead.balanceOf(walletLower));
+
+          if (tokenMintCount > 0 || balance > 0) {
+            // The NFT was minted successfully via mintWithToken
+            return NextResponse.json({
+              success: true,
+              verified: true,
+              minted: true,
+              message: "Your mintWithToken transaction was successful! The NFT was minted directly on-chain.",
+              txHash: txHash.toLowerCase(),
+            });
+          } else {
+            // mintWithToken was called but no NFT — something went wrong on-chain
+            // The tokens may have been burned but the mint didn't happen
+            // We'll verify the burn from the Transfer event and do an adminMint
+            console.log(`[NFT verify_burn] mintWithToken call detected for ${walletLower} but no NFT found. Verifying burn via Transfer event...`);
+          }
+        } catch (e: any) {
+          console.warn(`[NFT verify_burn] Could not check tokenMintClaimed: ${e.message}`);
+        }
       }
 
       // Decode the transfer function to verify recipient and amount
       const erc20Interface = new ethers.Interface([
-        "function transfer(address to, uint256 amount)"
+        "function transfer(address to, uint256 amount)",
+        "function transferFrom(address from, address to, uint256 amount)",
       ]);
-      const decoded = erc20Interface.parseTransaction({ data: tx.data });
+      let decoded = erc20Interface.parseTransaction({ data: tx.data });
 
+      // If direct transfer decoding fails, try checking Transfer events in the receipt
       if (!decoded) {
-        return NextResponse.json(
-          { error: "Could not decode transaction data" },
-          { status: 400 }
-        );
-      }
+        // Look for ERC20 Transfer event in the receipt logs
+        const transferTopic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+        const burnAddressPadded = "0x000000000000000000000000000000000000dead";
+        let foundBurnEvent = false;
+        let eventAmount = BigInt(0);
 
-      const recipient = decoded.args[0].toLowerCase();
-      const amount = BigInt(decoded.args[1].toString());
+        for (const log of receipt.logs) {
+          if (log.address.toLowerCase() === DOOMHOUND_TOKEN.toLowerCase() &&
+              log.topics[0] === transferTopic) {
+            // Transfer(from, to, amount) — topics[1]=from, topics[2]=to
+            const from = "0x" + log.topics[1].slice(26);
+            const to = "0x" + log.topics[2].slice(26);
 
-      if (recipient !== BURN_ADDRESS) {
-        return NextResponse.json(
-          { error: "Tokens were not sent to the burn address" },
-          { status: 400 }
-        );
-      }
-
-      if (amount < BURN_AMOUNT_WEI) {
-        return NextResponse.json(
-          { error: `Insufficient burn amount. Expected at least 11M $DOOMHOUND, got ${ethers.formatUnits(amount, 18)}` },
-          { status: 400 }
-        );
-      }
-
-      burnAmountStr = amount.toString();
-      dbTxHash = txHash.toLowerCase();
-
-      // Upsert: if this txHash already exists, update it; otherwise create new
-      // Use try/catch with raw SQL fallback in case contractAddress column is missing from DB
-      try {
-        await db.burnMintRequest.upsert({
-          where: { txHash: dbTxHash },
-          update: {
-            verified: true,
-            burnAmount: burnAmountStr,
-          },
-          create: {
-            walletAddress: walletLower,
-            txHash: dbTxHash,
-            burnAmount: burnAmountStr,
-            verified: true,
-            minted: false,
-          },
-        });
-        console.log(`[NFT verify_burn] DB upsert successful for ${walletLower}, txHash=${dbTxHash}`);
-      } catch (upsertErr: any) {
-        if (upsertErr.message?.includes("contractAddress") || upsertErr.message?.includes("does not exist")) {
-          console.warn("[NFT verify_burn] contractAddress column missing, using raw SQL for upsert");
-          // Raw SQL upsert fallback — only uses columns that exist
-          await db.$executeRaw`
-            INSERT INTO "BurnMintRequest" ("walletAddress", "txHash", "burnAmount", verified, minted, "createdAt", "updatedAt")
-            VALUES (${walletLower}, ${dbTxHash}, ${burnAmountStr}, true, false, NOW(), NOW())
-            ON CONFLICT ("txHash") DO UPDATE SET verified = true, "burnAmount" = ${burnAmountStr}, "updatedAt" = NOW()
-          `;
-        } else {
-          throw upsertErr;
+            if (to.toLowerCase() === burnAddressPadded && from.toLowerCase() === walletLower) {
+              foundBurnEvent = true;
+              eventAmount = BigInt(log.data);
+              break;
+            }
+          }
         }
+
+        if (foundBurnEvent && eventAmount >= BURN_AMOUNT_WEI) {
+          burnAmountStr = eventAmount.toString();
+          dbTxHash = txHash.toLowerCase();
+        } else if (foundBurnEvent) {
+          return NextResponse.json(
+            { error: `Insufficient burn amount. Expected at least 11M $DOOMHOUND, got ${ethers.formatUnits(eventAmount, 18)}` },
+            { status: 400 }
+          );
+        } else {
+          return NextResponse.json(
+            { error: "Could not verify $DOOMHOUND transfer to burn address in this transaction" },
+            { status: 400 }
+          );
+        }
+      } else {
+        // Decoded transfer call — verify recipient and amount
+        const recipient = decoded.args[0].toLowerCase();
+        const amount = BigInt(decoded.args[1].toString());
+
+        if (recipient !== BURN_ADDRESS) {
+          return NextResponse.json(
+            { error: "Tokens were not sent to the burn address" },
+            { status: 400 }
+          );
+        }
+
+        if (amount < BURN_AMOUNT_WEI) {
+          return NextResponse.json(
+            { error: `Insufficient burn amount. Expected at least 11M $DOOMHOUND, got ${ethers.formatUnits(amount, 18)}` },
+            { status: 400 }
+          );
+        }
+
+        burnAmountStr = amount.toString();
+        dbTxHash = txHash.toLowerCase();
       }
+
+      // Upsert burn record
+      await db.burnMintRequest.upsert({
+        where: { txHash: dbTxHash },
+        update: {
+          verified: true,
+          burnAmount: burnAmountStr,
+        },
+        create: {
+          walletAddress: walletLower,
+          txHash: dbTxHash,
+          burnAmount: burnAmountStr,
+          verified: true,
+          minted: false,
+        },
+      });
+      console.log(`[NFT verify_burn] DB upsert successful for ${walletLower}, txHash=${dbTxHash}`);
     }
 
     // AUTO-MINT: Automatically call adminMint after successful burn verification
-    // This replaces the old manual process where the team had to mint manually
     let mintTxHash: string | null = null;
     let autoMintError: string | null = null;
     try {
-      // Try DEPLOYER_PRIVATE_KEY first (contract owner), then NFT_SIGNER_PRIVATE_KEY (signer)
       const OWNER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY || process.env.NFT_SIGNER_PRIVATE_KEY;
       if (OWNER_PRIVATE_KEY) {
         const ownerWallet = new ethers.Wallet(OWNER_PRIVATE_KEY, provider);
@@ -1266,46 +1261,36 @@ export async function PUT(request: NextRequest) {
         const contractOwner = await nftContractWithOwner.owner();
         if (contractOwner.toLowerCase() === ownerWallet.address.toLowerCase()) {
           console.log(`[NFT verify_burn] Auto-minting NFT for ${walletLower}...`);
-          const mintTx = await nftContractWithOwner.adminMint(walletLower, 1);
+          const mintTx = await nftContractWithOwner.adminMint(walletLower, 1, {
+            gasLimit: 200000n,
+          });
           console.log(`[NFT verify_burn] Mint TX sent: ${mintTx.hash}, waiting for confirmation...`);
           const mintReceipt = await mintTx.wait();
-          if (mintReceipt.status === 1) {
+          if (mintReceipt && mintReceipt.status === 1) {
             mintTxHash = mintTx.hash;
             console.log(`[NFT verify_burn] Auto-mint confirmed for ${walletLower}: ${mintTxHash}`);
-            // Update DB to mark as minted (with fallback for missing contractAddress column)
-            try {
-              await db.burnMintRequest.update({
-                where: { txHash: dbTxHash },
-                data: { minted: true, mintTxHash: mintTxHash },
-              });
-            } catch (updateErr: any) {
-              if (updateErr.message?.includes("contractAddress") || updateErr.message?.includes("does not exist")) {
-                await db.$executeRaw`
-                  UPDATE "BurnMintRequest" SET minted = true, "mintTxHash" = ${mintTxHash}, "updatedAt" = NOW()
-                  WHERE "txHash" = ${dbTxHash}
-                `;
-              } else {
-                console.error(`[NFT verify_burn] Failed to update minted status in DB:`, updateErr.message);
-              }
-            }
+            // Update DB to mark as minted
+            await db.burnMintRequest.update({
+              where: { txHash: dbTxHash },
+              data: { minted: true, mintTxHash: mintTxHash },
+            });
           } else {
             autoMintError = "Mint transaction reverted on-chain";
             console.error(`[NFT verify_burn] Auto-mint REVERTED for ${walletLower}: ${mintTx.hash}`);
           }
         } else {
           autoMintError = `Auto-mint unavailable: signing key (${ownerWallet.address.slice(0, 6)}...${ownerWallet.address.slice(-4)}) is not the contract owner (${contractOwner.slice(0, 6)}...${contractOwner.slice(-4)}). Set DEPLOYER_PRIVATE_KEY env var on Render.`;
-          console.warn(`[NFT verify_burn] Auto-mint skipped: key wallet ${ownerWallet.address} is NOT the contract owner ${contractOwner}. DEPLOYER_PRIVATE_KEY must be set to the owner's private key.`);
+          console.warn(`[NFT verify_burn] Auto-mint skipped: key wallet is NOT the contract owner.`);
         }
       } else {
-        autoMintError = "DEPLOYER_PRIVATE_KEY not configured on server. The team needs to add it as an environment variable on Render for auto-minting.";
-        console.warn(`[NFT verify_burn] Auto-mint skipped: no DEPLOYER_PRIVATE_KEY or NFT_SIGNER_PRIVATE_KEY configured`);
+        autoMintError = "DEPLOYER_PRIVATE_KEY not configured on server. Add it as an env var on Render for auto-minting.";
+        console.warn(`[NFT verify_burn] Auto-mint skipped: no DEPLOYER_PRIVATE_KEY configured`);
       }
     } catch (mintError: any) {
       autoMintError = mintError.message;
       console.error(`[NFT verify_burn] Auto-mint failed for ${walletLower}: ${mintError.message}`);
     }
 
-    // Format burn amount for display (handle both raw wei string and formatted)
     const burnAmountDisplay = burnAmountStr ? (Number(burnAmountStr) / 1e18).toFixed(0) + " $DOOMHOUND" : "11M $DOOMHOUND";
 
     if (mintTxHash) {
@@ -1319,7 +1304,6 @@ export async function PUT(request: NextRequest) {
         mintTxHash,
       });
     } else {
-      // Auto-mint didn't work — fall back to manual process
       return NextResponse.json({
         success: true,
         verified: true,
@@ -1332,6 +1316,7 @@ export async function PUT(request: NextRequest) {
     }
 
   } catch (error: any) {
+    console.error(`[NFT verify_burn] Unhandled error: ${error.message}`);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
