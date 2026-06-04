@@ -1023,19 +1023,18 @@ export async function PUT(request: NextRequest) {
 
     const walletLower = wallet.toLowerCase();
     const currentNftAddress = (NFT_CONTRACT_ADDRESS || "0x350661c692003cC9D8b350B88e5cc2Fd989E4DCb").toLowerCase();
+    const normalizedTxHash = txHash.toLowerCase();
 
-    // Check: no duplicate verified burn requests for this wallet ON THE CURRENT CONTRACT
+    // CRITICAL FIX: Check for a burn record matching the SPECIFIC txHash the user submitted.
+    // Previously we searched by walletAddress which would return OLD burns instead of
+    // processing new ones — this was the bug where a new burn returned an old mint tx.
     let existingBurn: any = null;
     try {
-      existingBurn = await db.burnMintRequest.findFirst({
-        where: {
-          walletAddress: { equals: walletLower, mode: "insensitive" },
-          verified: true,
-        },
-        orderBy: { createdAt: "desc" },
+      existingBurn = await db.burnMintRequest.findUnique({
+        where: { txHash: normalizedTxHash },
       });
     } catch (findErr: any) {
-      console.warn(`[NFT verify_burn] DB findFirst failed: ${findErr.message}`);
+      console.warn(`[NFT verify_burn] DB findUnique failed: ${findErr.message}`);
     }
 
     // Variables for the skip-on-chain-verify flow
@@ -1043,13 +1042,14 @@ export async function PUT(request: NextRequest) {
     let existingTxHash: string | null = null;
     let existingBurnAmount: string | null = null;
 
-    // If there's an existing burn, check if the mint was actually done on the CURRENT contract
+    // If there's an existing record for THIS specific txHash, check its status
     if (existingBurn && existingBurn.minted && existingBurn.mintTxHash) {
+      // Check if the mint was actually done on the CURRENT contract
       try {
         const provider2 = new ethers.JsonRpcProvider(AVAX_RPC);
         const mintReceipt = await provider2.getTransactionReceipt(existingBurn.mintTxHash);
         if (mintReceipt && mintReceipt.to?.toLowerCase() !== currentNftAddress) {
-          console.log(`[NFT verify_burn] Existing mint TX ${existingBurn.mintTxHash} was to OLD contract, not current. Allowing new burn.`);
+          console.log(`[NFT verify_burn] Existing mint TX ${existingBurn.mintTxHash} was to OLD contract, not current. Allowing re-verification.`);
           existingBurn = null;
         }
       } catch (e: any) {
@@ -1058,7 +1058,7 @@ export async function PUT(request: NextRequest) {
     }
     if (existingBurn) {
       if (existingBurn.minted) {
-        // Already minted on current contract — return success
+        // THIS specific txHash was already verified and minted — return success
         const burnAmountDisplay = existingBurn.burnAmount
           ? (Number(existingBurn.burnAmount) / 1e18).toFixed(0) + " $DOOMHOUND"
           : "11M $DOOMHOUND";
@@ -1067,16 +1067,19 @@ export async function PUT(request: NextRequest) {
           verified: true,
           minted: true,
           mintTxHash: existingBurn.mintTxHash,
-          message: "Burn already verified and NFT already minted!",
+          message: "This burn transaction was already verified and your NFT has been minted!",
           burnAmount: burnAmountDisplay,
           txHash: existingBurn.txHash,
         });
       }
-      // Verified but NOT yet minted — retry auto-mint
-      console.log(`[NFT verify_burn] Found existing verified burn for ${walletLower} but not yet minted. Retrying auto-mint...`);
-      skipOnChainVerify = true;
-      existingTxHash = existingBurn.txHash;
-      existingBurnAmount = existingBurn.burnAmount;
+      if (existingBurn.verified) {
+        // Verified but NOT yet minted — retry auto-mint
+        console.log(`[NFT verify_burn] Found existing verified burn for txHash ${normalizedTxHash} but not yet minted. Retrying auto-mint...`);
+        skipOnChainVerify = true;
+        existingTxHash = existingBurn.txHash;
+        existingBurnAmount = existingBurn.burnAmount;
+      }
+      // If not verified yet, fall through to on-chain verification
     }
 
     // Verify the burn transaction on-chain (skip if already verified from DB)
