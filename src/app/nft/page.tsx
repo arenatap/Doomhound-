@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, useChainId, useSwitchChain, useWriteContract, useReadContract, useWaitForTransactionReceipt } from "wagmi";
-import { useConnect } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { motion } from "framer-motion";
 import { DoomShell } from "@/components/doom/doom-shell";
 import { Footer } from "@/components/doom/footer";
@@ -14,12 +14,10 @@ export default function NFTPage() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
-  const { connect, connectors } = useConnect();
-  
+
   const isWrongChain = isConnected && chainId !== AVAX_CHAIN_ID;
-  
+
   // State
-  const [burnTxHash, setBurnTxHash] = useState<string>("");
   const [verifyStatus, setVerifyStatus] = useState<string>("");
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyResult, setVerifyResult] = useState<any>(null);
@@ -69,7 +67,7 @@ export default function NFTPage() {
       const res = await fetch("/api/nft?action=stats");
       const data = await res.json();
       if (data.gallery) {
-        setUserTokens(data.gallery.filter((t: any) => 
+        setUserTokens(data.gallery.filter((t: any) =>
           t.owner?.toLowerCase() === address?.toLowerCase()
         ));
       }
@@ -188,16 +186,11 @@ export default function NFTPage() {
             </div>
           </motion.div>
 
-          {/* Connect Wallet */}
-          {!isConnected && (
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.7 }}>
-              <button onClick={() => connect({ connector: connectors[0] })}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-xl text-lg shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)] transition-all animate-breathing-glow">
-                Connect Wallet
-              </button>
-              <p className="text-gray-500 text-xs mt-3">Connect to mint your Hound</p>
-            </motion.div>
-          )}
+          {/* RainbowKit Connect Button */}
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.7 }}
+            className="flex justify-center mb-6">
+            <ConnectButton />
+          </motion.div>
 
           {/* Wrong Chain */}
           {isWrongChain && (
@@ -230,7 +223,7 @@ export default function NFTPage() {
               <div className="bg-gradient-to-br from-red-950/40 to-orange-950/20 border border-red-500/30 rounded-xl p-6 mb-6">
                 <h3 className="font-creepster text-xl text-red-400 mb-4">Burn & Mint (FREE)</h3>
                 <p className="text-gray-400 text-xs mb-4">Burn 11M $DOOMHOUND to receive a FREE HOTH NFT. Auto-minted to your wallet after verification.</p>
-                
+
                 <button onClick={handleBurn} disabled={!hasEnoughDoom || burnConfirming}
                   className={`w-full py-3 px-6 rounded-xl font-bold text-sm transition-all ${
                     hasEnoughDoom && !burnConfirming
@@ -275,7 +268,7 @@ export default function NFTPage() {
               <div className="bg-gradient-to-br from-purple-950/30 to-red-950/20 border border-purple-500/30 rounded-xl p-6 mb-6">
                 <h3 className="font-creepster text-xl text-purple-400 mb-4">Paid Mint</h3>
                 <p className="text-gray-400 text-xs mb-4">Mint directly for 0.69 AVAX. Max 2 per wallet.</p>
-                
+
                 <button onClick={handleMintPaid} disabled={mintLoading || mintConfirming}
                   className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-xl text-sm transition-all shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_30px_rgba(147,51,234,0.5)] disabled:opacity-50 disabled:cursor-not-allowed">
                   {mintConfirming ? "Confirming..." : mintLoading ? "Minting..." : "Mint for 0.69 AVAX"}
