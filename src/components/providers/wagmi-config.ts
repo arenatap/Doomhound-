@@ -1,5 +1,6 @@
-import { http, createConfig, fallback } from "wagmi";
-import { avalanche, defineChain } from "wagmi/chains";
+import { http, fallback } from "wagmi";
+import { avalanche } from "wagmi/chains";
+import { defineChain } from "viem";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 
 // Multiple Avalanche RPCs for reliability — if one is down, the next is used

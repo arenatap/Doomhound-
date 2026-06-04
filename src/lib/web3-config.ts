@@ -1,6 +1,7 @@
 "use client";
 
-import { avalanche, defineChain } from "wagmi/chains";
+import { avalanche } from "wagmi/chains";
+import { defineChain } from "viem";
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { http, fallback } from "wagmi";
 
