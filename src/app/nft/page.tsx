@@ -9,6 +9,19 @@ import { NFT_CONTRACT, DOOMHOUND_TOKEN, BURN_ADDRESS, BURN_AMOUNT, NFT_ABI, DOOM
 
 const AVAX_CHAIN_ID = 43114;
 
+// IPFS gateway fallback: if ipfs.io fails, try Pinata
+function handleImageError(e: React.SyntheticEvent<HTMLImageElement>) {
+  const img = e.currentTarget;
+  if (img.src.includes('ipfs.io/ipfs/')) {
+    img.src = img.src.replace('ipfs.io/ipfs/', 'gateway.pinata.cloud/ipfs/');
+  } else if (img.src.includes('gateway.pinata.cloud/ipfs/')) {
+    // Both gateways failed - show placeholder
+    img.src = '/images/doomhound-hero.png';
+    img.style.objectFit = 'cover';
+    img.style.opacity = '0.3';
+  }
+}
+
 export default function NFTPage() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -611,7 +624,7 @@ export default function NFTPage() {
                     {userTokens.map((token: any) => (
                       <a key={token.tokenId} href={`https://snowtrace.io/token/${NFT_CONTRACT}?a=${token.tokenId}`} target="_blank"
                         className="bg-red-950/20 border border-red-500/20 rounded-lg overflow-hidden hover:border-red-500/50 transition-all group">
-                        <img src={token.image} alt={token.name} className="w-full aspect-square object-cover group-hover:scale-105 transition-transform" />
+                        <img src={token.image} alt={token.name} className="w-full aspect-square object-cover group-hover:scale-105 transition-transform" onError={handleImageError} />
                         <div className="p-2">
                           <p className="text-red-300 text-xs font-bold truncate">{token.name}</p>
                           <p className="text-gray-500 text-[10px]">#{token.tokenId}</p>
@@ -668,7 +681,7 @@ export default function NFTPage() {
                         ? "border-2 border-red-500/60 bg-red-950/30 shadow-[0_0_12px_rgba(220,38,38,0.3)]"
                         : "border border-red-500/15 bg-red-950/10"
                     }`}>
-                    <img src={token.image} alt={token.name} className="w-full aspect-square object-cover" loading="lazy" />
+                    <img src={token.image} alt={token.name} className="w-full aspect-square object-cover" loading="lazy" onError={handleImageError} />
                     <div className="p-1.5">
                       <p className="text-red-300 text-[10px] font-bold truncate">#{token.tokenId}</p>
                       {token.owner?.toLowerCase() === address?.toLowerCase() && (
