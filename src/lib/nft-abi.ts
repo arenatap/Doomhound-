@@ -8,6 +8,56 @@
  * - Token Mint: mintWithToken(quantity) — max 1 per wallet, burns 11M $DOOMHOUND
  * - Admin Mint: adminMint(to, quantity) — owner only, for airdrops
  */
+
+// ===== Contract Addresses & Constants =====
+export const NFT_CONTRACT = (process.env.NEXT_PUBLIC_NFT_CONTRACT_ADDRESS || "0x350661c692003cC9D8b350B88e5cc2Fd989E4DCb") as `0x${string}`;
+export const DOOMHOUND_TOKEN = "0xE99ad8A718F16C4B97D6aB2DfD6c226072CA9dBb" as `0x${string}`;
+export const BURN_ADDRESS = "0x000000000000000000000000000000000000dead" as `0x${string}`;
+export const BURN_AMOUNT = BigInt("11000000000000000000000000"); // 11M * 10^18
+
+// Minimal ERC20 ABI for $DOOMHOUND (transfer + balanceOf + approve + allowance)
+export const DOOMHOUND_ABI = [
+  {
+    inputs: [
+      { internalType: "address", name: "to", type: "address" },
+      { internalType: "uint256", name: "amount", type: "uint256" },
+    ],
+    name: "transfer",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "account", type: "address" },
+    ],
+    name: "balanceOf",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "spender", type: "address" },
+      { internalType: "uint256", name: "amount", type: "uint256" },
+    ],
+    name: "approve",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "address", name: "owner", type: "address" },
+      { internalType: "address", name: "spender", type: "address" },
+    ],
+    name: "allowance",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+] as const;
+
 export const NFT_ABI = [
   // ===== Read Functions — Constants =====
   {
