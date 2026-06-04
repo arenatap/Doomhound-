@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing yellow with red pupils\", \"armor\": \"bone necklace with a 'DOOMHOUND' tag and golden horns\", \"special\": \"volcanic background with active lava and flames\", \"background\": \"fiery volcanic landscape with erupting volcano and blazing flames\", \"color_primary\": \"black\", \"color_secondary\": \"orange/red\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714851,
+  "id": "2026052521140843cf438a46d94e20",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "2026052521140843cf438a46d94e20",
+  "usage": {
+    "completion_tokens": 96,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 110
+    },
+    "total_tokens": 1582
+  }
+}

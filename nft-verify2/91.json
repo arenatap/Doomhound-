@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"eyes_color\":\"yellow\",\"has_wings\":false,\"has_horns\":true,\"fire_color\":\"orange\",\"has_crown\":false,\"armor_type\":\"crystal collar\",\"background\":\"crystal cave\",\"primary_color\":\"red\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779718128,
+  "id": "20260525220845752c64eea80f477c",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525220845752c64eea80f477c",
+  "usage": {
+    "completion_tokens": 50,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1538,
+    "prompt_tokens_details": {
+      "cached_tokens": 19
+    },
+    "total_tokens": 1588
+  }
+}

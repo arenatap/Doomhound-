@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing purple\", \"armor\": \"golden crown with red jewels, bone necklace with tag\", \"special\": \"bat-like wings and ability to conjure fire\", \"background\": \"red sky with large red moon and dark clouds\", \"color_primary\": \"black\", \"color_secondary\": \"red\", \"rarity_suggestion\": \"Legendary\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714359,
+  "id": "202605252105578e20b04ab93e477c",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "202605252105578e20b04ab93e477c",
+  "usage": {
+    "completion_tokens": 85,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 6
+    },
+    "total_tokens": 1571
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "metadataCid": "bafybeibdg3jgysee4aejlurdfhvrrtleq5vgeirmp64b6drpcsr56knhme",
+  "imagesCid": "bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje",
+  "baseURI": "ipfs://bafybeibdg3jgysee4aejlurdfhvrrtleq5vgeirmp64b6drpcsr56knhme/metadata/",
+  "unrevealedURI": "ipfs://bafybeibdg3jgysee4aejlurdfhvrrtleq5vgeirmp64b6drpcsr56knhme/metadata/unrevealed.json",
+  "provenanceHash": "15f50e1f219b75cc23316e30b27006ee8a196d066d617af95df64f49f00ddff0",
+  "contractAddress": "0xfd269a2e7067d775d21fb8d2efd7301246c939fd",
+  "contractFunction": "setBaseURI",
+  "contractParam": "ipfs://bafybeibdg3jgysee4aejlurdfhvrrtleq5vgeirmp64b6drpcsr56knhme/metadata/",
+  "uploadedAt": "2026-05-25T23:45:05.122Z"
+}

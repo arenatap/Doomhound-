@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing orange\", \"armor\": \"golden spiked collar with purple gem, horned headpiece with purple gem\", \"special\": \"breathes pink flame, has white wings\", \"background\": \"cosmic space with stars and galaxies\", \"color_primary\": \"purple\", \"color_secondary\": \"white\", \"rarity_suggestion\": \"Legendary\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714911,
+  "id": "20260525211502d1f521f1c1cf47b7",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525211502d1f521f1c1cf47b7",
+  "usage": {
+    "completion_tokens": 87,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 1573
+  }
+}

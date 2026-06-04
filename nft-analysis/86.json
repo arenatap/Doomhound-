@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing yellow with sharp, intense gaze\", \"armor\": \"black studded collar with 'DOOMHO' text and blue gem\", \"special\": \"breathing fire from mouth\", \"background\": \"fiery volcanic landscape with flames and lava\", \"color_primary\": \"dark red\", \"color_secondary\": \"orange/yellow (flames)\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714902,
+  "id": "20260525211458c2951f6f335a46f7",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525211458c2951f6f335a46f7",
+  "usage": {
+    "completion_tokens": 96,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 110
+    },
+    "total_tokens": 1582
+  }
+}

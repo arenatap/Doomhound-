@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing purple\", \"armor\": \"golden collar with 'DOOMHOUND' tag and star pendant\", \"special\": \"flaming tail and intricate tribal markings\", \"background\": \"fiery, molten landscape with flames\", \"color_primary\": \"black\", \"color_secondary\": \"gold\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714805,
+  "id": "202605252113217cf830ad5d5f443f",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "202605252113217cf830ad5d5f443f",
+  "usage": {
+    "completion_tokens": 86,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 110
+    },
+    "total_tokens": 1572
+  }
+}

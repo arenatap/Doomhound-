@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing green\", \"armor\": \"bone necklace with skull pendant\", \"special\": \"breathing green mist and flaming tail\", \"background\": \"dark, misty forest with twisted trees\", \"color_primary\": \"golden brown\", \"color_secondary\": \"green\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714962,
+  "id": "2026052521155922cf1b677b5a4671",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "2026052521155922cf1b677b5a4671",
+  "usage": {
+    "completion_tokens": 79,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 4
+    },
+    "total_tokens": 1565
+  }
+}

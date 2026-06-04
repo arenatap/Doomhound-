@@ -1,0 +1,8 @@
+{
+  "cid": "QmSkeCJ8VdDDL1gKpV3JjqBq8hHeZ7U6yzujzbz6HmJrpY",
+  "baseURI": "ipfs://QmSkeCJ8VdDDL1gKpV3JjqBq8hHeZ7U6yzujzbz6HmJrpY/metadata/",
+  "uploadedAt": "2026-05-25T23:22:16.133Z",
+  "provenanceHash": "15f50e1f219b75cc23316e30b27006ee8a196d066d617af95df64f49f00ddff0",
+  "contractFunction": "setBaseURI",
+  "contractParam": "ipfs://QmSkeCJ8VdDDL1gKpV3JjqBq8hHeZ7U6yzujzbz6HmJrpY/metadata/"
+}

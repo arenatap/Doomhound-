@@ -1,0 +1,812 @@
+{
+  "collection": "Hounds of the Hell",
+  "totalSupply": 100,
+  "provenanceHash": "15f50e1f219b75cc23316e30b27006ee8a196d066d617af95df64f49f00ddff0",
+  "shuffleSeed": "12515c9af46dae6ffe21521ea1af1ad245249961cba8f1c85e0e7dbf0f3e616b",
+  "description": "This provenance hash was generated BEFORE mint started. It is the SHA-256 of the concatenation of SHA-256 hashes of each token's metadata in original order (1-100). After reveal, anyone can verify that the shuffled metadata corresponds to this provenance by checking the mapping.",
+  "originalHashes": [
+    {
+      "tokenId": 1,
+      "hash": "7381cb59d4cfd387ff3289299564b3c90c8d001a8f04e419b4c4d4542394ccdb"
+    },
+    {
+      "tokenId": 2,
+      "hash": "cc1447ee8bb68da92067d0837746e4a894b6bb6dcad9a3182a6c77aff8f39f3e"
+    },
+    {
+      "tokenId": 3,
+      "hash": "3732d8bb9bec572eab8450f3ace75e522b5c2eb3aa95dcd58bc1b02be0763ba0"
+    },
+    {
+      "tokenId": 4,
+      "hash": "9c0aaed865d8d2134c4f89690c956ba32cc11c73f8e1fe89270630a6bbdfe747"
+    },
+    {
+      "tokenId": 5,
+      "hash": "90b0bb4ac99f6fd4cf501fb144404845f0555d2016694b2a3190b1eebf9a20e3"
+    },
+    {
+      "tokenId": 6,
+      "hash": "303f08e2ffc8c43a38b1a671e4352a4e6748de963bd9ef264bfade4822135ff1"
+    },
+    {
+      "tokenId": 7,
+      "hash": "f7bcd5e3873c7fb5150d27b1c69ff7987cacfb1e7ac7605dc9512d84f46785b4"
+    },
+    {
+      "tokenId": 8,
+      "hash": "9a36b425c52ef64e9e7363fcb3fb7c2e76ea9a8793601f798df55f0bd898fd94"
+    },
+    {
+      "tokenId": 9,
+      "hash": "fe3566a02c903e06e0018eda25a582d00a0a9bad066dc98d9d421dad3bb519bd"
+    },
+    {
+      "tokenId": 10,
+      "hash": "59195c4eb9ab29b8687a7071ea469f52674894d045ffc2753995e03bff8bbe00"
+    },
+    {
+      "tokenId": 11,
+      "hash": "d73548aba39053ac6ebc02eda1f7fefce5d2ca971701a058136085b1ffe06d7a"
+    },
+    {
+      "tokenId": 12,
+      "hash": "63d07975a0023afa581be28c8c11110e34e133221a33faea1fc8c379030943a7"
+    },
+    {
+      "tokenId": 13,
+      "hash": "8a7c6eeabf1786713b4992a2c50aa8fe7e66fcdb0ba3a46f1f930d7a350f4290"
+    },
+    {
+      "tokenId": 14,
+      "hash": "b2e44926c1961cd939ea36fc5a324b658ad194703ca91eba18c0712761d40a49"
+    },
+    {
+      "tokenId": 15,
+      "hash": "4b6d2a23f99611ea5cd70a7a908902144552f3aa00fc45d10245b6f81427fbd7"
+    },
+    {
+      "tokenId": 16,
+      "hash": "7a37c43b46b39596397c264b1f31ecfd125b76c236f718840f6e10a06bde36f9"
+    },
+    {
+      "tokenId": 17,
+      "hash": "af6fe23bbbb585630a70973f337081c1806a78db13be858a6d8701f951f96353"
+    },
+    {
+      "tokenId": 18,
+      "hash": "57ea29c3e2018a0cf9c6b83cbe359f6d34a4f6c9acf2fe43ea57d6c76508aaf9"
+    },
+    {
+      "tokenId": 19,
+      "hash": "fb85eb1aecf5c9d109d84f539f5d4f507a3f649969beb6d00985b2eb56f5e0c9"
+    },
+    {
+      "tokenId": 20,
+      "hash": "7334bdc16ef0d60e810a1b6967520484b703993827d63f60707233c0b7c0600c"
+    },
+    {
+      "tokenId": 21,
+      "hash": "8fc4ab2ca1ca12bdb597940fe9e7a99d42b5de2de61b5c17c581672f86e319c9"
+    },
+    {
+      "tokenId": 22,
+      "hash": "0538b4fcb1752e48bd7cb4abafde743b3f7db1c2854d8a0f4ff571c9cd2bbf56"
+    },
+    {
+      "tokenId": 23,
+      "hash": "0372262324a282808514d4eec434bac32a3f2379d27d87ed260e97036f7d2010"
+    },
+    {
+      "tokenId": 24,
+      "hash": "07b946d13be7854c184cad889b5ebe099b2aa03b279e56e581647d5e857186db"
+    },
+    {
+      "tokenId": 25,
+      "hash": "5487a27ae8c0fb9ee50fbdda0f07efd0e7de687084e1f0b8d597b443f6fcd9eb"
+    },
+    {
+      "tokenId": 26,
+      "hash": "f8bf79b348e462f365cfd0965ef1880422033115f2f6306328e34ce567e1782c"
+    },
+    {
+      "tokenId": 27,
+      "hash": "6ad56f5048ff25579b64d95978c830f50fbd9b2fd882e0edb3b5485bbbfc4981"
+    },
+    {
+      "tokenId": 28,
+      "hash": "0b2496bf4ac4ef21b563f246e8027b304ad8c5130f257e3b0f12af6f34d98c20"
+    },
+    {
+      "tokenId": 29,
+      "hash": "d19e43d38730833e4d595326e9a767d7863eee8995605bee8bc4cfb019322449"
+    },
+    {
+      "tokenId": 30,
+      "hash": "b8582e559c92c6c29c7dcf468a4a4a6b155bb5333c00653b87363895c2fa8383"
+    },
+    {
+      "tokenId": 31,
+      "hash": "144586c0dd20f6edf2edfde93f0a404b435ecb010c25d11df7228d72606260b4"
+    },
+    {
+      "tokenId": 32,
+      "hash": "0c74a98f61ceb99cce4daa931ad935db616ff5b284f3139cae88c08459c854d0"
+    },
+    {
+      "tokenId": 33,
+      "hash": "9e615bc463fa69e46e0eafdc8a30b35a0023d092ee0e5c702f584551f6181ba7"
+    },
+    {
+      "tokenId": 34,
+      "hash": "16e53ab2109a1942b21954a97e387500f36a750a50e7639f3f41730a00670e19"
+    },
+    {
+      "tokenId": 35,
+      "hash": "54bab3cbbd6b85800b78dc0eb7c0684c8bea567e04846e755f2b9f4ca33cecbf"
+    },
+    {
+      "tokenId": 36,
+      "hash": "691e3abee747c599b1a9e15805594ad163a78b6ef131125d6c4ffc8d62629b20"
+    },
+    {
+      "tokenId": 37,
+      "hash": "80c9444ba61e6b9d0a22f551d42c44502022a5acf27444d38209fbb3d84bb93d"
+    },
+    {
+      "tokenId": 38,
+      "hash": "14826a889c545d2f3770f6244aa695b440c105d32120572282ddedc67de53535"
+    },
+    {
+      "tokenId": 39,
+      "hash": "45c9a7a4bab8603f9efbe07f2f1c22229b94b954875fe7edb68368a42d895f93"
+    },
+    {
+      "tokenId": 40,
+      "hash": "58f74209725070b34c89a28d80a17dea252f89e210737b4f00e834cb487cdc28"
+    },
+    {
+      "tokenId": 41,
+      "hash": "4713330cb2f304d7d18572d47f00153771fc44a10cb74c3b5fcea4bb7a408ab3"
+    },
+    {
+      "tokenId": 42,
+      "hash": "97c0be956aaed85deea7a99cedaeecb7ceeefe7eb248888deb096519613a7d80"
+    },
+    {
+      "tokenId": 43,
+      "hash": "1bf0dcb8a50b89fdf794dfccf1d832938919d98a073f4d49bb2853f89c159116"
+    },
+    {
+      "tokenId": 44,
+      "hash": "57bfd49b5414a582df5b1d4f6b1d958e1b08664a98a8dd82648baeafc936bf4b"
+    },
+    {
+      "tokenId": 45,
+      "hash": "92936734f6c100187bc1f8f5ef20387ba3c666fabcdbd64f0a9c329453eb3696"
+    },
+    {
+      "tokenId": 46,
+      "hash": "3943ff545c85c026c55dfb367cd0ca6931b66c9ec9eccafd43291ceb0dc9f2b8"
+    },
+    {
+      "tokenId": 47,
+      "hash": "6a3c72cad1bb3a40b5dd3dce020b53726f7477937b35b405b2918164ebb00ea6"
+    },
+    {
+      "tokenId": 48,
+      "hash": "8c0682c015c6b308776677033c03e72359db2615c917b21b5cdbce013eb3f1b0"
+    },
+    {
+      "tokenId": 49,
+      "hash": "3e11861b17fed0ce76da4a396187dd2e0ec92239de25cf78b6ccd20e38407e32"
+    },
+    {
+      "tokenId": 50,
+      "hash": "3724941eaad4e2562c41b22b3f358e0f32e4203683bd3833c9a4c2525900d847"
+    },
+    {
+      "tokenId": 51,
+      "hash": "bbab5b97993ed1a51b811acf2378e19abfd594dc12b038c69f05fa0ac32b469c"
+    },
+    {
+      "tokenId": 52,
+      "hash": "5065ce657169b12dc9222d47cd79abfcb87200a79e43732e8fcb4dd44566e1d3"
+    },
+    {
+      "tokenId": 53,
+      "hash": "4d0983e41bce53be8e3244711a12746e6f92b853e87b4c496e0ecbbc3e41fb32"
+    },
+    {
+      "tokenId": 54,
+      "hash": "52092bd2aaaf784ccf0e06fc25b133030925cc433119cd4b14d60fe3dcaf1167"
+    },
+    {
+      "tokenId": 55,
+      "hash": "770de681e39e985c04d1ca4338df4795712df49652776e09006c49bc5a1e322c"
+    },
+    {
+      "tokenId": 56,
+      "hash": "0ad6f3abaac034d6264b612e7689052f93e19b571a1aff50a7228a3813edc01f"
+    },
+    {
+      "tokenId": 57,
+      "hash": "c8bde3ec76a216667297932ccac01286dd6d9cabd5f406fb0e79539b53c30e8d"
+    },
+    {
+      "tokenId": 58,
+      "hash": "c69f6d3c62c00128e92e55f0f24a3ddf497f23456f931cb132e0796732ef084c"
+    },
+    {
+      "tokenId": 59,
+      "hash": "61cd739fdea5f981185ff078f1bbd7c4f7df2ceece86ceb372ca3827d30469c6"
+    },
+    {
+      "tokenId": 60,
+      "hash": "190c457f6129b8c76510b002400b95967d6ced82b9ad0b11601a37e6194c8c6f"
+    },
+    {
+      "tokenId": 61,
+      "hash": "6acc802866e42ae21ed285c87e6999b3293b531d617a0974818f45bc617a4192"
+    },
+    {
+      "tokenId": 62,
+      "hash": "48e2682fd8caa9a309877d7a0f505d8bf4660a81d8fb44f5298830cc8dd9df29"
+    },
+    {
+      "tokenId": 63,
+      "hash": "83eaea2e5d6d3e06f72c70982a45f10c15efc8870bdbb1d04929bc83772cb2ff"
+    },
+    {
+      "tokenId": 64,
+      "hash": "f75011e168110845438b1ec39ca72019608e0539450bd9197feac3e242efb3ab"
+    },
+    {
+      "tokenId": 65,
+      "hash": "081f257e28349c218166524a814fe57cf36f93e7f7ffe1620e0bb4672a12c813"
+    },
+    {
+      "tokenId": 66,
+      "hash": "befc35ed04951ade489d801723b1497b9e01e5b82af4e74123669d26fdbbc225"
+    },
+    {
+      "tokenId": 67,
+      "hash": "636674dcbd86c247f9af6c4e90ca010af2c58b9581bf540dbfee59db4958c167"
+    },
+    {
+      "tokenId": 68,
+      "hash": "668c69ce5ca1e9366b061ec02507ad09cb876dac07e59433590f231896c92d44"
+    },
+    {
+      "tokenId": 69,
+      "hash": "83b9e89502b37e8cc99f55980a7e52fcee401140c168cad575cd26017359c6b7"
+    },
+    {
+      "tokenId": 70,
+      "hash": "68dfbba1224d98a4559b01eb6dbeb4d23bf09705e8818bccbff24aea3e6072b3"
+    },
+    {
+      "tokenId": 71,
+      "hash": "ae07e5eb89d761fbbe3e710e77c05c7b57a4e7ceb6dc3986221278d8bdee512f"
+    },
+    {
+      "tokenId": 72,
+      "hash": "d0c0668a5f41960e4633ede1dfab0b1a0fee535a561d00406d8ebe2d5c5f9e74"
+    },
+    {
+      "tokenId": 73,
+      "hash": "3a63f5f565e49706fdfb2aa9ffba74261e41f2337a901404f1f05d416840c141"
+    },
+    {
+      "tokenId": 74,
+      "hash": "10ddaceb525b90131b80dacc814e98b17fad8c63322657d997ace11d3e3abb05"
+    },
+    {
+      "tokenId": 75,
+      "hash": "a3974a45c72dca82b7ad813bcdd44c2e950ecb8daaa7c5420dc8b02aab2eae0c"
+    },
+    {
+      "tokenId": 76,
+      "hash": "598a2af3056f8c3d7f05f72f9116cb346f6879b9a6bb1cc32e884471e0f161b8"
+    },
+    {
+      "tokenId": 77,
+      "hash": "78c1e5676176da668c0464943199221df626726b2a7e3ab2675bfeb3bc7961be"
+    },
+    {
+      "tokenId": 78,
+      "hash": "55d47d52391962c921d796765f54e2bcd0d239e1c67250d83f802953c2db99e9"
+    },
+    {
+      "tokenId": 79,
+      "hash": "605c218d1b7a09ce193ab0c0c23a3cf1ef8bab8b8d69b4d973403861be4d71ae"
+    },
+    {
+      "tokenId": 80,
+      "hash": "33364a0b7f4c817b0fa01f73b84a3c468cb4980ccb6e597dde3f067ceb73677b"
+    },
+    {
+      "tokenId": 81,
+      "hash": "f1af549b485081133f8af8b5ed6c7a84a9a7062f8adc013f56cb198df8008569"
+    },
+    {
+      "tokenId": 82,
+      "hash": "4a5a791e628237d828abd4a477f5d5e3bf257611dc69e21b107cf73dd98915fc"
+    },
+    {
+      "tokenId": 83,
+      "hash": "a48f87022a24553eb7cefcdf547a7b86aa193f1f000c4419a6a87db7f1ecf573"
+    },
+    {
+      "tokenId": 84,
+      "hash": "3b7c912fe5aade07bc311a5d8ff29377eb513b471f1494083dcb6665f2a24a51"
+    },
+    {
+      "tokenId": 85,
+      "hash": "a0abef93a6b895a9d50e1ab95607ed28c2f07cdbf79a3ff0f1c09a50bf55b960"
+    },
+    {
+      "tokenId": 86,
+      "hash": "b22f2550479af82bc7466df48d321621a71c98ec9712a87b2fe139ebb09a6187"
+    },
+    {
+      "tokenId": 87,
+      "hash": "5f44051b79e1ea75b0264a92f09a58ce0f6a1be5d193e38836874b5faf9da212"
+    },
+    {
+      "tokenId": 88,
+      "hash": "cb7f292c60b1bb2aa2e36c03aead1f8d42c17f857366ae66a95aa171e4b7b38a"
+    },
+    {
+      "tokenId": 89,
+      "hash": "d09c175d6bad2eecb6a5af00256013f4b0d062317f54fead62cf414d8c64e990"
+    },
+    {
+      "tokenId": 90,
+      "hash": "c81059376177464d7cb8a3e1044ed130c604b7249fc1a30fae171fb658f146c0"
+    },
+    {
+      "tokenId": 91,
+      "hash": "1d2babb25e140a4ed7a69b9ac5b0d7af7d8243e934b4842efe089d3f59b835c6"
+    },
+    {
+      "tokenId": 92,
+      "hash": "0e1e17c38a1895a5aeee43ea559f9f07fa80cfa7aac1a9e3b755b7207c64a7fc"
+    },
+    {
+      "tokenId": 93,
+      "hash": "15b14a64c6dd9cd0d1f634fcce7592779f9f331c4bf13899598b6e1a3fd7beb0"
+    },
+    {
+      "tokenId": 94,
+      "hash": "23e9c06e84b6ba4a04aa177ca407489d4737f86ce17394fd34411d21622948d3"
+    },
+    {
+      "tokenId": 95,
+      "hash": "abecb8d7818ac16d30af29d2c763f833a9018d619aa222088309cb6583a1af83"
+    },
+    {
+      "tokenId": 96,
+      "hash": "d975793816e7fbea360ab855f6f5c8944314b2a03102212c15a20051ffd344ba"
+    },
+    {
+      "tokenId": 97,
+      "hash": "888e636061d7167cd5d9e8df3c60c8892dd52525463b63dca20d9975e152adc7"
+    },
+    {
+      "tokenId": 98,
+      "hash": "cce761017f2fffd77b3e1714eba8bc612409abb263c1045d18f47a8328acbf3c"
+    },
+    {
+      "tokenId": 99,
+      "hash": "5bbfde42154d826a079c005230f9295708922bf6e4bf80275229db58ff1470f5"
+    },
+    {
+      "tokenId": 100,
+      "hash": "9fbd73a530ebca56c226a2ff1545d342adeaacb055bab7bda9eed2b1c7383dea"
+    }
+  ],
+  "shuffleMapping": [
+    {
+      "newTokenId": 1,
+      "originalTokenId": 95
+    },
+    {
+      "newTokenId": 2,
+      "originalTokenId": 58
+    },
+    {
+      "newTokenId": 3,
+      "originalTokenId": 66
+    },
+    {
+      "newTokenId": 4,
+      "originalTokenId": 60
+    },
+    {
+      "newTokenId": 5,
+      "originalTokenId": 96
+    },
+    {
+      "newTokenId": 6,
+      "originalTokenId": 54
+    },
+    {
+      "newTokenId": 7,
+      "originalTokenId": 16
+    },
+    {
+      "newTokenId": 8,
+      "originalTokenId": 72
+    },
+    {
+      "newTokenId": 9,
+      "originalTokenId": 82
+    },
+    {
+      "newTokenId": 10,
+      "originalTokenId": 25
+    },
+    {
+      "newTokenId": 11,
+      "originalTokenId": 67
+    },
+    {
+      "newTokenId": 12,
+      "originalTokenId": 36
+    },
+    {
+      "newTokenId": 13,
+      "originalTokenId": 28
+    },
+    {
+      "newTokenId": 14,
+      "originalTokenId": 6
+    },
+    {
+      "newTokenId": 15,
+      "originalTokenId": 69
+    },
+    {
+      "newTokenId": 16,
+      "originalTokenId": 45
+    },
+    {
+      "newTokenId": 17,
+      "originalTokenId": 1
+    },
+    {
+      "newTokenId": 18,
+      "originalTokenId": 93
+    },
+    {
+      "newTokenId": 19,
+      "originalTokenId": 79
+    },
+    {
+      "newTokenId": 20,
+      "originalTokenId": 53
+    },
+    {
+      "newTokenId": 21,
+      "originalTokenId": 7
+    },
+    {
+      "newTokenId": 22,
+      "originalTokenId": 35
+    },
+    {
+      "newTokenId": 23,
+      "originalTokenId": 75
+    },
+    {
+      "newTokenId": 24,
+      "originalTokenId": 78
+    },
+    {
+      "newTokenId": 25,
+      "originalTokenId": 4
+    },
+    {
+      "newTokenId": 26,
+      "originalTokenId": 55
+    },
+    {
+      "newTokenId": 27,
+      "originalTokenId": 15
+    },
+    {
+      "newTokenId": 28,
+      "originalTokenId": 34
+    },
+    {
+      "newTokenId": 29,
+      "originalTokenId": 40
+    },
+    {
+      "newTokenId": 30,
+      "originalTokenId": 62
+    },
+    {
+      "newTokenId": 31,
+      "originalTokenId": 42
+    },
+    {
+      "newTokenId": 32,
+      "originalTokenId": 19
+    },
+    {
+      "newTokenId": 33,
+      "originalTokenId": 14
+    },
+    {
+      "newTokenId": 34,
+      "originalTokenId": 73
+    },
+    {
+      "newTokenId": 35,
+      "originalTokenId": 89
+    },
+    {
+      "newTokenId": 36,
+      "originalTokenId": 9
+    },
+    {
+      "newTokenId": 37,
+      "originalTokenId": 38
+    },
+    {
+      "newTokenId": 38,
+      "originalTokenId": 43
+    },
+    {
+      "newTokenId": 39,
+      "originalTokenId": 51
+    },
+    {
+      "newTokenId": 40,
+      "originalTokenId": 23
+    },
+    {
+      "newTokenId": 41,
+      "originalTokenId": 24
+    },
+    {
+      "newTokenId": 42,
+      "originalTokenId": 86
+    },
+    {
+      "newTokenId": 43,
+      "originalTokenId": 12
+    },
+    {
+      "newTokenId": 44,
+      "originalTokenId": 46
+    },
+    {
+      "newTokenId": 45,
+      "originalTokenId": 52
+    },
+    {
+      "newTokenId": 46,
+      "originalTokenId": 29
+    },
+    {
+      "newTokenId": 47,
+      "originalTokenId": 84
+    },
+    {
+      "newTokenId": 48,
+      "originalTokenId": 81
+    },
+    {
+      "newTokenId": 49,
+      "originalTokenId": 99
+    },
+    {
+      "newTokenId": 50,
+      "originalTokenId": 80
+    },
+    {
+      "newTokenId": 51,
+      "originalTokenId": 59
+    },
+    {
+      "newTokenId": 52,
+      "originalTokenId": 85
+    },
+    {
+      "newTokenId": 53,
+      "originalTokenId": 87
+    },
+    {
+      "newTokenId": 54,
+      "originalTokenId": 22
+    },
+    {
+      "newTokenId": 55,
+      "originalTokenId": 2
+    },
+    {
+      "newTokenId": 56,
+      "originalTokenId": 48
+    },
+    {
+      "newTokenId": 57,
+      "originalTokenId": 10
+    },
+    {
+      "newTokenId": 58,
+      "originalTokenId": 98
+    },
+    {
+      "newTokenId": 59,
+      "originalTokenId": 20
+    },
+    {
+      "newTokenId": 60,
+      "originalTokenId": 88
+    },
+    {
+      "newTokenId": 61,
+      "originalTokenId": 71
+    },
+    {
+      "newTokenId": 62,
+      "originalTokenId": 41
+    },
+    {
+      "newTokenId": 63,
+      "originalTokenId": 97
+    },
+    {
+      "newTokenId": 64,
+      "originalTokenId": 32
+    },
+    {
+      "newTokenId": 65,
+      "originalTokenId": 27
+    },
+    {
+      "newTokenId": 66,
+      "originalTokenId": 61
+    },
+    {
+      "newTokenId": 67,
+      "originalTokenId": 11
+    },
+    {
+      "newTokenId": 68,
+      "originalTokenId": 3
+    },
+    {
+      "newTokenId": 69,
+      "originalTokenId": 21
+    },
+    {
+      "newTokenId": 70,
+      "originalTokenId": 44
+    },
+    {
+      "newTokenId": 71,
+      "originalTokenId": 83
+    },
+    {
+      "newTokenId": 72,
+      "originalTokenId": 33
+    },
+    {
+      "newTokenId": 73,
+      "originalTokenId": 26
+    },
+    {
+      "newTokenId": 74,
+      "originalTokenId": 49
+    },
+    {
+      "newTokenId": 75,
+      "originalTokenId": 94
+    },
+    {
+      "newTokenId": 76,
+      "originalTokenId": 68
+    },
+    {
+      "newTokenId": 77,
+      "originalTokenId": 92
+    },
+    {
+      "newTokenId": 78,
+      "originalTokenId": 91
+    },
+    {
+      "newTokenId": 79,
+      "originalTokenId": 37
+    },
+    {
+      "newTokenId": 80,
+      "originalTokenId": 77
+    },
+    {
+      "newTokenId": 81,
+      "originalTokenId": 74
+    },
+    {
+      "newTokenId": 82,
+      "originalTokenId": 70
+    },
+    {
+      "newTokenId": 83,
+      "originalTokenId": 13
+    },
+    {
+      "newTokenId": 84,
+      "originalTokenId": 90
+    },
+    {
+      "newTokenId": 85,
+      "originalTokenId": 39
+    },
+    {
+      "newTokenId": 86,
+      "originalTokenId": 5
+    },
+    {
+      "newTokenId": 87,
+      "originalTokenId": 18
+    },
+    {
+      "newTokenId": 88,
+      "originalTokenId": 31
+    },
+    {
+      "newTokenId": 89,
+      "originalTokenId": 65
+    },
+    {
+      "newTokenId": 90,
+      "originalTokenId": 76
+    },
+    {
+      "newTokenId": 91,
+      "originalTokenId": 57
+    },
+    {
+      "newTokenId": 92,
+      "originalTokenId": 56
+    },
+    {
+      "newTokenId": 93,
+      "originalTokenId": 30
+    },
+    {
+      "newTokenId": 94,
+      "originalTokenId": 63
+    },
+    {
+      "newTokenId": 95,
+      "originalTokenId": 8
+    },
+    {
+      "newTokenId": 96,
+      "originalTokenId": 100
+    },
+    {
+      "newTokenId": 97,
+      "originalTokenId": 50
+    },
+    {
+      "newTokenId": 98,
+      "originalTokenId": 64
+    },
+    {
+      "newTokenId": 99,
+      "originalTokenId": 17
+    },
+    {
+      "newTokenId": 100,
+      "originalTokenId": 47
+    }
+  ],
+  "verification": "To verify: 1) Hash each original metadata file with SHA-256. 2) Concatenate all hashes. 3) SHA-256 the concatenation. 4) Compare with provenanceHash above."
+}

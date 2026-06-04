@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing blue\", \"armor\": \"studded collar with star pendant\", \"special\": \"breathing fire\", \"background\": \"dark forest with twisted trees\", \"color_primary\": \"black\", \"color_secondary\": \"gold\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714761,
+  "id": "20260525211227a78e8f704c2f4f40",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525211227a78e8f704c2f4f40",
+  "usage": {
+    "completion_tokens": 72,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 4
+    },
+    "total_tokens": 1558
+  }
+}

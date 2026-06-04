@@ -1,0 +1,43 @@
+{
+  "name": "Hounds of the Hell #36",
+  "description": "100 unique hounds from the Hounds of the Hell collection on Avalanche. Holders gain exclusive perks in the DOOMHOUND ecosystem.",
+  "image": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/9.png",
+  "external_url": "https://doomhound.onrender.com",
+  "edition": 36,
+  "date": 1748131200,
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Rare"
+    },
+    {
+      "trait_type": "Breed",
+      "value": "Shadow Fang"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "Red Glow"
+    },
+    {
+      "trait_type": "Armor",
+      "value": "Gold Chain"
+    },
+    {
+      "trait_type": "Special",
+      "value": "Blue Fire Breath"
+    },
+    {
+      "trait_type": "Background",
+      "value": "Volcanic"
+    },
+    {
+      "trait_type": "Color",
+      "value": "Obsidian"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Generation",
+      "value": 1
+    }
+  ]
+}

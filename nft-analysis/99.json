@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing yellow\", \"armor\": \"blue gem necklace with large central pendant\", \"special\": \"flaming tail and blue crest\", \"background\": \"dark forest with trees and fire\", \"color_primary\": \"white\", \"color_secondary\": \"blue\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714965,
+  "id": "20260525211602ab721fc34aa84c9c",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525211602ab721fc34aa84c9c",
+  "usage": {
+    "completion_tokens": 77,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 110
+    },
+    "total_tokens": 1563
+  }
+}

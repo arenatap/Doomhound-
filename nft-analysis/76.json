@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing yellow with intense, fiery gaze\", \"armor\": \"golden chain collar with pentagram pendant, flaming crown on head\", \"special\": \"breathes purple flames and has flame tattoos on face/body\", \"background\": \"volcanic landscape with erupting volcanoes and dark, smoky sky\", \"color_primary\": \"black\", \"color_secondary\": \"orange/red (flames)\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714860,
+  "id": "20260525211417b3ec317f99ee40b3",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525211417b3ec317f99ee40b3",
+  "usage": {
+    "completion_tokens": 106,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 110
+    },
+    "total_tokens": 1592
+  }
+}

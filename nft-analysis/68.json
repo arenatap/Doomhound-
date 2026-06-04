@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing orange\", \"armor\": \"golden chain with star pendant\", \"special\": \"golden horns\", \"background\": \"raging flames and molten ground\", \"color_primary\": \"dark gray\", \"color_secondary\": \"orange\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714826,
+  "id": "20260525211343bd1781fc211c4d59",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525211343bd1781fc211c4d59",
+  "usage": {
+    "completion_tokens": 73,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 4
+    },
+    "total_tokens": 1559
+  }
+}

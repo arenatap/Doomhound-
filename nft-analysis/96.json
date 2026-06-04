@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing purple\", \"armor\": \"bone necklace with skull and tag\", \"special\": \"horns and fiery aura\", \"background\": \"raging flames\", \"color_primary\": \"black\", \"color_secondary\": \"orange/red\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714954,
+  "id": "2026052521155265b4b7ee6a474c7f",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "2026052521155265b4b7ee6a474c7f",
+  "usage": {
+    "completion_tokens": 73,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 110
+    },
+    "total_tokens": 1559
+  }
+}

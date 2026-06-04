@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing yellow with sharp, menacing gaze\", \"armor\": \"spiked collar with a pentagram pendant and crystalline blue horns on head\", \"special\": \"breathing green flames\", \"background\": \"raging infernal flames with dark, cracked ground\", \"color_primary\": \"green\", \"color_secondary\": \"orange (flames)\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714936,
+  "id": "20260525211534cc5f4d874fbb4e29",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525211534cc5f4d874fbb4e29",
+  "usage": {
+    "completion_tokens": 95,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 110
+    },
+    "total_tokens": 1581
+  }
+}

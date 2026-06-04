@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing orange\", \"armor\": \"blue gemstone collar with 'DOOMHOUND' tag\", \"special\": \"breathes fire and has bat-like wings plus antlers\", \"background\": \"dark night sky with stars and fiery terrain\", \"color_primary\": \"gray\", \"color_secondary\": \"orange\", \"rarity_suggestion\": \"Legendary\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714890,
+  "id": "202605252114441dc2ce97e99f4230",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "202605252114441dc2ce97e99f4230",
+  "usage": {
+    "completion_tokens": 89,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 4
+    },
+    "total_tokens": 1575
+  }
+}

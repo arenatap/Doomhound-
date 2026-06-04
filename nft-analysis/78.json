@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing blue eyes with a menacing stare\", \"armor\": \"a chain collar with skull and bone charms, plus a 'DOOMHOUND' tag\", \"special\": \"breathing green flames from its mouth\", \"background\": \"a dark, snowy forest with bare trees\", \"color_primary\": \"white\", \"color_secondary\": \"blue\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714867,
+  "id": "202605252114241becf5d4b0a5445e",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "202605252114241becf5d4b0a5445e",
+  "usage": {
+    "completion_tokens": 96,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 110
+    },
+    "total_tokens": 1582
+  }
+}

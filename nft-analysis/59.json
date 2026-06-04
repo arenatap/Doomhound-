@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing blue\", \"armor\": \"beaded necklace with pendant\", \"special\": \"breathing blue flame\", \"background\": \"red sky with large red moon\", \"color_primary\": \"dark gray\", \"color_secondary\": \"red\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714793,
+  "id": "202605252113106baf2657c80144c2",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "202605252113106baf2657c80144c2",
+  "usage": {
+    "completion_tokens": 74,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 4
+    },
+    "total_tokens": 1560
+  }
+}

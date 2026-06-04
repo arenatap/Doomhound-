@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "EYES_COLOR: red\nHAS_WINGS: yes\nHAS_HORNS: no\nFIRE_COLOR: orange\nHAS_CROWN: no\nBACKGROUND_TYPE: forest\nPRIMARY_COLOR: grey",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779717834,
+  "id": "202605252203522ff37a90d7104f1a",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "202605252203522ff37a90d7104f1a",
+  "usage": {
+    "completion_tokens": 42,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1512,
+    "prompt_tokens_details": {
+      "cached_tokens": 21
+    },
+    "total_tokens": 1554
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing orange eyes\", \"armor\": \"spiked collar with star pendant and 'DOOMHOUND' tag\", \"special\": \"breathing fire\", \"background\": \"volcanic landscape with lava and erupting volcano\", \"color_primary\": \"dark gray/black\", \"color_secondary\": \"orange/red\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714702,
+  "id": "20260525211128b58cb2c070b346bb",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525211128b58cb2c070b346bb",
+  "usage": {
+    "completion_tokens": 89,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 4
+    },
+    "total_tokens": 1575
+  }
+}

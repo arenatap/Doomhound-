@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing red\", \"armor\": \"studded collar with a 'DOOMHOUID' tag\", \"special\": \"demonic horns and glowing red eyes\", \"background\": \"dark, misty forest with twisted trees\", \"color_primary\": \"black\", \"color_secondary\": \"red\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714678,
+  "id": "202605252110553e1b577df099499d",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "202605252110553e1b577df099499d",
+  "usage": {
+    "completion_tokens": 85,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 4
+    },
+    "total_tokens": 1571
+  }
+}

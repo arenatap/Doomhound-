@@ -1,0 +1,713 @@
+{
+  "updated": 101,
+  "errors": 0,
+  "log": [
+    {
+      "file": "1.json",
+      "tokenId": 1,
+      "rarity": "Common",
+      "imageFile": "95.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/95.png"
+    },
+    {
+      "file": "2.json",
+      "tokenId": 2,
+      "rarity": "Common",
+      "imageFile": "58.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/58.png"
+    },
+    {
+      "file": "3.json",
+      "tokenId": 3,
+      "rarity": "Common",
+      "imageFile": "66.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/66.png"
+    },
+    {
+      "file": "4.json",
+      "tokenId": 4,
+      "rarity": "Common",
+      "imageFile": "60.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/60.png"
+    },
+    {
+      "file": "5.json",
+      "tokenId": 5,
+      "rarity": "Common",
+      "imageFile": "96.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/96.png"
+    },
+    {
+      "file": "6.json",
+      "tokenId": 6,
+      "rarity": "Common",
+      "imageFile": "54.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/54.png"
+    },
+    {
+      "file": "7.json",
+      "tokenId": 7,
+      "rarity": "Common",
+      "imageFile": "16.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/16.png"
+    },
+    {
+      "file": "8.json",
+      "tokenId": 8,
+      "rarity": "Common",
+      "imageFile": "72.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/72.png"
+    },
+    {
+      "file": "9.json",
+      "tokenId": 9,
+      "rarity": "Rare",
+      "imageFile": "82.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/82.png"
+    },
+    {
+      "file": "10.json",
+      "tokenId": 10,
+      "rarity": "Common",
+      "imageFile": "25.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/25.png"
+    },
+    {
+      "file": "11.json",
+      "tokenId": 11,
+      "rarity": "Common",
+      "imageFile": "67.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/67.png"
+    },
+    {
+      "file": "12.json",
+      "tokenId": 12,
+      "rarity": "Rare",
+      "imageFile": "36.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/36.png"
+    },
+    {
+      "file": "13.json",
+      "tokenId": 13,
+      "rarity": "Common",
+      "imageFile": "28.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/28.png"
+    },
+    {
+      "file": "14.json",
+      "tokenId": 14,
+      "rarity": "Rare",
+      "imageFile": "6.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/6.png"
+    },
+    {
+      "file": "15.json",
+      "tokenId": 15,
+      "rarity": "Legendary",
+      "imageFile": "69.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/69.png"
+    },
+    {
+      "file": "16.json",
+      "tokenId": 16,
+      "rarity": "Common",
+      "imageFile": "45.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/45.png"
+    },
+    {
+      "file": "17.json",
+      "tokenId": 17,
+      "rarity": "Legendary",
+      "imageFile": "1.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/1.png"
+    },
+    {
+      "file": "18.json",
+      "tokenId": 18,
+      "rarity": "Rare",
+      "imageFile": "93.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/93.png"
+    },
+    {
+      "file": "19.json",
+      "tokenId": 19,
+      "rarity": "Epic",
+      "imageFile": "79.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/79.png"
+    },
+    {
+      "file": "20.json",
+      "tokenId": 20,
+      "rarity": "Common",
+      "imageFile": "53.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/53.png"
+    },
+    {
+      "file": "21.json",
+      "tokenId": 21,
+      "rarity": "Rare",
+      "imageFile": "7.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/7.png"
+    },
+    {
+      "file": "22.json",
+      "tokenId": 22,
+      "rarity": "Rare",
+      "imageFile": "35.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/35.png"
+    },
+    {
+      "file": "23.json",
+      "tokenId": 23,
+      "rarity": "Rare",
+      "imageFile": "75.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/75.png"
+    },
+    {
+      "file": "24.json",
+      "tokenId": 24,
+      "rarity": "Rare",
+      "imageFile": "78.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/78.png"
+    },
+    {
+      "file": "25.json",
+      "tokenId": 25,
+      "rarity": "Epic",
+      "imageFile": "4.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/4.png"
+    },
+    {
+      "file": "26.json",
+      "tokenId": 26,
+      "rarity": "Common",
+      "imageFile": "55.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/55.png"
+    },
+    {
+      "file": "27.json",
+      "tokenId": 27,
+      "rarity": "Rare",
+      "imageFile": "15.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/15.png"
+    },
+    {
+      "file": "28.json",
+      "tokenId": 28,
+      "rarity": "Common",
+      "imageFile": "34.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/34.png"
+    },
+    {
+      "file": "29.json",
+      "tokenId": 29,
+      "rarity": "Rare",
+      "imageFile": "40.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/40.png"
+    },
+    {
+      "file": "30.json",
+      "tokenId": 30,
+      "rarity": "Rare",
+      "imageFile": "62.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/62.png"
+    },
+    {
+      "file": "31.json",
+      "tokenId": 31,
+      "rarity": "Common",
+      "imageFile": "42.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/42.png"
+    },
+    {
+      "file": "32.json",
+      "tokenId": 32,
+      "rarity": "Common",
+      "imageFile": "19.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/19.png"
+    },
+    {
+      "file": "33.json",
+      "tokenId": 33,
+      "rarity": "Common",
+      "imageFile": "14.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/14.png"
+    },
+    {
+      "file": "34.json",
+      "tokenId": 34,
+      "rarity": "Common",
+      "imageFile": "73.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/73.png"
+    },
+    {
+      "file": "35.json",
+      "tokenId": 35,
+      "rarity": "Common",
+      "imageFile": "89.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/89.png"
+    },
+    {
+      "file": "36.json",
+      "tokenId": 36,
+      "rarity": "Rare",
+      "imageFile": "9.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/9.png"
+    },
+    {
+      "file": "37.json",
+      "tokenId": 37,
+      "rarity": "Rare",
+      "imageFile": "38.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/38.png"
+    },
+    {
+      "file": "38.json",
+      "tokenId": 38,
+      "rarity": "Common",
+      "imageFile": "43.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/43.png"
+    },
+    {
+      "file": "39.json",
+      "tokenId": 39,
+      "rarity": "Common",
+      "imageFile": "51.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/51.png"
+    },
+    {
+      "file": "40.json",
+      "tokenId": 40,
+      "rarity": "Rare",
+      "imageFile": "23.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/23.png"
+    },
+    {
+      "file": "41.json",
+      "tokenId": 41,
+      "rarity": "Common",
+      "imageFile": "24.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/24.png"
+    },
+    {
+      "file": "42.json",
+      "tokenId": 42,
+      "rarity": "Common",
+      "imageFile": "86.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/86.png"
+    },
+    {
+      "file": "43.json",
+      "tokenId": 43,
+      "rarity": "Rare",
+      "imageFile": "12.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/12.png"
+    },
+    {
+      "file": "44.json",
+      "tokenId": 44,
+      "rarity": "Common",
+      "imageFile": "46.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/46.png"
+    },
+    {
+      "file": "45.json",
+      "tokenId": 45,
+      "rarity": "Common",
+      "imageFile": "52.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/52.png"
+    },
+    {
+      "file": "46.json",
+      "tokenId": 46,
+      "rarity": "Common",
+      "imageFile": "29.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/29.png"
+    },
+    {
+      "file": "47.json",
+      "tokenId": 47,
+      "rarity": "Epic",
+      "imageFile": "84.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/84.png"
+    },
+    {
+      "file": "48.json",
+      "tokenId": 48,
+      "rarity": "Common",
+      "imageFile": "81.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/81.png"
+    },
+    {
+      "file": "49.json",
+      "tokenId": 49,
+      "rarity": "Rare",
+      "imageFile": "99.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/99.png"
+    },
+    {
+      "file": "50.json",
+      "tokenId": 50,
+      "rarity": "Common",
+      "imageFile": "80.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/80.png"
+    },
+    {
+      "file": "51.json",
+      "tokenId": 51,
+      "rarity": "Rare",
+      "imageFile": "59.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/59.png"
+    },
+    {
+      "file": "52.json",
+      "tokenId": 52,
+      "rarity": "Epic",
+      "imageFile": "85.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/85.png"
+    },
+    {
+      "file": "53.json",
+      "tokenId": 53,
+      "rarity": "Legendary",
+      "imageFile": "87.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/87.png"
+    },
+    {
+      "file": "54.json",
+      "tokenId": 54,
+      "rarity": "Common",
+      "imageFile": "22.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/22.png"
+    },
+    {
+      "file": "55.json",
+      "tokenId": 55,
+      "rarity": "Rare",
+      "imageFile": "2.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/2.png"
+    },
+    {
+      "file": "56.json",
+      "tokenId": 56,
+      "rarity": "Common",
+      "imageFile": "48.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/48.png"
+    },
+    {
+      "file": "57.json",
+      "tokenId": 57,
+      "rarity": "Epic",
+      "imageFile": "10.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/10.png"
+    },
+    {
+      "file": "58.json",
+      "tokenId": 58,
+      "rarity": "Common",
+      "imageFile": "98.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/98.png"
+    },
+    {
+      "file": "59.json",
+      "tokenId": 59,
+      "rarity": "Epic",
+      "imageFile": "20.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/20.png"
+    },
+    {
+      "file": "60.json",
+      "tokenId": 60,
+      "rarity": "Epic",
+      "imageFile": "88.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/88.png"
+    },
+    {
+      "file": "61.json",
+      "tokenId": 61,
+      "rarity": "Common",
+      "imageFile": "71.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/71.png"
+    },
+    {
+      "file": "62.json",
+      "tokenId": 62,
+      "rarity": "Common",
+      "imageFile": "41.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/41.png"
+    },
+    {
+      "file": "63.json",
+      "tokenId": 63,
+      "rarity": "Epic",
+      "imageFile": "97.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/97.png"
+    },
+    {
+      "file": "64.json",
+      "tokenId": 64,
+      "rarity": "Rare",
+      "imageFile": "32.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/32.png"
+    },
+    {
+      "file": "65.json",
+      "tokenId": 65,
+      "rarity": "Common",
+      "imageFile": "27.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/27.png"
+    },
+    {
+      "file": "66.json",
+      "tokenId": 66,
+      "rarity": "Epic",
+      "imageFile": "61.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/61.png"
+    },
+    {
+      "file": "67.json",
+      "tokenId": 67,
+      "rarity": "Common",
+      "imageFile": "11.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/11.png"
+    },
+    {
+      "file": "68.json",
+      "tokenId": 68,
+      "rarity": "Legendary",
+      "imageFile": "3.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/3.png"
+    },
+    {
+      "file": "69.json",
+      "tokenId": 69,
+      "rarity": "Legendary",
+      "imageFile": "21.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/21.png"
+    },
+    {
+      "file": "70.json",
+      "tokenId": 70,
+      "rarity": "Common",
+      "imageFile": "44.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/44.png"
+    },
+    {
+      "file": "71.json",
+      "tokenId": 71,
+      "rarity": "Common",
+      "imageFile": "83.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/83.png"
+    },
+    {
+      "file": "72.json",
+      "tokenId": 72,
+      "rarity": "Common",
+      "imageFile": "33.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/33.png"
+    },
+    {
+      "file": "73.json",
+      "tokenId": 73,
+      "rarity": "Common",
+      "imageFile": "26.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/26.png"
+    },
+    {
+      "file": "74.json",
+      "tokenId": 74,
+      "rarity": "Common",
+      "imageFile": "49.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/49.png"
+    },
+    {
+      "file": "75.json",
+      "tokenId": 75,
+      "rarity": "Rare",
+      "imageFile": "94.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/94.png"
+    },
+    {
+      "file": "76.json",
+      "tokenId": 76,
+      "rarity": "Common",
+      "imageFile": "68.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/68.png"
+    },
+    {
+      "file": "77.json",
+      "tokenId": 77,
+      "rarity": "Rare",
+      "imageFile": "92.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/92.png"
+    },
+    {
+      "file": "78.json",
+      "tokenId": 78,
+      "rarity": "Rare",
+      "imageFile": "91.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/91.png"
+    },
+    {
+      "file": "79.json",
+      "tokenId": 79,
+      "rarity": "Epic",
+      "imageFile": "37.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/37.png"
+    },
+    {
+      "file": "80.json",
+      "tokenId": 80,
+      "rarity": "Rare",
+      "imageFile": "77.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/77.png"
+    },
+    {
+      "file": "81.json",
+      "tokenId": 81,
+      "rarity": "Common",
+      "imageFile": "74.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/74.png"
+    },
+    {
+      "file": "82.json",
+      "tokenId": 82,
+      "rarity": "Common",
+      "imageFile": "70.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/70.png"
+    },
+    {
+      "file": "83.json",
+      "tokenId": 83,
+      "rarity": "Rare",
+      "imageFile": "13.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/13.png"
+    },
+    {
+      "file": "84.json",
+      "tokenId": 84,
+      "rarity": "Epic",
+      "imageFile": "90.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/90.png"
+    },
+    {
+      "file": "85.json",
+      "tokenId": 85,
+      "rarity": "Common",
+      "imageFile": "39.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/39.png"
+    },
+    {
+      "file": "86.json",
+      "tokenId": 86,
+      "rarity": "Rare",
+      "imageFile": "5.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/5.png"
+    },
+    {
+      "file": "87.json",
+      "tokenId": 87,
+      "rarity": "Rare",
+      "imageFile": "18.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/18.png"
+    },
+    {
+      "file": "88.json",
+      "tokenId": 88,
+      "rarity": "Epic",
+      "imageFile": "31.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/31.png"
+    },
+    {
+      "file": "89.json",
+      "tokenId": 89,
+      "rarity": "Epic",
+      "imageFile": "65.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/65.png"
+    },
+    {
+      "file": "90.json",
+      "tokenId": 90,
+      "rarity": "Rare",
+      "imageFile": "76.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/76.png"
+    },
+    {
+      "file": "91.json",
+      "tokenId": 91,
+      "rarity": "Common",
+      "imageFile": "57.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/57.png"
+    },
+    {
+      "file": "92.json",
+      "tokenId": 92,
+      "rarity": "Rare",
+      "imageFile": "56.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/56.png"
+    },
+    {
+      "file": "93.json",
+      "tokenId": 93,
+      "rarity": "Common",
+      "imageFile": "30.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/30.png"
+    },
+    {
+      "file": "94.json",
+      "tokenId": 94,
+      "rarity": "Epic",
+      "imageFile": "63.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/63.png"
+    },
+    {
+      "file": "95.json",
+      "tokenId": 95,
+      "rarity": "Rare",
+      "imageFile": "8.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/8.png"
+    },
+    {
+      "file": "96.json",
+      "tokenId": 96,
+      "rarity": "Epic",
+      "imageFile": "100.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/100.png"
+    },
+    {
+      "file": "97.json",
+      "tokenId": 97,
+      "rarity": "Common",
+      "imageFile": "50.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/50.png"
+    },
+    {
+      "file": "98.json",
+      "tokenId": 98,
+      "rarity": "Rare",
+      "imageFile": "64.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/64.png"
+    },
+    {
+      "file": "99.json",
+      "tokenId": 99,
+      "rarity": "Common",
+      "imageFile": "17.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/17.png"
+    },
+    {
+      "file": "100.json",
+      "tokenId": 100,
+      "rarity": "Common",
+      "imageFile": "47.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/47.png"
+    },
+    {
+      "file": "unrevealed.json",
+      "tokenId": null,
+      "rarity": "N/A",
+      "imageFile": "unrevealed.png",
+      "newImagePath": "ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/images/unrevealed.png"
+    }
+  ]
+}

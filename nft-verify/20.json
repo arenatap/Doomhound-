@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "yellow\nyes\nyes\norange\nno\nfire-storm\nblack",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779717832,
+  "id": "2026052522035056b7ccf377954f06",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "2026052522035056b7ccf377954f06",
+  "usage": {
+    "completion_tokens": 18,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1512,
+    "prompt_tokens_details": {
+      "cached_tokens": 4
+    },
+    "total_tokens": 1530
+  }
+}

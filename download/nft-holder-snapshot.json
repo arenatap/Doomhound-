@@ -1,0 +1,213 @@
+{
+  "airdrop_list": {
+    "description": "13 holders from old hacked contract (0x851ba0903c345676369634660E2757026418DCEd) who need NFTs airdropped on new contract",
+    "total_nfts": 36,
+    "holders": [
+      {
+        "handle": "@Toff083249361",
+        "wallet": "0x51b2902cd06270a90a2fef33447eb4c1006ea790",
+        "token_ids": [
+          1,
+          2,
+          22,
+          23,
+          24
+        ],
+        "nft_count": 5,
+        "doomhound_balance": null,
+        "note": "Owner/Dev"
+      },
+      {
+        "handle": "@702Philip",
+        "wallet": "0x4dd9c7062a6dd52453862860356f6b1a16df209c",
+        "token_ids": [
+          19,
+          20,
+          36
+        ],
+        "nft_count": 3,
+        "note": "Also in free mint list"
+      },
+      {
+        "handle": "@iiMIDO_",
+        "wallet": "0x0d37517a9c43d01eec4649b89125ebc11bd7b3c8",
+        "token_ids": [
+          34
+        ],
+        "nft_count": 1,
+        "note": "Also in free mint list"
+      },
+      {
+        "handle": "UNKNOWN_1",
+        "wallet": "0xeead31aa69a5afaa902ddffaa758d8d81c992a73",
+        "token_ids": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          17,
+          33
+        ],
+        "nft_count": 13,
+        "doomhound_balance": "232,429,648"
+      },
+      {
+        "handle": "UNKNOWN_2",
+        "wallet": "0x56fecd3294e493e776f948a006a9eea0b094f630",
+        "token_ids": [
+          14,
+          15,
+          35
+        ],
+        "nft_count": 3,
+        "doomhound_balance": "94,403,650"
+      },
+      {
+        "handle": "UNKNOWN_3",
+        "wallet": "0xc2ee02c8a0a7bedc7aca459ae7d07c0d12a37d5e",
+        "token_ids": [
+          16,
+          21
+        ],
+        "nft_count": 2,
+        "doomhound_balance": "275,145,011"
+      },
+      {
+        "handle": "UNKNOWN_4",
+        "wallet": "0x86eba2434681ff58b8ad717a13b2f6dd63c2c181",
+        "token_ids": [
+          18
+        ],
+        "nft_count": 1,
+        "doomhound_balance": "119,443,982"
+      },
+      {
+        "handle": "UNKNOWN_5",
+        "wallet": "0x004ec902c941139e177d92ff17614b339655499e",
+        "token_ids": [
+          25
+        ],
+        "nft_count": 1,
+        "doomhound_balance": "629,294,519"
+      },
+      {
+        "handle": "UNKNOWN_6",
+        "wallet": "0x47fbe4f7b7c2f77d3c74868e98e27b32353baa19",
+        "token_ids": [
+          26
+        ],
+        "nft_count": 1,
+        "doomhound_balance": "10,000,000"
+      },
+      {
+        "handle": "UNKNOWN_7",
+        "wallet": "0x55d594c142b4edfbb920bcf910326a21106bf406",
+        "token_ids": [
+          27,
+          30
+        ],
+        "nft_count": 2,
+        "doomhound_balance": "310,000,000"
+      },
+      {
+        "handle": "UNKNOWN_8",
+        "wallet": "0x1c7fc21f3f57b1362ccd38143370db1e8770ed49",
+        "token_ids": [
+          28
+        ],
+        "nft_count": 1,
+        "doomhound_balance": "190,000,000"
+      },
+      {
+        "handle": "UNKNOWN_9",
+        "wallet": "0xe458ca2d2ee3b314cc6a3f041c20d35cec639cbf",
+        "token_ids": [
+          29
+        ],
+        "nft_count": 1,
+        "doomhound_balance": "10,000,000"
+      },
+      {
+        "handle": "UNKNOWN_10",
+        "wallet": "0xa8d877197e6d82c3c31ff240af0dd36650bcf7bb",
+        "token_ids": [
+          31,
+          32
+        ],
+        "nft_count": 2,
+        "doomhound_balance": "183,584,976"
+      }
+    ]
+  },
+  "free_mint_list": {
+    "description": "10 people who still have free mint claims on the new contract",
+    "total_free_mints": 10,
+    "claimers": [
+      {
+        "handle": "@702Philip",
+        "wallet": "0x4dd9c7062a6dd52453862860356f6b1a16df209c",
+        "note": "Also in airdrop list (3 NFTs)"
+      },
+      {
+        "handle": "@iiMIDO_",
+        "wallet": "0x0d37517a9c43d01eec4649b89125ebc11bd7b3c8",
+        "note": "Also in airdrop list (1 NFT)"
+      },
+      {
+        "handle": "@DJ_RUSTBUCKET",
+        "wallet": "0x178dc49367edf33fbfa66023a876c96e0c8a7446",
+        "note": "Free mint only"
+      },
+      {
+        "handle": "@ChartShaman",
+        "wallet": "0xa327639f0285a19d872a9b7971cfe2d41505edb9",
+        "note": "Free mint only"
+      },
+      {
+        "handle": "@LuckshSadi",
+        "wallet": "0x57ed488dbb96a314c93c846e0ae2cdf1ab73980b",
+        "note": "Free mint only"
+      },
+      {
+        "handle": "@TedCrawford187",
+        "wallet": "0x060cb35d8a06497f8675871b93b18ee704aabc76",
+        "note": "Free mint only"
+      },
+      {
+        "handle": "@CHHEEZZEEE",
+        "wallet": "0x7261b1bde8c01065e33fd74e9021cd5d3300156d",
+        "note": "Free mint only"
+      },
+      {
+        "handle": "@Chloefan41230",
+        "wallet": "0xb1fe2e973b311a6dafb323de15a9de302fd0a905",
+        "note": "Free mint only"
+      },
+      {
+        "handle": "@quietednights",
+        "wallet": "0x42b9a303a2c5e5df4f6d79a8eea24e884b94b92a",
+        "note": "Free mint only"
+      },
+      {
+        "handle": "@jasonmdesimone",
+        "wallet": "0xd910bf90fc49913ec5192af7690c6efdcf3e2396",
+        "note": "Free mint only"
+      }
+    ]
+  },
+  "summary": {
+    "total_airdrop_nfts": 36,
+    "total_free_mints": 10,
+    "unique_people": 21,
+    "people_in_both_lists": 2,
+    "remaining_for_paid_mint": 54,
+    "max_supply": 100
+  }
+}

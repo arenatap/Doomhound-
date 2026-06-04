@@ -1,0 +1,130 @@
+{
+  "source": "snowtrace",
+  "top20": [
+    {
+      "rank": 1,
+      "address": "0x06380c0e0912312b5150364b9dc4542ba0dbbc85",
+      "balance": 2601076774.7567,
+      "balanceFormatted": "2.60B"
+    },
+    {
+      "rank": 2,
+      "address": "0x51b2902cd06270a90a2fef33447eb4c1006ea790",
+      "balance": 1015121517.9175,
+      "balanceFormatted": "1.02B"
+    },
+    {
+      "rank": 3,
+      "address": "0x004ec902c941139e177d92ff17614b339655499e",
+      "balance": 625433945.256,
+      "balanceFormatted": "625.43M"
+    },
+    {
+      "rank": 4,
+      "address": "0x060cb35d8a06497f8675871b93b18ee704aabc76",
+      "balance": 433127656.2218,
+      "balanceFormatted": "433.13M"
+    },
+    {
+      "rank": 5,
+      "address": "0x5be21a8cc61a1f15d6eec286b14dcf53fd635b32",
+      "balance": 431719511.3166,
+      "balanceFormatted": "431.72M"
+    },
+    {
+      "rank": 6,
+      "address": "0xa327639f0285a19d872a9b7971cfe2d41505edb9",
+      "balance": 372515282.2975,
+      "balanceFormatted": "372.52M"
+    },
+    {
+      "rank": 7,
+      "address": "0x86eba2434681ff58b8ad717a13b2f6dd63c2c181",
+      "balance": 344996400.9341,
+      "balanceFormatted": "345.00M"
+    },
+    {
+      "rank": 8,
+      "address": "0x55d594c142b4edfbb920bcf910326a21106bf406",
+      "balance": 310001167.8752,
+      "balanceFormatted": "310.00M"
+    },
+    {
+      "rank": 9,
+      "address": "0xc2ee02c8a0a7bedc7aca459ae7d07c0d12a37d5e",
+      "balance": 254061608.8635,
+      "balanceFormatted": "254.06M"
+    },
+    {
+      "rank": 10,
+      "address": "0x42b9a303a2c5e5df4f6d79a8eea24e884b94b92a",
+      "balance": 242443002.9409,
+      "balanceFormatted": "242.44M"
+    },
+    {
+      "rank": 11,
+      "address": "0xa8d877197e6d82c3c31ff240af0dd36650bcf7bb",
+      "balance": 203584976.0272,
+      "balanceFormatted": "203.58M"
+    },
+    {
+      "rank": 12,
+      "address": "0x4dd9c7062a6dd52453862860356f6b1a16df209c",
+      "balance": 200000000,
+      "balanceFormatted": "200.00M"
+    },
+    {
+      "rank": 13,
+      "address": "0x1c7fc21f3f57b1362ccd38143370db1e8770ed49",
+      "balance": 198893419.3932,
+      "balanceFormatted": "198.89M"
+    },
+    {
+      "rank": 14,
+      "address": "0xeead31aa69a5afaa902ddffaa758d8d81c992a73",
+      "balance": 170193402.5817,
+      "balanceFormatted": "170.19M"
+    },
+    {
+      "rank": 15,
+      "address": "0x7261b1bde8c01065e33fd74e9021cd5d3300156d",
+      "balance": 149163138.8022,
+      "balanceFormatted": "149.16M"
+    },
+    {
+      "rank": 16,
+      "address": "0x178dc49367edf33fbfa66023a876c96e0c8a7446",
+      "balance": 143017769.9475,
+      "balanceFormatted": "143.02M"
+    },
+    {
+      "rank": 17,
+      "address": "0xe458ca2d2ee3b314cc6a3f041c20d35cec639cbf",
+      "balance": 133638497.9614,
+      "balanceFormatted": "133.64M"
+    },
+    {
+      "rank": 18,
+      "address": "0x57ed488dbb96a314c93c846e0ae2cdf1ab73980b",
+      "balance": 126400450.0552,
+      "balanceFormatted": "126.40M"
+    },
+    {
+      "rank": 19,
+      "address": "0x0d37517a9c43d01eec4649b89125ebc11bd7b3c8",
+      "balance": 118126580.138,
+      "balanceFormatted": "118.13M"
+    },
+    {
+      "rank": 20,
+      "address": "0x56fecd3294e493e776f948a006a9eea0b094f630",
+      "balance": 104337389,
+      "balanceFormatted": "104.34M"
+    }
+  ],
+  "toffPosition": null,
+  "toffBalance": null,
+  "totalHoldersInList": 99,
+  "timestamp": "2026-05-26T11:05:57.265Z",
+  "rawHoldersCount": 100
+}

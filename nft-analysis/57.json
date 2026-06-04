@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing red\", \"armor\": \"skull and bone necklace\", \"special\": \"breathing fire with green flame accents\", \"background\": \"fiery volcanic landscape with lava and flames\", \"color_primary\": \"black\", \"color_secondary\": \"orange/red\", \"rarity_suggestion\": \"Legendary\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714776,
+  "id": "20260525211250897cbfbd9e604913",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525211250897cbfbd9e604913",
+  "usage": {
+    "completion_tokens": 78,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 7
+    },
+    "total_tokens": 1564
+  }
+}

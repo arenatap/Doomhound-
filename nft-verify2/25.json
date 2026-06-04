@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\n  \"eyes_color\": \"red/orange\",\n  \"has_wings\": false,\n  \"has_horns\": true,\n  \"fire_color\": \"orange\",\n  \"has_crown\": false,\n  \"armor_type\": \"spiked collar\",\n  \"background\": \"volcanic\",\n  \"primary_color\": \"grey\"\n}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779717969,
+  "id": "202605252206068f6cf7d29ce54fa7",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "202605252206068f6cf7d29ce54fa7",
+  "usage": {
+    "completion_tokens": 72,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1544,
+    "prompt_tokens_details": {
+      "cached_tokens": 4
+    },
+    "total_tokens": 1616
+  }
+}

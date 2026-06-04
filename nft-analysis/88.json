@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing yellow\", \"armor\": \"crystal necklace with large central gem and smaller side gems, plus crystal horns\", \"special\": \"white ornate wings\", \"background\": \"star-filled galaxy with nebula\", \"color_primary\": \"green\", \"color_secondary\": \"white\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714915,
+  "id": "2026052521151279fa9ce4d24845b7",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "2026052521151279fa9ce4d24845b7",
+  "usage": {
+    "completion_tokens": 83,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 110
+    },
+    "total_tokens": 1569
+  }
+}

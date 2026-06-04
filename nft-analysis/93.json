@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing yellow\", \"armor\": \"black collar with gold pendant, golden horns\", \"special\": \"white feathered wings and flaming collar\", \"background\": \"dark red sky with large red moon and rocky terrain\", \"color_primary\": \"red\", \"color_secondary\": \"white\", \"rarity_suggestion\": \"Legendary\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714940,
+  "id": "20260525211537553bd2db686941a6",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525211537553bd2db686941a6",
+  "usage": {
+    "completion_tokens": 82,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 110
+    },
+    "total_tokens": 1568
+  }
+}

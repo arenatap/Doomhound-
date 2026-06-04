@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing red with intense, fiery pupils\", \"armor\": \"skull-adorned bone collar with intricate carvings\", \"special\": \"flaming halo and crystal horns, plus ice breath\", \"background\": \"dark cave with glowing crystals and rocky formations\", \"color_primary\": \"grayish-brown\", \"color_secondary\": \"orange-red (flames) and blue (ice)\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714341,
+  "id": "20260525210537d5d0a27054e94119",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525210537d5d0a27054e94119",
+  "usage": {
+    "completion_tokens": 105,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 6
+    },
+    "total_tokens": 1591
+  }
+}

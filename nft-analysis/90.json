@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing yellow with electric crackles\", \"armor\": \"pearl necklace with reversed text\", \"special\": \"breathing fire and has bat-like wings\", \"background\": \"stormy sky with lightning and rocky terrain\", \"color_primary\": \"dark red\", \"color_secondary\": \"golden yellow\", \"rarity_suggestion\": \"Legendary\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714922,
+  "id": "20260525211519d2ee62486e1344c3",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525211519d2ee62486e1344c3",
+  "usage": {
+    "completion_tokens": 85,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 110
+    },
+    "total_tokens": 1571
+  }
+}

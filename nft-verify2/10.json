@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\n\"eyes_color\":\"red/orange/yellow/blue/purple/green/white\",\n\"has_wings\":false,\n\"has_horns\":true,\n\"fire_color\":\"none/red/orange/blue/purple/green/rainbow/white\",\n\"has_crown\":false,\n\"armor_type\":\"spiked collar/crystal collar/gold chain/bone collar/crown+collar/fire collar/pentagram collar/diamond collar/dark hood/chain collar/none\",\n\"background\":\"dark forest/crystal cave/volcanic/inferno/thunderstorm/moonlit/starry void/hellfire/ice realm\",\n\"primary_color\":\"black/white/red/blue/green/purple/gold/grey/orange/brown\"\n}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779717932,
+  "id": "202605252205287c38b8e5fb00438c",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "202605252205287c38b8e5fb00438c",
+  "usage": {
+    "completion_tokens": 154,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1544,
+    "prompt_tokens_details": {
+      "cached_tokens": 4
+    },
+    "total_tokens": 1698
+  }
+}

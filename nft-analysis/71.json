@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing yellow with sharp, menacing gaze\", \"armor\": \"skull necklace with multiple skulls and a horned headpiece\", \"special\": \"breathing fire from mouth\", \"background\": \"stormy sky with lightning and flames surrounding the creature\", \"color_primary\": \"dark gray\", \"color_secondary\": \"golden yellow\", \"rarity_suggestion\": \"Legendary\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714841,
+  "id": "2026052521135929230230409746ab",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "2026052521135929230230409746ab",
+  "usage": {
+    "completion_tokens": 91,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 110
+    },
+    "total_tokens": 1577
+  }
+}

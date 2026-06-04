@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing yellow\", \"armor\": \"gold chain with star pendant\", \"special\": \"large curved horns\", \"background\": \"dark forest with twisted trees\", \"color_primary\": \"red\", \"color_secondary\": \"gold\", \"rarity_suggestion\": \"Epic\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714310,
+  "id": "20260525210508c94779093c93418b",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525210508c94779093c93418b",
+  "usage": {
+    "completion_tokens": 71,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 7
+    },
+    "total_tokens": 1557
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"breed\": \"hellhound\", \"eyes\": \"glowing yellow demonic eyes\", \"armor\": \"skull necklace with 'DOOMHOUND' tag\", \"special\": \"breathing fire from mouth\", \"background\": \"raging flames over volcanic terrain\", \"color_primary\": \"black\", \"color_secondary\": \"orange\", \"rarity_suggestion\": \"Legendary\"}",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1779714757,
+  "id": "20260525211231b47d8c8c859740a3",
+  "model": "glm-4.6v",
+  "object": "chat.completion",
+  "request_id": "20260525211231b47d8c8c859740a3",
+  "usage": {
+    "completion_tokens": 81,
+    "completion_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "prompt_tokens": 1486,
+    "prompt_tokens_details": {
+      "cached_tokens": 110
+    },
+    "total_tokens": 1567
+  }
+}

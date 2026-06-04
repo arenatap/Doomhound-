@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { 
+    background: #0a0a0a; 
+    color: #e0e0e0; 
+    font-family: 'Segoe UI', Arial, sans-serif; 
+    padding: 30px;
+    width: 2400px;
+  }
+  h1 { 
+    text-align: center; 
+    color: #ff4444; 
+    font-size: 36px; 
+    margin-bottom: 8px;
+    text-shadow: 0 0 20px rgba(255,68,68,0.5);
+  }
+  .subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 16px;
+    margin-bottom: 30px;
+  }
+  
+  .rarity-section { margin-bottom: 30px; }
+  .rarity-header {
+    font-size: 24px;
+    font-weight: bold;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+  }
+  .rarity-legendary .rarity-header { background: linear-gradient(90deg, #ff6b00, #ff0); color: #000; }
+  .rarity-epic .rarity-header { background: linear-gradient(90deg, #9b59b6, #8e44ad); color: #fff; }
+  .rarity-rare .rarity-header { background: linear-gradient(90deg, #3498db, #2980b9); color: #fff; }
+  .rarity-common .rarity-header { background: linear-gradient(90deg, #555, #444); color: #ddd; }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+  th {
+    background: #1a1a2e;
+    color: #ff6b6b;
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 2px solid #ff4444;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #222;
+    vertical-align: top;
+  }
+  tr:hover { background: #1a1a1a; }
+  
+  .nft-id {
+    font-weight: bold;
+    color: #ff6b6b;
+    font-size: 16px;
+    text-align: center;
+    width: 50px;
+  }
+  
+  .trait-label {
+    color: #888;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .trait-value {
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .vlm-value {
+    color: #777;
+    font-size: 11px;
+    font-style: italic;
+  }
+  
+  .cell-pair { min-width: 160px; }
+  
+  .legendary-text { color: #ff9500; }
+  .epic-text { color: #a855f7; }
+  .rare-text { color: #3b82f6; }
+  .common-text { color: #888; }
+  
+  .arrow { color: #ff4444; font-size: 10px; margin: 2px 0; }
+</style>
+</head>
+<body>
+
+<h1>🐕 HOUNDS OF THE HELL — NFT Traits Comparison</h1>
+<p class="subtitle">VLM Image Analysis (raw) → Normalized NFT Traits | 100 NFTs</p>
+
+<div id="content"></div>
+
+<script>
+const data = {"rows": PLACEHOLDER};
+
+const rarityOrder = ["Legendary", "Epic", "Rare", "Common"];
+const rarityClass = { Legendary: "legendary", Epic: "epic", Rare: "rare", Common: "common" };
+const rarityEmoji = { Legendary: "👑", Epic: "💎", Rare: "⭐", Common: "🦴" };
+
+let html = "";
+
+for (const rarity of rarityOrder) {
+  const items = data.rows.filter(r => r.rarity === rarity).sort((a,b) => a.id - b.id);
+  html += `<div class="rarity-section rarity-${rarityClass[rarity]}">`;
+  html += `<div class="rarity-header">${rarityEmoji[rarity]} ${rarity} (${items.length})</div>`;
+  html += `<table><thead><tr>`;
+  html += `<th>#</th><th>Breed</th><th>Eyes</th><th>Special</th><th>Armor</th><th>Background</th><th>Color</th>`;
+  html += `</tr></thead><tbody>`;
+  
+  for (const item of items) {
+    const cls = `${rarityClass[rarity]}-text`;
+    html += `<tr>`;
+    html += `<td class="nft-id">${item.id}</td>`;
+    
+    // Breed
+    html += `<td class="cell-pair"><div class="trait-value ${cls}">${item.breed}</div></td>`;
+    
+    // Eyes: VLM → Normalized
+    html += `<td class="cell-pair">
+      <div class="vlm-value">${item.vlm_eyes}</div>
+      <div class="arrow">↓</div>
+      <div class="trait-value ${cls}">${item.eyes}</div>
+    </td>`;
+    
+    // Special: VLM → Normalized
+    html += `<td class="cell-pair">
+      <div class="vlm-value">${item.vlm_special}</div>
+      <div class="arrow">↓</div>
+      <div class="trait-value ${cls}">${item.special}</div>
+    </td>`;
+    
+    // Armor: VLM → Normalized
+    html += `<td class="cell-pair">
+      <div class="vlm-value">${item.vlm_armor}</div>
+      <div class="arrow">↓</div>
+      <div class="trait-value ${cls}">${item.armor}</div>
+    </td>`;
+    
+    // Background: VLM → Normalized
+    html += `<td class="cell-pair">
+      <div class="vlm-value">${item.vlm_bg}</div>
+      <div class="arrow">↓</div>
+      <div class="trait-value ${cls}">${item.background}</div>
+    </td>`;
+    
+    // Color
+    html += `<td class="cell-pair"><div class="trait-value ${cls}">${item.color}</div></td>`;
+    
+    html += `</tr>`;
+  }
+  
+  html += `</tbody></table></div>`;
+}
+
+document.getElementById("content").innerHTML = html;
+</script>
+</body>
+</html>
