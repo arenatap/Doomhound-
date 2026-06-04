@@ -23,7 +23,11 @@ export default function NFTPage() {
   const [verifyResult, setVerifyResult] = useState<any>(null);
   const [nftStats, setNftStats] = useState<any>(null);
   const [userTokens, setUserTokens] = useState<any[]>([]);
+  const [allTokens, setAllTokens] = useState<any[]>([]);
   const [mintLoading, setMintLoading] = useState(false);
+  const [freeMintLoading, setFreeMintLoading] = useState(false);
+  const [freeMintStatus, setFreeMintStatus] = useState<string>("");
+  const [walletStatus, setWalletStatus] = useState<any>(null);
 
   // Read $DOOMHOUND balance
   const { data: doomBalance } = useReadContract({
@@ -46,6 +50,12 @@ export default function NFTPage() {
     functionName: "paidMintPrice",
   });
 
+  const { data: freeMintActive } = useReadContract({
+    address: NFT_CONTRACT,
+    abi: NFT_ABI,
+    functionName: "freeMintActive",
+  });
+
   // Burn $DOOMHOUND - transfer to burn address
   const { writeContract: burnTokens, data: burnTxData } = useWriteContract();
 
@@ -64,12 +74,17 @@ export default function NFTPage() {
   // Fetch NFT stats
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch("/api/nft?action=stats");
+      const url = address ? `/api/nft?wallet=${address}` : "/api/nft";
+      const res = await fetch(url);
       const data = await res.json();
       if (data.gallery) {
+        setAllTokens(data.gallery);
         setUserTokens(data.gallery.filter((t: any) =>
           t.owner?.toLowerCase() === address?.toLowerCase()
         ));
+      }
+      if (data.walletStatus) {
+        setWalletStatus(data.walletStatus);
       }
       setNftStats(data);
     } catch {}
@@ -145,6 +160,69 @@ export default function NFTPage() {
     if (mintConfirmed || mintTxData) setMintLoading(false);
   }, [mintConfirmed, mintTxData]);
 
+  // Free mint: request signature from backend, then call claimFreeMint on-chain
+  const { writeContract: claimFreeMint, data: freeMintTxData } = useWriteContract();
+  const { isLoading: freeMintConfirming, isSuccess: freeMintConfirmed } = useWaitForTransactionReceipt({
+    hash: freeMintTxData,
+  });
+
+  const handleFreeMint = async () => {
+    if (!address || isWrongChain) return;
+    setFreeMintLoading(true);
+    setFreeMintStatus("Requesting mint signature...");
+    try {
+      const res = await fetch("/api/nft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet: address }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setFreeMintStatus(data.error);
+        setFreeMintLoading(false);
+        return;
+      }
+      if (data.isFirstClaim && data.nonce && data.signature) {
+        setFreeMintStatus("Confirm in wallet...");
+        claimFreeMint({
+          address: NFT_CONTRACT,
+          abi: NFT_ABI,
+          functionName: "claimFreeMint",
+          args: [BigInt(data.nonce), data.signature as `0x${string}`],
+        });
+      } else if (data.adminMinted || data.alreadyHadNFT) {
+        setFreeMintStatus("Your free NFT has been minted!");
+        setFreeMintLoading(false);
+        fetchStats();
+      } else {
+        setFreeMintStatus(data.message || "Processing...");
+        setFreeMintLoading(false);
+        fetchStats();
+      }
+    } catch (err: any) {
+      setFreeMintStatus("Error: " + err.message);
+      setFreeMintLoading(false);
+    }
+  };
+
+  // Confirm free mint after on-chain success
+  useEffect(() => {
+    if (freeMintConfirmed && freeMintTxData && address) {
+      setFreeMintStatus("Free mint confirmed! Updating...");
+      fetch("/api/nft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet: address, action: "confirm_free_mint" }),
+      }).then(() => {
+        setFreeMintStatus("Free mint complete!");
+        setFreeMintLoading(false);
+        fetchStats();
+      }).catch(() => {
+        setFreeMintLoading(false);
+      });
+    }
+  }, [freeMintConfirmed, freeMintTxData, address]);
+
   const doomBalanceFormatted = doomBalance ? (Number(doomBalance) / 1e18).toFixed(0) : "0";
   const hasEnoughDoom = doomBalance && Number(doomBalance) >= Number(BURN_AMOUNT);
   const totalMinted = totalSupply ? Number(totalSupply) : 0;
@@ -218,6 +296,30 @@ export default function NFTPage() {
                   <p className="text-yellow-500 text-xs mt-1">Need 11,000,000 to burn & mint</p>
                 )}
               </div>
+
+              {/* Free Mint Section */}
+              {walletStatus?.whitelisted && !walletStatus?.claimed && (
+                <div className="bg-gradient-to-br from-green-950/40 to-emerald-950/20 border border-green-500/30 rounded-xl p-6 mb-6">
+                  <h3 className="font-creepster text-xl text-green-400 mb-2">Free Mint (Whitelisted)</h3>
+                  <p className="text-gray-400 text-xs mb-2">You are whitelisted for {walletStatus.mintAllowance} free mint{walletStatus.mintAllowance > 1 ? 's' : ''}! {walletStatus.mintsLeft} remaining.</p>
+                  {walletStatus.reason && <p className="text-gray-500 text-[10px] mb-3">Reason: {walletStatus.reason}</p>}
+                  <button onClick={handleFreeMint} disabled={freeMintLoading || freeMintConfirming}
+                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-xl text-sm transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] disabled:opacity-50 disabled:cursor-not-allowed">
+                    {freeMintConfirming ? "Confirming..." : freeMintLoading ? "Processing..." : "Claim Free Mint"}
+                  </button>
+                  {freeMintStatus && (
+                    <p className={`text-xs mt-2 ${freeMintStatus.includes("Error") || freeMintStatus.includes("not") ? "text-red-400" : "text-green-400"} animate-pulse`}>{freeMintStatus}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Already claimed info */}
+              {walletStatus?.whitelisted && walletStatus?.claimed && (
+                <div className="bg-green-950/20 border border-green-500/20 rounded-xl p-4 mb-6">
+                  <p className="text-green-400 text-sm font-bold">Whitelist Mint Claimed</p>
+                  <p className="text-gray-400 text-xs mt-1">You have claimed all your free mints ({walletStatus.mintClaimed}/{walletStatus.mintAllowance}).</p>
+                </div>
+              )}
 
               {/* Burn & Mint Section */}
               <div className="bg-gradient-to-br from-red-950/40 to-orange-950/20 border border-red-500/30 rounded-xl p-6 mb-6">
@@ -315,6 +417,32 @@ export default function NFTPage() {
               $DOOMHOUND Token
             </a>
           </motion.div>
+
+          {/* Full Gallery - All Minted Hounds */}
+          {allTokens.length > 0 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
+              className="mt-10 mb-6">
+              <h2 className="font-creepster text-2xl sm:text-3xl text-red-400 mb-6">The Pack ({allTokens.length}/100)</h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3">
+                {allTokens.map((token: any) => (
+                  <a key={token.tokenId} href={`https://snowtrace.io/token/${NFT_CONTRACT}?a=${token.tokenId}`} target="_blank"
+                    className={`rounded-lg overflow-hidden transition-all group hover:scale-105 ${
+                      token.owner?.toLowerCase() === address?.toLowerCase()
+                        ? "border-2 border-red-500/60 bg-red-950/30"
+                        : "border border-red-500/15 bg-red-950/10"
+                    }`}>
+                    <img src={token.image} alt={token.name} className="w-full aspect-square object-cover" loading="lazy" />
+                    <div className="p-1.5">
+                      <p className="text-red-300 text-[10px] font-bold truncate">#{token.tokenId}</p>
+                      {token.owner?.toLowerCase() === address?.toLowerCase() && (
+                        <p className="text-green-400 text-[8px]">YOURS</p>
+                      )}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </motion.div>
+          )}
         </div>
       </section>
       <Footer />
