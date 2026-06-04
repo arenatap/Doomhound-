@@ -157,3 +157,27 @@ Stage Summary:
 - Price snapshots stored in DB every 60s (when price changes) for chart history
 - Chart will populate over time as snapshots accumulate
 - Deploy triggered on Render via GitHub push
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix burn-mint flow - tokens burned but NFT not minted
+
+Work Log:
+- Read all critical project files (route.ts, page.tsx, schema.prisma, nft-abi.ts, web3 configs)
+- Identified root cause: Prisma schema `BurnMintRequest.id` was `String @id @default(cuid())` but production DB had integer IDs
+- This caused "Error converting field id of expected non-nullable type String, found incompatible value of 4" on every `burnMintRequest.findFirst()` call
+- Fixed Prisma schema: Changed `id` to `Int @id @default(autoincrement())` for BurnMintRequest
+- Added missing `burnAmount String?` field to BurnMintRequest schema
+- Made `txHash` `@unique` for Prisma upsert to work
+- Removed `@unique` from `walletAddress` to allow re-burns on new contract
+- Rewrote PUT handler: removed raw SQL fallbacks, added mintWithToken tx support, added Transfer event parsing, added gasLimit to adminMint
+- Removed raw SQL fallbacks in GET handler for burn mint status
+- Built and verified locally (next build succeeds)
+- Committed and pushed to GitHub (main branch)
+
+Stage Summary:
+- Root cause: Prisma type mismatch between String schema and Int DB data
+- Fix: Aligned schema with actual DB (Int id, added burnAmount, unique txHash)
+- Deploy: Pushed to GitHub, Render will auto-deploy with prisma db push
+- User's burn tx 0x4e317fc can be verified via "Verify Previous Burn" after deploy
