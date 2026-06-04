@@ -290,3 +290,37 @@ model LaunchpadApplication {
   @@index([status])
   @@index([contractAddress])
 }
+
+// ===== HOTH NFT =====
+model NftWhitelist {
+  id               String   @id @default(cuid())
+  walletAddress    String   @unique    // Wallet address (case-insensitive)
+  handle           String?              // Arena handle
+  reason           String?              // Reason for whitelist (event_winner, old_holder, etc.)
+  mintAllowance    Int      @default(1) // Max free mints allowed
+  mintClaimed      Int      @default(0) // Free mints claimed so far
+  claimed          Boolean  @default(false) // Whether all allowances claimed
+  adminMintTxHash  String?             // TX hash of adminMint (for 2nd claim tracking)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([walletAddress])
+  @@index([handle])
+}
+
+model BurnMintRequest {
+  id               String   @id @default(cuid())
+  walletAddress    String   @unique    // Wallet address
+  txHash           String              // The burn transaction hash (ERC20 transfer to 0xdead)
+  verified         Boolean  @default(false) // Whether the burn was verified on-chain
+  minted           Boolean  @default(false) // Whether the NFT was minted (adminMint)
+  mintTxHash       String?             // TX hash of the adminMint transaction
+  contractAddress  String?             // NFT contract address at time of mint (for migration)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([walletAddress])
+  @@index([txHash])
+}

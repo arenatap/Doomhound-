@@ -386,12 +386,22 @@ export async function GET(request: NextRequest) {
       // NFT_SIGNER_PRIVATE_KEY not configured yet — non-blocking for status checks
     }
 
-    // Get whitelist stats
-    const totalWhitelisted = await db.nftWhitelist.count();
-    const claimedCount = await db.nftWhitelist.count({ where: { claimed: true } });
-    const totalAllowance = await db.nftWhitelist.aggregate({ _sum: { mintAllowance: true } });
-    const totalClaimed = await db.nftWhitelist.aggregate({ _sum: { mintClaimed: true } });
-    const freeMintsRemaining = TOTAL_FREE_MINTS - (totalClaimed._sum.mintClaimed || 0);
+    // Get whitelist stats (safe — returns 0 if tables don't exist yet)
+    let totalWhitelisted = 0;
+    let claimedCount = 0;
+    let totalAllowanceValue = 0;
+    let totalClaimedValue = 0;
+    try {
+      totalWhitelisted = await db.nftWhitelist.count();
+      claimedCount = await db.nftWhitelist.count({ where: { claimed: true } });
+      const totalAllowance = await db.nftWhitelist.aggregate({ _sum: { mintAllowance: true } });
+      const totalClaimed = await db.nftWhitelist.aggregate({ _sum: { mintClaimed: true } });
+      totalAllowanceValue = totalAllowance._sum.mintAllowance || 0;
+      totalClaimedValue = totalClaimed._sum.mintClaimed || 0;
+    } catch (dbErr: any) {
+      console.warn(`[NFT GET] DB tables may not exist yet: ${dbErr.message}`);
+    }
+    const freeMintsRemaining = TOTAL_FREE_MINTS - totalClaimedValue;
 
     // Get wallet-specific status if provided
     let walletStatus = null;
@@ -401,11 +411,16 @@ export async function GET(request: NextRequest) {
     const wallet = request.nextUrl.searchParams.get("wallet");
     if (wallet) {
       const walletLower = wallet.toLowerCase();
-      const entry = await db.nftWhitelist.findFirst({
-        where: {
-          walletAddress: { equals: walletLower, mode: "insensitive" },
-        },
-      });
+      let entry: any = null;
+      try {
+        entry = await db.nftWhitelist.findFirst({
+          where: {
+            walletAddress: { equals: walletLower, mode: "insensitive" },
+          },
+        });
+      } catch (dbErr: any) {
+        console.warn(`[NFT GET] DB query failed for wallet ${walletLower}: ${dbErr.message}`);
+      }
       if (entry) {
         // CRITICAL: Reconcile DB with actual on-chain state using the
         // centralized reconcileMintClaimed function.
@@ -551,21 +566,26 @@ export async function GET(request: NextRequest) {
     const handle = request.nextUrl.searchParams.get("handle");
     if (handle) {
       const cleanHandle = handle.toLowerCase().replace("@", "");
-      const entry = await db.nftWhitelist.findFirst({
-        where: { handle: cleanHandle },
-      });
-      if (entry) {
-        const mintsLeft = entry.mintAllowance - entry.mintClaimed;
-        handleStatus = {
-          whitelisted: true,
-          walletAddress: entry.walletAddress,
-          reason: entry.reason,
-          mintAllowance: entry.mintAllowance,
-          mintClaimed: entry.mintClaimed,
-          mintsLeft,
-          claimed: entry.claimed,
-        };
-      } else {
+      try {
+        const handleEntry = await db.nftWhitelist.findFirst({
+          where: { handle: cleanHandle },
+        });
+        if (handleEntry) {
+          const mintsLeft = handleEntry.mintAllowance - handleEntry.mintClaimed;
+          handleStatus = {
+            whitelisted: true,
+            walletAddress: handleEntry.walletAddress,
+            reason: handleEntry.reason,
+            mintAllowance: handleEntry.mintAllowance,
+            mintClaimed: handleEntry.mintClaimed,
+            mintsLeft,
+            claimed: handleEntry.claimed,
+          };
+        } else {
+          handleStatus = { whitelisted: false };
+        }
+      } catch (dbErr: any) {
+        console.warn(`[NFT GET] DB query failed for handle ${cleanHandle}: ${dbErr.message}`);
         handleStatus = { whitelisted: false };
       }
     }
@@ -590,8 +610,8 @@ export async function GET(request: NextRequest) {
       claimedCount,
       freeMintsRemaining,
       totalFreeMints: TOTAL_FREE_MINTS,
-      totalAllowance: totalAllowance._sum.mintAllowance || 0,
-      totalClaimed: totalClaimed._sum.mintClaimed || 0,
+      totalAllowance: totalAllowanceValue,
+      totalClaimed: totalClaimedValue,
       mintPrice: "0.69",
       burnAmount: "11000000000000000000000000", // 11M $DOOMHOUND (18 decimals)
       doomhoundToken: DOOMHOUND_TOKEN,

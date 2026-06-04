@@ -16,10 +16,7 @@ export default function NFTPage() {
 
   const isWrongChain = isConnected && chainId !== AVAX_CHAIN_ID;
 
-  // State
-  const [verifyStatus, setVerifyStatus] = useState<string>("");
-  const [verifyLoading, setVerifyLoading] = useState(false);
-  const [verifyResult, setVerifyResult] = useState<any>(null);
+  // ── State ──
   const [nftStats, setNftStats] = useState<any>(null);
   const [userTokens, setUserTokens] = useState<any[]>([]);
   const [allTokens, setAllTokens] = useState<any[]>([]);
@@ -29,8 +26,16 @@ export default function NFTPage() {
   const [mintLoading, setMintLoading] = useState(false);
   const [mintStatus, setMintStatus] = useState<string>("");
   const [walletStatus, setWalletStatus] = useState<any>(null);
+  // Burn & Mint (mintWithToken) state
+  const [burnMintStep, setBurnMintStep] = useState<"idle"|"approving"|"minting"|"done"|"error">("idle");
+  const [burnMintStatus, setBurnMintStatus] = useState<string>("");
+  // Verify previous burn (for already-burned tokens)
+  const [verifyBurnTxHash, setVerifyBurnTxHash] = useState<string>("");
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<any>(null);
+  const [verifyStatus, setVerifyStatus] = useState<string>("");
 
-  // Read $DOOMHOUND balance
+  // ── Read $DOOMHOUND balance ──
   const { data: doomBalance } = useReadContract({
     address: DOOMHOUND_TOKEN,
     abi: DOOMHOUND_ABI,
@@ -38,21 +43,29 @@ export default function NFTPage() {
     args: address ? [address] : undefined,
   });
 
-  // Read NFT total supply
+  // ── Read $DOOMHOUND allowance for NFT contract ──
+  const { data: doomAllowance } = useReadContract({
+    address: DOOMHOUND_TOKEN,
+    abi: DOOMHOUND_ABI,
+    functionName: "allowance",
+    args: address ? [address, NFT_CONTRACT] : undefined,
+  });
+
+  // ── Read NFT total supply ──
   const { data: totalSupply } = useReadContract({
     address: NFT_CONTRACT,
     abi: NFT_ABI,
     functionName: "totalSupply",
   });
 
-  // Read paid mint price from contract
+  // ── Read paid mint price from contract ──
   const { data: mintPrice } = useReadContract({
     address: NFT_CONTRACT,
     abi: NFT_ABI,
     functionName: "paidMintPrice",
   });
 
-  // Read on-chain flags
+  // ── Read on-chain flags ──
   const { data: freeMintActive } = useReadContract({
     address: NFT_CONTRACT,
     abi: NFT_ABI,
@@ -71,11 +84,18 @@ export default function NFTPage() {
     functionName: "tokenMintActive",
   });
 
-  // Read per-wallet mint counters
+  // ── Read per-wallet mint counters ──
   const { data: paidMintClaimed } = useReadContract({
     address: NFT_CONTRACT,
     abi: NFT_ABI,
     functionName: "paidMintClaimed",
+    args: address ? [address] : undefined,
+  });
+
+  const { data: tokenMintClaimed } = useReadContract({
+    address: NFT_CONTRACT,
+    abi: NFT_ABI,
+    functionName: "tokenMintClaimed",
     args: address ? [address] : undefined,
   });
 
@@ -86,64 +106,114 @@ export default function NFTPage() {
     args: address ? [address] : undefined,
   });
 
-  // Burn $DOOMHOUND - transfer to burn address
-  const { writeContract: burnTokens, data: burnTxData, error: burnError } = useWriteContract();
-  const { isLoading: burnConfirming, isSuccess: burnConfirmed } = useWaitForTransactionReceipt({
-    hash: burnTxData,
+  // ── Approve $DOOMHOUND for mintWithToken ──
+  const { writeContract: approveDoom, data: approveTxData, error: approveError } = useWriteContract();
+  const { isLoading: approveConfirming, isSuccess: approveConfirmed } = useWaitForTransactionReceipt({
+    hash: approveTxData,
   });
 
-  // Mint NFT (paid)
+  // ── mintWithToken (burn 11M DOOMHOUND + mint NFT in one tx) ──
+  const { writeContract: mintWithToken, data: mintWithTokenTxData, error: mintWithTokenError } = useWriteContract();
+  const { isLoading: mintWithTokenConfirming, isSuccess: mintWithTokenConfirmed } = useWaitForTransactionReceipt({
+    hash: mintWithTokenTxData,
+  });
+
+  // ── Mint NFT (paid) ──
   const { writeContract: mintPaid, data: mintTxData, error: mintPaidError } = useWriteContract();
   const { isLoading: mintConfirming, isSuccess: mintConfirmed } = useWaitForTransactionReceipt({
     hash: mintTxData,
   });
 
-  // Free mint
+  // ── Free mint ──
   const { writeContract: claimFreeMint, data: freeMintTxData, error: freeMintError } = useWriteContract();
   const { isLoading: freeMintConfirming, isSuccess: freeMintConfirmed } = useWaitForTransactionReceipt({
     hash: freeMintTxData,
   });
 
-  // Handle write errors (wallet rejection, etc.)
+  // ── Handle write errors ──
   useEffect(() => {
     if (mintPaidError) {
       setMintLoading(false);
-      setMintStatus("Error: " + (mintPaidError?.message?.includes("User rejected") ? "Transaction rejected" : mintPaidError?.message?.slice(0, 80) || "Failed"));
+      setMintStatus("Error: " + (mintPaidError?.message?.includes("User rejected") ? "Transaction rejected" : mintPaidError?.message?.slice(0, 120) || "Failed"));
     }
   }, [mintPaidError]);
 
   useEffect(() => {
     if (freeMintError) {
       setFreeMintLoading(false);
-      setFreeMintStatus("Error: " + (freeMintError?.message?.includes("User rejected") ? "Transaction rejected" : freeMintError?.message?.slice(0, 80) || "Failed"));
+      setFreeMintStatus("Error: " + (freeMintError?.message?.includes("User rejected") ? "Transaction rejected" : freeMintError?.message?.slice(0, 120) || "Failed"));
     }
   }, [freeMintError]);
 
   useEffect(() => {
-    if (burnError) {
-      setVerifyStatus("Error: " + (burnError?.message?.includes("User rejected") ? "Transaction rejected" : burnError?.message?.slice(0, 80) || "Failed"));
+    if (mintWithTokenError) {
+      setBurnMintStep("error");
+      setBurnMintStatus("Error: " + (mintWithTokenError?.message?.includes("User rejected") ? "Transaction rejected" : mintWithTokenError?.message?.slice(0, 120) || "Failed"));
     }
-  }, [burnError]);
+  }, [mintWithTokenError]);
 
-  // Fetch NFT stats + gallery
+  useEffect(() => {
+    if (approveError) {
+      setBurnMintStep("error");
+      setBurnMintStatus("Approval error: " + (approveError?.message?.includes("User rejected") ? "Transaction rejected" : approveError?.message?.slice(0, 120) || "Failed"));
+    }
+  }, [approveError]);
+
+  // ── When approve confirmed, call mintWithToken ──
+  useEffect(() => {
+    if (approveConfirmed && address) {
+      setBurnMintStep("minting");
+      setBurnMintStatus("Approved! Now minting your NFT (burns 11M $DOOMHOUND)... Confirm in wallet.");
+      mintWithToken({
+        address: NFT_CONTRACT,
+        abi: NFT_ABI,
+        functionName: "mintWithToken",
+        args: [1n],
+      });
+    }
+  }, [approveConfirmed, address]);
+
+  // ── When mintWithToken confirmed ──
+  useEffect(() => {
+    if (mintWithTokenConfirmed && mintWithTokenTxData) {
+      setBurnMintStep("done");
+      setBurnMintStatus("NFT minted! Your 11M $DOOMHOUND has been burned and your HOTH NFT is in your wallet.");
+      fetchStats();
+    }
+  }, [mintWithTokenConfirmed, mintWithTokenTxData]);
+
+  // ── Paid mint: watch for confirmation ──
+  useEffect(() => {
+    if (mintConfirmed && mintTxData) {
+      setMintLoading(false);
+      setMintStatus("NFT minted successfully!");
+      fetchStats();
+    }
+  }, [mintConfirmed, mintTxData]);
+
+  // ── Fetch NFT stats + gallery ──
   const fetchStats = useCallback(async () => {
     try {
       setGalleryLoading(true);
       const url = address ? `/api/nft?wallet=${address}` : "/api/nft";
       const res = await fetch(url);
       const data = await res.json();
-      if (data.gallery && data.gallery.length > 0) {
-        setAllTokens(data.gallery);
-        if (address) {
-          setUserTokens(data.gallery.filter((t: any) =>
-            t.owner?.toLowerCase() === address?.toLowerCase()
-          ));
+      if (data.error) {
+        console.error("[NFT] API error:", data.error);
+      } else {
+        if (data.gallery && data.gallery.length > 0) {
+          setAllTokens(data.gallery);
+          if (address) {
+            setUserTokens(data.gallery.filter((t: any) =>
+              t.owner?.toLowerCase() === address?.toLowerCase()
+            ));
+          }
         }
+        if (data.walletStatus) {
+          setWalletStatus(data.walletStatus);
+        }
+        setNftStats(data);
       }
-      if (data.walletStatus) {
-        setWalletStatus(data.walletStatus);
-      }
-      setNftStats(data);
     } catch (err) {
       console.error("[NFT] fetchStats error:", err);
     } finally {
@@ -153,58 +223,35 @@ export default function NFTPage() {
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
-  // Auto-verify burn when confirmed
-  useEffect(() => {
-    if (burnConfirmed && burnTxData) {
-      handleVerifyBurn(burnTxData);
-    }
-  }, [burnConfirmed, burnTxData]);
-
-  // Verify burn and request NFT
-  const handleVerifyBurn = async (txHash: string) => {
-    if (!address) return;
-    setVerifyLoading(true);
-    setVerifyStatus("Verifying burn transaction...");
-    try {
-      const res = await fetch("/api/nft", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "verify_burn",
-          wallet: address,
-          txHash: txHash,
-        }),
-      });
-      const data = await res.json();
-      setVerifyResult(data);
-      if (data.minted) {
-        setVerifyStatus("Burn verified! NFT minted to your wallet!");
-      } else if (data.verified) {
-        setVerifyStatus("Burn verified! NFT will be minted by the team shortly.");
-      } else {
-        setVerifyStatus(data.error || "Verification failed");
-      }
-      fetchStats();
-    } catch (err: any) {
-      setVerifyStatus("Error: " + err.message);
-    }
-    setVerifyLoading(false);
-  };
-
-  // Handle burn button
-  const handleBurn = () => {
+  // ── Handle Burn & Mint (using mintWithToken) ──
+  const handleBurnAndMint = () => {
     if (!address || isWrongChain) return;
-    setVerifyStatus("");
-    setVerifyResult(null);
-    burnTokens({
-      address: DOOMHOUND_TOKEN,
-      abi: DOOMHOUND_ABI,
-      functionName: "transfer",
-      args: [BURN_ADDRESS, BURN_AMOUNT],
-    });
+    setBurnMintStep("approving");
+    setBurnMintStatus("Step 1/2: Approving NFT contract to spend 11M $DOOMHOUND... Confirm in wallet.");
+
+    const needsApproval = !doomAllowance || BigInt(doomAllowance.toString()) < BURN_AMOUNT;
+
+    if (needsApproval) {
+      approveDoom({
+        address: DOOMHOUND_TOKEN,
+        abi: DOOMHOUND_ABI,
+        functionName: "approve",
+        args: [NFT_CONTRACT, BURN_AMOUNT],
+      });
+    } else {
+      // Already approved, go straight to mintWithToken
+      setBurnMintStep("minting");
+      setBurnMintStatus("Already approved! Minting NFT (burns 11M $DOOMHOUND)... Confirm in wallet.");
+      mintWithToken({
+        address: NFT_CONTRACT,
+        abi: NFT_ABI,
+        functionName: "mintWithToken",
+        args: [1n],
+      });
+    }
   };
 
-  // Handle paid mint with proper error handling
+  // ── Handle paid mint ──
   const handleMintPaid = () => {
     if (!address || isWrongChain) return;
     setMintLoading(true);
@@ -218,16 +265,7 @@ export default function NFTPage() {
     });
   };
 
-  // Paid mint: watch for confirmation
-  useEffect(() => {
-    if (mintConfirmed && mintTxData) {
-      setMintLoading(false);
-      setMintStatus("NFT minted successfully!");
-      fetchStats();
-    }
-  }, [mintConfirmed, mintTxData]);
-
-  // Free mint with proper error handling
+  // ── Free mint ──
   const handleFreeMint = async () => {
     if (!address || isWrongChain) return;
     setFreeMintLoading(true);
@@ -267,7 +305,7 @@ export default function NFTPage() {
     }
   };
 
-  // Confirm free mint after on-chain success
+  // ── Confirm free mint after on-chain success ──
   useEffect(() => {
     if (freeMintConfirmed && freeMintTxData && address) {
       setFreeMintStatus("Free mint confirmed! Updating...");
@@ -285,14 +323,49 @@ export default function NFTPage() {
     }
   }, [freeMintConfirmed, freeMintTxData, address]);
 
-  // Computed values
+  // ── Verify previous burn (for already-burned tokens) ──
+  const handleVerifyPreviousBurn = async () => {
+    if (!address || !verifyBurnTxHash) return;
+    setVerifyLoading(true);
+    setVerifyStatus("Verifying burn transaction...");
+    setVerifyResult(null);
+    try {
+      const res = await fetch("/api/nft", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "verify_burn",
+          wallet: address,
+          txHash: verifyBurnTxHash,
+        }),
+      });
+      const data = await res.json();
+      setVerifyResult(data);
+      if (data.minted) {
+        setVerifyStatus("Burn verified! NFT minted to your wallet!");
+      } else if (data.verified) {
+        setVerifyStatus("Burn verified! NFT will be minted by the team shortly.");
+      } else {
+        setVerifyStatus(data.error || "Verification failed");
+      }
+      fetchStats();
+    } catch (err: any) {
+      setVerifyStatus("Error: " + err.message);
+    }
+    setVerifyLoading(false);
+  };
+
+  // ── Computed values ──
   const doomBalanceFormatted = doomBalance ? (Number(doomBalance) / 1e18).toFixed(0) : "0";
   const hasEnoughDoom = doomBalance && Number(doomBalance) >= Number(BURN_AMOUNT);
   const totalMinted = totalSupply ? Number(totalSupply) : 0;
   const paidClaimed = paidMintClaimed ? Number(paidMintClaimed) : 0;
+  const tokenClaimed = tokenMintClaimed ? Number(tokenMintClaimed) : 0;
   const maxPaid = 2;
+  const maxToken = 1; // MAX_TOKEN_PER_WALLET from contract
   const paidMintsLeft = maxPaid - paidClaimed;
   const myNftCount = nftBalance ? Number(nftBalance) : 0;
+  const isBurnMintBusy = burnMintStep === "approving" || burnMintStep === "minting" || approveConfirming || mintWithTokenConfirming;
 
   return (
     <DoomShell>
@@ -304,7 +377,7 @@ export default function NFTPage() {
         </div>
 
         <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-8 py-20">
-          {/* Title — NO framer-motion initial={{opacity:0}} */}
+          {/* Title */}
           <div className="text-center mb-8 animate-fade-in">
             <h1 className="font-creepster text-5xl sm:text-7xl md:text-8xl text-red-500 animate-glow-red mb-2 leading-none">
               HOUNDS OF
@@ -369,12 +442,12 @@ export default function NFTPage() {
                     <p className="font-creepster text-2xl text-red-400">{myNftCount}</p>
                   </div>
                 </div>
-                {!hasEnoughDoom && doomBalance && (
-                  <p className="text-yellow-500 text-xs mt-1">Need 11,000,000 to burn & mint</p>
+                {!hasEnoughDoom && doomBalance && Number(doomBalance) > 0 && (
+                  <p className="text-yellow-500 text-xs mt-1">Need 11,000,000 to burn and mint</p>
                 )}
               </div>
 
-              {/* SECTION 1: FREE MINT (Whitelist) */}
+              {/* ═══ SECTION 1: FREE MINT (Whitelist) ═══ */}
               {walletStatus?.whitelisted && !walletStatus?.claimed && (
                 <div className="bg-gradient-to-br from-green-950/40 to-emerald-950/20 border border-green-500/30 rounded-xl p-5 mb-4">
                   <h3 className="font-creepster text-xl text-green-400 mb-2">Free Mint (Whitelisted)</h3>
@@ -416,58 +489,88 @@ export default function NFTPage() {
                 </div>
               )}
 
-              {/* SECTION 2: BURN & MINT (11M $DOOMHOUND) */}
+              {/* ═══ SECTION 2: BURN & MINT (11M $DOOMHOUND) — On-chain via mintWithToken ═══ */}
               <div className="bg-gradient-to-br from-red-950/40 to-orange-950/20 border border-red-500/30 rounded-xl p-5 mb-4">
                 <h3 className="font-creepster text-xl text-red-400 mb-2">Burn & Mint (FREE)</h3>
-                <p className="text-gray-400 text-xs mb-3">
-                  Burn 11,000,000 $DOOMHOUND tokens to receive a FREE HOTH NFT. Auto-minted to your wallet after verification.
+                <p className="text-gray-400 text-xs mb-1">
+                  Burn 11,000,000 $DOOMHOUND to receive a FREE HOTH NFT. Done on-chain in one transaction — approve then mint.
+                </p>
+                <p className="text-red-300/60 text-xs mb-3">
+                  Token mints: {tokenClaimed}/{maxToken} {tokenClaimed >= maxToken ? "(Limit reached)" : ""}
                 </p>
 
                 {tokenMintActive === false && (
-                  <p className="text-yellow-500 text-xs mb-3">Token mint is currently disabled on the contract.</p>
+                  <p className="text-yellow-500 text-xs mb-3">Token mint is currently disabled on the contract. Contact the team to enable it.</p>
                 )}
 
-                <button onClick={handleBurn} disabled={!hasEnoughDoom || burnConfirming}
+                <button onClick={handleBurnAndMint}
+                  disabled={!hasEnoughDoom || isBurnMintBusy || tokenClaimed >= maxToken || tokenMintActive === false}
                   className={`w-full py-3 px-6 rounded-xl font-bold text-sm transition-all ${
-                    hasEnoughDoom && !burnConfirming
+                    hasEnoughDoom && !isBurnMintBusy && tokenClaimed < maxToken && tokenMintActive !== false
                       ? "bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)]"
                       : "bg-gray-700 text-gray-400 cursor-not-allowed"
                   }`}>
-                  {burnConfirming ? "Confirming Burn..." : !hasEnoughDoom && doomBalance ? "Need 11M $DOOMHOUND" : "Burn 11M $DOOMHOUND"}
+                  {burnMintStep === "approving" || approveConfirming
+                    ? "Approving 11M $DOOMHOUND..."
+                    : burnMintStep === "minting" || mintWithTokenConfirming
+                    ? "Minting NFT (burning tokens)..."
+                    : tokenClaimed >= maxToken
+                    ? "Token Mint Limit Reached"
+                    : !hasEnoughDoom && doomBalance && Number(doomBalance) > 0
+                    ? "Need 11M $DOOMHOUND"
+                    : !hasEnoughDoom
+                    ? "Need 11M $DOOMHOUND"
+                    : "Burn 11M $DOOMHOUND → Mint NFT"}
                 </button>
 
-                {burnTxData && !burnConfirmed && (
-                  <p className="text-yellow-400 text-xs mt-2 animate-pulse">
-                    Transaction sent: {burnTxData.slice(0, 10)}... Waiting for confirmation...
+                {burnMintStatus && (
+                  <p className={`text-xs mt-2 animate-pulse ${burnMintStep === "error" ? "text-red-400" : burnMintStep === "done" ? "text-green-400" : "text-yellow-400"}`}>
+                    {burnMintStatus}
                   </p>
                 )}
 
-                {burnConfirmed && !verifyResult && (
-                  <p className="text-green-400 text-xs mt-2 animate-pulse">Burn confirmed! Verifying...</p>
-                )}
-
-                {verifyLoading && (
-                  <p className="text-yellow-400 text-xs mt-2 animate-pulse">{verifyStatus}</p>
-                )}
-
-                {verifyResult && (
-                  <div className={`mt-3 p-3 rounded-lg text-sm ${
-                    verifyResult.minted ? "bg-green-900/30 border border-green-500/30 text-green-400" :
-                    verifyResult.verified ? "bg-blue-900/30 border border-blue-500/30 text-blue-400" :
-                    "bg-red-900/30 border border-red-500/30 text-red-400"
-                  }`}>
-                    <p className="font-bold">{verifyResult.minted ? "NFT Minted!" : verifyResult.verified ? "Verified!" : "Error"}</p>
-                    <p className="text-xs mt-1">{verifyStatus}</p>
-                    {verifyResult.mintTxHash && (
-                      <a href={`https://snowtrace.io/tx/${verifyResult.mintTxHash}`} target="_blank" className="text-blue-400 text-xs underline mt-1 block">
-                        View on Snowtrace
-                      </a>
-                    )}
-                  </div>
+                {mintWithTokenTxData && burnMintStep === "done" && (
+                  <a href={`https://snowtrace.io/tx/${mintWithTokenTxData}`} target="_blank"
+                    className="text-blue-400 text-xs underline mt-2 block">
+                    View on Snowtrace
+                  </a>
                 )}
               </div>
 
-              {/* SECTION 3: PAID MINT (0.69 AVAX) */}
+              {/* ═══ Verify Previous Burn (for already-burned tokens) ═══ */}
+              <div className="bg-gray-900/30 border border-gray-600/30 rounded-xl p-4 mb-4">
+                <h4 className="font-creepster text-sm text-gray-400 mb-2">Already burned tokens manually?</h4>
+                <p className="text-gray-500 text-[10px] mb-2">
+                  If you already transferred 11M $DOOMHOUND to the burn address outside this app, enter the tx hash below to verify and get your NFT.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="0x... burn transaction hash"
+                    value={verifyBurnTxHash}
+                    onChange={(e) => setVerifyBurnTxHash(e.target.value)}
+                    className="flex-1 bg-black/40 border border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-300 placeholder-gray-600 focus:outline-none focus:border-red-500/50"
+                  />
+                  <button onClick={handleVerifyPreviousBurn}
+                    disabled={!verifyBurnTxHash || verifyLoading}
+                    className="bg-gray-700 hover:bg-gray-600 text-white font-bold px-4 py-2 rounded-lg text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                    {verifyLoading ? "Verifying..." : "Verify"}
+                  </button>
+                </div>
+                {verifyStatus && (
+                  <p className={`text-xs mt-2 ${verifyStatus.includes("Error") || verifyStatus.includes("fail") ? "text-red-400" : "text-green-400"}`}>
+                    {verifyStatus}
+                  </p>
+                )}
+                {verifyResult?.mintTxHash && (
+                  <a href={`https://snowtrace.io/tx/${verifyResult.mintTxHash}`} target="_blank"
+                    className="text-blue-400 text-xs underline mt-1 block">
+                    View mint TX on Snowtrace
+                  </a>
+                )}
+              </div>
+
+              {/* ═══ SECTION 3: PAID MINT (0.69 AVAX) ═══ */}
               <div className="bg-gradient-to-br from-purple-950/30 to-red-950/20 border border-purple-500/30 rounded-xl p-5 mb-6">
                 <h3 className="font-creepster text-xl text-purple-400 mb-2">Paid Mint (0.69 AVAX)</h3>
                 <p className="text-gray-400 text-xs mb-1">
