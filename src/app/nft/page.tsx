@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAccount, useChainId, useSwitchChain, useWriteContract, useReadContract, useWaitForTransactionReceipt } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { motion } from "framer-motion";
 import { DoomShell } from "@/components/doom/doom-shell";
 import { Footer } from "@/components/doom/footer";
 import { NFT_CONTRACT, DOOMHOUND_TOKEN, BURN_ADDRESS, BURN_AMOUNT, NFT_ABI, DOOMHOUND_ABI } from "@/lib/nft-abi";
@@ -88,22 +87,43 @@ export default function NFTPage() {
   });
 
   // Burn $DOOMHOUND - transfer to burn address
-  const { writeContract: burnTokens, data: burnTxData } = useWriteContract();
+  const { writeContract: burnTokens, data: burnTxData, error: burnError } = useWriteContract();
   const { isLoading: burnConfirming, isSuccess: burnConfirmed } = useWaitForTransactionReceipt({
     hash: burnTxData,
   });
 
   // Mint NFT (paid)
-  const { writeContract: mintPaid, data: mintTxData } = useWriteContract();
+  const { writeContract: mintPaid, data: mintTxData, error: mintPaidError } = useWriteContract();
   const { isLoading: mintConfirming, isSuccess: mintConfirmed } = useWaitForTransactionReceipt({
     hash: mintTxData,
   });
 
   // Free mint
-  const { writeContract: claimFreeMint, data: freeMintTxData } = useWriteContract();
+  const { writeContract: claimFreeMint, data: freeMintTxData, error: freeMintError } = useWriteContract();
   const { isLoading: freeMintConfirming, isSuccess: freeMintConfirmed } = useWaitForTransactionReceipt({
     hash: freeMintTxData,
   });
+
+  // Handle write errors (wallet rejection, etc.)
+  useEffect(() => {
+    if (mintPaidError) {
+      setMintLoading(false);
+      setMintStatus("Error: " + (mintPaidError?.message?.includes("User rejected") ? "Transaction rejected" : mintPaidError?.message?.slice(0, 80) || "Failed"));
+    }
+  }, [mintPaidError]);
+
+  useEffect(() => {
+    if (freeMintError) {
+      setFreeMintLoading(false);
+      setFreeMintStatus("Error: " + (freeMintError?.message?.includes("User rejected") ? "Transaction rejected" : freeMintError?.message?.slice(0, 80) || "Failed"));
+    }
+  }, [freeMintError]);
+
+  useEffect(() => {
+    if (burnError) {
+      setVerifyStatus("Error: " + (burnError?.message?.includes("User rejected") ? "Transaction rejected" : burnError?.message?.slice(0, 80) || "Failed"));
+    }
+  }, [burnError]);
 
   // Fetch NFT stats + gallery
   const fetchStats = useCallback(async () => {
@@ -189,21 +209,16 @@ export default function NFTPage() {
     if (!address || isWrongChain) return;
     setMintLoading(true);
     setMintStatus("");
-    try {
-      mintPaid({
-        address: NFT_CONTRACT,
-        abi: NFT_ABI,
-        functionName: "mintPaid",
-        args: [1n],
-        value: mintPrice || BigInt("690000000000000000"),
-      });
-    } catch (err: any) {
-      setMintStatus("Error: " + (err?.shortMessage || err?.message || "Transaction failed"));
-      setMintLoading(false);
-    }
+    mintPaid({
+      address: NFT_CONTRACT,
+      abi: NFT_ABI,
+      functionName: "mintPaid",
+      args: [1n],
+      value: mintPrice || BigInt("690000000000000000"),
+    });
   };
 
-  // Paid mint: watch for confirmation or failure
+  // Paid mint: watch for confirmation
   useEffect(() => {
     if (mintConfirmed && mintTxData) {
       setMintLoading(false);
@@ -211,14 +226,6 @@ export default function NFTPage() {
       fetchStats();
     }
   }, [mintConfirmed, mintTxData]);
-
-  // Paid mint: watch for errors (wallet rejection etc)
-  useEffect(() => {
-    if (!mintConfirming && mintLoading && !mintTxData) {
-      // If we were loading but no tx was sent, user probably rejected
-      // We handle this via the writeContract error
-    }
-  }, [mintConfirming, mintLoading, mintTxData]);
 
   // Free mint with proper error handling
   const handleFreeMint = async () => {
@@ -239,17 +246,12 @@ export default function NFTPage() {
       }
       if (data.isFirstClaim && data.nonce && data.signature) {
         setFreeMintStatus("Confirm in wallet...");
-        try {
-          claimFreeMint({
-            address: NFT_CONTRACT,
-            abi: NFT_ABI,
-            functionName: "claimFreeMint",
-            args: [BigInt(data.nonce), data.signature as `0x${string}`],
-          });
-        } catch (err: any) {
-          setFreeMintStatus("Error: " + (err?.shortMessage || err?.message || "Wallet rejected"));
-          setFreeMintLoading(false);
-        }
+        claimFreeMint({
+          address: NFT_CONTRACT,
+          abi: NFT_ABI,
+          functionName: "claimFreeMint",
+          args: [BigInt(data.nonce), data.signature as `0x${string}`],
+        });
       } else if (data.adminMinted || data.alreadyHadNFT) {
         setFreeMintStatus("Your free NFT has been minted!");
         setFreeMintLoading(false);
@@ -283,20 +285,6 @@ export default function NFTPage() {
     }
   }, [freeMintConfirmed, freeMintTxData, address]);
 
-  // Free mint: handle wallet rejection (tx never sent)
-  useEffect(() => {
-    if (!freeMintConfirming && freeMintLoading && !freeMintTxData && freeMintStatus === "Confirm in wallet...") {
-      // Small delay to see if tx comes through
-      const timer = setTimeout(() => {
-        if (!freeMintTxData) {
-          setFreeMintLoading(false);
-          setFreeMintStatus("");
-        }
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [freeMintConfirming, freeMintLoading, freeMintTxData, freeMintStatus]);
-
   // Computed values
   const doomBalanceFormatted = doomBalance ? (Number(doomBalance) / 1e18).toFixed(0) : "0";
   const hasEnoughDoom = doomBalance && Number(doomBalance) >= Number(BURN_AMOUNT);
@@ -316,9 +304,8 @@ export default function NFTPage() {
         </div>
 
         <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-8 py-20">
-          {/* Title */}
-          <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3, duration: 0.8 }}
-            className="text-center mb-8">
+          {/* Title — NO framer-motion initial={{opacity:0}} */}
+          <div className="text-center mb-8 animate-fade-in">
             <h1 className="font-creepster text-5xl sm:text-7xl md:text-8xl text-red-500 animate-glow-red mb-2 leading-none">
               HOUNDS OF
             </h1>
@@ -328,11 +315,10 @@ export default function NFTPage() {
             <p className="text-gray-400 text-sm max-w-xl mx-auto">
               100 unique NFTs on Avalanche. Mint free (whitelist), burn 11M $DOOMHOUND, or pay 0.69 AVAX.
             </p>
-          </motion.div>
+          </div>
 
           {/* Stats Bar */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-            className="flex justify-center gap-3 sm:gap-4 mb-8 flex-wrap">
+          <div className="flex justify-center gap-3 sm:gap-4 mb-8 flex-wrap animate-fade-in-delay-1">
             <div className="bg-red-950/30 border border-red-500/20 rounded-xl px-4 py-2">
               <div className="font-creepster text-xl sm:text-2xl text-red-400">{totalMinted}/100</div>
               <div className="text-[10px] text-red-300/50 uppercase tracking-wider">Minted</div>
@@ -345,30 +331,29 @@ export default function NFTPage() {
               <div className="font-creepster text-xl sm:text-2xl text-red-400">11M</div>
               <div className="text-[10px] text-red-300/50 uppercase tracking-wider">Burn</div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Connect Wallet */}
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.6 }}
-            className="flex justify-center mb-6">
+          <div className="flex justify-center mb-6 animate-fade-in-delay-2">
             <ConnectButton />
-          </motion.div>
+          </div>
 
           {/* Wrong Chain Warning */}
           {isWrongChain && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="bg-yellow-900/30 border border-yellow-500/40 rounded-xl p-4 mb-6 max-w-md mx-auto text-center">
+            <div className="bg-yellow-900/30 border border-yellow-500/40 rounded-xl p-4 mb-6 max-w-md mx-auto text-center">
               <p className="text-yellow-400 text-sm font-bold mb-2">Wrong Network</p>
               <button onClick={() => switchChain({ chainId: AVAX_CHAIN_ID })}
                 className="bg-yellow-600 hover:bg-yellow-700 text-black font-bold py-2 px-6 rounded-lg text-sm transition-all">
                 Switch to Avalanche C-Chain
               </button>
-            </motion.div>
+            </div>
           )}
 
-          {/* Connected & Right Chain — Minting Section */}
+          {/* ═══════════════════════════════════════════════ */}
+          {/* MINTING SECTIONS — Only when connected & right chain */}
+          {/* ═══════════════════════════════════════════════ */}
           {isConnected && !isWrongChain && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-              className="max-w-lg mx-auto">
+            <div className="max-w-lg mx-auto animate-fade-in-delay-2">
 
               {/* Balance Display */}
               <div className="bg-red-950/20 border border-red-500/15 rounded-xl p-4 mb-4">
@@ -389,9 +374,7 @@ export default function NFTPage() {
                 )}
               </div>
 
-              {/* ═══════════════════════════════════════════════ */}
               {/* SECTION 1: FREE MINT (Whitelist) */}
-              {/* ═══════════════════════════════════════════════ */}
               {walletStatus?.whitelisted && !walletStatus?.claimed && (
                 <div className="bg-gradient-to-br from-green-950/40 to-emerald-950/20 border border-green-500/30 rounded-xl p-5 mb-4">
                   <h3 className="font-creepster text-xl text-green-400 mb-2">Free Mint (Whitelisted)</h3>
@@ -433,9 +416,7 @@ export default function NFTPage() {
                 </div>
               )}
 
-              {/* ═══════════════════════════════════════════════ */}
               {/* SECTION 2: BURN & MINT (11M $DOOMHOUND) */}
-              {/* ═══════════════════════════════════════════════ */}
               <div className="bg-gradient-to-br from-red-950/40 to-orange-950/20 border border-red-500/30 rounded-xl p-5 mb-4">
                 <h3 className="font-creepster text-xl text-red-400 mb-2">Burn & Mint (FREE)</h3>
                 <p className="text-gray-400 text-xs mb-3">
@@ -486,9 +467,7 @@ export default function NFTPage() {
                 )}
               </div>
 
-              {/* ═══════════════════════════════════════════════ */}
               {/* SECTION 3: PAID MINT (0.69 AVAX) */}
-              {/* ═══════════════════════════════════════════════ */}
               <div className="bg-gradient-to-br from-purple-950/30 to-red-950/20 border border-purple-500/30 rounded-xl p-5 mb-6">
                 <h3 className="font-creepster text-xl text-purple-400 mb-2">Paid Mint (0.69 AVAX)</h3>
                 <p className="text-gray-400 text-xs mb-1">
@@ -539,12 +518,11 @@ export default function NFTPage() {
                   </div>
                 </div>
               )}
-            </motion.div>
+            </div>
           )}
 
           {/* Contract Links */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
-            className="flex justify-center gap-4 mt-6 mb-10">
+          <div className="flex justify-center gap-4 mt-6 mb-10 animate-fade-in-delay-3">
             <a href={`https://snowtrace.io/address/${NFT_CONTRACT}`} target="_blank"
               className="text-gray-500 hover:text-red-400 text-xs transition-colors">
               NFT Contract
@@ -553,13 +531,12 @@ export default function NFTPage() {
               className="text-gray-500 hover:text-red-400 text-xs transition-colors">
               $DOOMHOUND Token
             </a>
-          </motion.div>
+          </div>
 
           {/* ═══════════════════════════════════════════════════════════════ */}
           {/* GALLERY — Always visible, even without wallet connection */}
           {/* ═══════════════════════════════════════════════════════════════ */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
-            className="mb-10">
+          <div className="mb-10">
             <h2 className="font-creepster text-3xl sm:text-4xl text-red-400 mb-6 text-center">
               The Pack <span className="text-red-500/50">({allTokens.length > 0 ? allTokens.length : totalMinted}/100)</span>
             </h2>
@@ -606,7 +583,7 @@ export default function NFTPage() {
                 <p className="text-gray-500 text-sm">No hounds minted yet. Be the first!</p>
               </div>
             )}
-          </motion.div>
+          </div>
         </div>
       </section>
       <Footer />
