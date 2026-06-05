@@ -36,7 +36,7 @@ export default function NFTPage() {
   const [mintLoading, setMintLoading] = useState(false);
   const [mintStatus, setMintStatus] = useState<string>("");
   const [walletStatus, setWalletStatus] = useState<any>(null);
-  // Burn & Mint (mintWithToken) state
+  // Burn & Mint state
   const [burnMintStep, setBurnMintStep] = useState<"idle"|"approving"|"minting"|"done"|"error">("idle");
   const [burnMintStatus, setBurnMintStatus] = useState<string>("");
   // Verify previous burn (for already-burned tokens)
@@ -53,13 +53,7 @@ export default function NFTPage() {
     args: address ? [address] : undefined,
   });
 
-  // ── Read $DOOMHOUND allowance for NFT contract ──
-  const { data: doomAllowance } = useReadContract({
-    address: DOOMHOUND_TOKEN,
-    abi: DOOMHOUND_ABI,
-    functionName: "allowance",
-    args: address ? [address, NFT_CONTRACT] : undefined,
-  });
+  // NOTE: doomAllowance no longer needed — we use direct transfer to 0xdead instead of mintWithToken
 
   // ── Read NFT total supply ──
   const { data: totalSupply } = useReadContract({
@@ -88,11 +82,9 @@ export default function NFTPage() {
     functionName: "paidMintActive",
   });
 
-  const { data: tokenMintActive } = useReadContract({
-    address: NFT_CONTRACT,
-    abi: NFT_ABI,
-    functionName: "tokenMintActive",
-  });
+  // NOTE: tokenMintActive does NOT exist on the current contract
+  // The contract only supports: claimFreeMint, mintPaid, adminMint
+  // Token (burn) minting is done via manual transfer to 0xdead + API verify
 
   // ── Read per-wallet mint counters ──
   const { data: paidMintClaimed } = useReadContract({
@@ -102,12 +94,7 @@ export default function NFTPage() {
     args: address ? [address] : undefined,
   });
 
-  const { data: tokenMintClaimed } = useReadContract({
-    address: NFT_CONTRACT,
-    abi: NFT_ABI,
-    functionName: "tokenMintClaimed",
-    args: address ? [address] : undefined,
-  });
+  // NOTE: tokenMintClaimed does NOT exist on the current contract
 
   const { data: nftBalance } = useReadContract({
     address: NFT_CONTRACT,
@@ -116,16 +103,10 @@ export default function NFTPage() {
     args: address ? [address] : undefined,
   });
 
-  // ── Approve $DOOMHOUND for mintWithToken ──
-  const { writeContract: approveDoom, data: approveTxData, error: approveError } = useWriteContract();
-  const { isLoading: approveConfirming, isSuccess: approveConfirmed } = useWaitForTransactionReceipt({
-    hash: approveTxData,
-  });
-
-  // ── mintWithToken (burn 11M DOOMHOUND + mint NFT in one tx) ──
-  const { writeContract: mintWithToken, data: mintWithTokenTxData, error: mintWithTokenError } = useWriteContract();
-  const { isLoading: mintWithTokenConfirming, isSuccess: mintWithTokenConfirmed } = useWaitForTransactionReceipt({
-    hash: mintWithTokenTxData,
+  // ── Transfer $DOOMHOUND to burn address (manual burn flow) ──
+  const { writeContract: burnDoomTransfer, data: burnTransferTxData, error: burnTransferError } = useWriteContract();
+  const { isLoading: burnTransferConfirming, isSuccess: burnTransferConfirmed } = useWaitForTransactionReceipt({
+    hash: burnTransferTxData,
   });
 
   // ── Mint NFT (paid) ──
@@ -156,41 +137,21 @@ export default function NFTPage() {
   }, [freeMintError]);
 
   useEffect(() => {
-    if (mintWithTokenError) {
+    if (burnTransferError) {
       setBurnMintStep("error");
-      setBurnMintStatus("Error: " + (mintWithTokenError?.message?.includes("User rejected") ? "Transaction rejected" : mintWithTokenError?.message?.slice(0, 120) || "Failed"));
+      setBurnMintStatus("Error: " + (burnTransferError?.message?.includes("User rejected") ? "Transaction rejected" : burnTransferError?.message?.slice(0, 120) || "Failed"));
     }
-  }, [mintWithTokenError]);
+  }, [burnTransferError]);
 
+  // ── When burn transfer confirmed ──
   useEffect(() => {
-    if (approveError) {
-      setBurnMintStep("error");
-      setBurnMintStatus("Approval error: " + (approveError?.message?.includes("User rejected") ? "Transaction rejected" : approveError?.message?.slice(0, 120) || "Failed"));
-    }
-  }, [approveError]);
-
-  // ── When approve confirmed, call mintWithToken ──
-  useEffect(() => {
-    if (approveConfirmed && address) {
-      setBurnMintStep("minting");
-      setBurnMintStatus("Approved! Now minting your NFT (burns 11M $DOOMHOUND)... Confirm in wallet.");
-      mintWithToken({
-        address: NFT_CONTRACT,
-        abi: NFT_ABI,
-        functionName: "mintWithToken",
-        args: [1n],
-      });
-    }
-  }, [approveConfirmed, address]);
-
-  // ── When mintWithToken confirmed ──
-  useEffect(() => {
-    if (mintWithTokenConfirmed && mintWithTokenTxData) {
+    if (burnTransferConfirmed && burnTransferTxData) {
       setBurnMintStep("done");
-      setBurnMintStatus("NFT minted! Your 11M $DOOMHOUND has been burned and your HOTH NFT is in your wallet.");
+      setBurnMintStatus("11M $DOOMHOUND burned! Now verify the burn below to receive your NFT.");
+      setVerifyBurnTxHash(burnTransferTxData);
       fetchStats();
     }
-  }, [mintWithTokenConfirmed, mintWithTokenTxData]);
+  }, [burnTransferConfirmed, burnTransferTxData]);
 
   // ── Paid mint: watch for confirmation ──
   useEffect(() => {
@@ -233,32 +194,17 @@ export default function NFTPage() {
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
-  // ── Handle Burn & Mint (using mintWithToken) ──
+  // ── Handle Burn & Mint (transfer $DOOMHOUND to 0xdead, then verify) ──
   const handleBurnAndMint = () => {
     if (!address || isWrongChain) return;
     setBurnMintStep("approving");
-    setBurnMintStatus("Step 1/2: Approving NFT contract to spend 11M $DOOMHOUND... Confirm in wallet.");
-
-    const needsApproval = !doomAllowance || BigInt(doomAllowance.toString()) < BURN_AMOUNT;
-
-    if (needsApproval) {
-      approveDoom({
-        address: DOOMHOUND_TOKEN,
-        abi: DOOMHOUND_ABI,
-        functionName: "approve",
-        args: [NFT_CONTRACT, BURN_AMOUNT],
-      });
-    } else {
-      // Already approved, go straight to mintWithToken
-      setBurnMintStep("minting");
-      setBurnMintStatus("Already approved! Minting NFT (burns 11M $DOOMHOUND)... Confirm in wallet.");
-      mintWithToken({
-        address: NFT_CONTRACT,
-        abi: NFT_ABI,
-        functionName: "mintWithToken",
-        args: [1n],
-      });
-    }
+    setBurnMintStatus("Burning 11M $DOOMHOUND... Confirm the transfer in your wallet.");
+    burnDoomTransfer({
+      address: DOOMHOUND_TOKEN,
+      abi: DOOMHOUND_ABI,
+      functionName: "transfer",
+      args: [BURN_ADDRESS, BURN_AMOUNT],
+    });
   };
 
   // ── Handle paid mint ──
@@ -370,12 +316,10 @@ export default function NFTPage() {
   const hasEnoughDoom = doomBalance && Number(doomBalance) >= Number(BURN_AMOUNT);
   const totalMinted = totalSupply ? Number(totalSupply) : 0;
   const paidClaimed = paidMintClaimed ? Number(paidMintClaimed) : 0;
-  const tokenClaimed = tokenMintClaimed ? Number(tokenMintClaimed) : 0;
   const maxPaid = 2;
-  const maxToken = 1; // MAX_TOKEN_PER_WALLET from contract
   const paidMintsLeft = maxPaid - paidClaimed;
   const myNftCount = nftBalance ? Number(nftBalance) : 0;
-  const isBurnMintBusy = burnMintStep === "approving" || burnMintStep === "minting" || approveConfirming || mintWithTokenConfirming;
+  const isBurnMintBusy = burnMintStep === "approving" || burnMintStep === "minting" || burnTransferConfirming;
 
   return (
     <DoomShell>
@@ -499,39 +443,34 @@ export default function NFTPage() {
                 </div>
               )}
 
-              {/* ═══ SECTION 2: BURN & MINT (11M $DOOMHOUND) — On-chain via mintWithToken ═══ */}
+              {/* ═══ SECTION 2: BURN & MINT (11M $DOOMHOUND) ═══ */}
               <div className="bg-gradient-to-br from-red-950/40 to-orange-950/20 border border-red-500/30 rounded-xl p-5 mb-4">
                 <h3 className="font-creepster text-xl text-red-400 mb-2">Burn & Mint (FREE)</h3>
                 <p className="text-gray-400 text-xs mb-1">
-                  Burn 11,000,000 $DOOMHOUND to receive a FREE HOTH NFT. Done on-chain in one transaction — approve then mint.
-                </p>
-                <p className="text-red-300/60 text-xs mb-3">
-                  Token mints: {tokenClaimed}/{maxToken} {tokenClaimed >= maxToken ? "(Limit reached)" : ""}
+                  Burn 11,000,000 $DOOMHOUND to receive a FREE HOTH NFT. Two steps: burn tokens, then verify to get your NFT.
                 </p>
 
-                {tokenMintActive === false && (
-                  <p className="text-yellow-500 text-xs mb-3">Token mint is currently disabled on the contract. Contact the team to enable it.</p>
-                )}
-
-                <button onClick={handleBurnAndMint}
-                  disabled={!hasEnoughDoom || isBurnMintBusy || tokenClaimed >= maxToken || tokenMintActive === false}
-                  className={`w-full py-3 px-6 rounded-xl font-bold text-sm transition-all ${
-                    hasEnoughDoom && !isBurnMintBusy && tokenClaimed < maxToken && tokenMintActive !== false
-                      ? "bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)]"
-                      : "bg-gray-700 text-gray-400 cursor-not-allowed"
-                  }`}>
-                  {burnMintStep === "approving" || approveConfirming
-                    ? "Approving 11M $DOOMHOUND..."
-                    : burnMintStep === "minting" || mintWithTokenConfirming
-                    ? "Minting NFT (burning tokens)..."
-                    : tokenClaimed >= maxToken
-                    ? "Token Mint Limit Reached"
-                    : !hasEnoughDoom && doomBalance && Number(doomBalance) > 0
-                    ? "Need 11M $DOOMHOUND"
-                    : !hasEnoughDoom
-                    ? "Need 11M $DOOMHOUND"
-                    : "Burn 11M $DOOMHOUND → Mint NFT"}
-                </button>
+                {/* Step 1: Burn */}
+                <div className="mt-3">
+                  <p className="text-orange-300 text-xs font-bold mb-2">Step 1: Burn $DOOMHOUND</p>
+                  <button onClick={handleBurnAndMint}
+                    disabled={!hasEnoughDoom || isBurnMintBusy || burnMintStep === "done"}
+                    className={`w-full py-3 px-6 rounded-xl font-bold text-sm transition-all ${
+                      hasEnoughDoom && !isBurnMintBusy && burnMintStep !== "done"
+                        ? "bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:shadow-[0_0_30px_rgba(220,38,38,0.6)]"
+                        : "bg-gray-700 text-gray-400 cursor-not-allowed"
+                    }`}>
+                    {burnTransferConfirming
+                      ? "Confirming burn..."
+                      : burnMintStep === "approving"
+                      ? "Confirm in wallet..."
+                      : burnMintStep === "done"
+                      ? "Burned! Verify below"
+                      : !hasEnoughDoom
+                      ? "Need 11M $DOOMHOUND"
+                      : "Burn 11M $DOOMHOUND"}
+                  </button>
+                </div>
 
                 {burnMintStatus && (
                   <p className={`text-xs mt-2 animate-pulse ${burnMintStep === "error" ? "text-red-400" : burnMintStep === "done" ? "text-green-400" : "text-yellow-400"}`}>
@@ -539,45 +478,45 @@ export default function NFTPage() {
                   </p>
                 )}
 
-                {mintWithTokenTxData && burnMintStep === "done" && (
-                  <a href={`https://snowtrace.io/tx/${mintWithTokenTxData}`} target="_blank"
+                {burnTransferTxData && (
+                  <a href={`https://snowtrace.io/tx/${burnTransferTxData}`} target="_blank"
                     className="text-blue-400 text-xs underline mt-2 block">
-                    View on Snowtrace
+                    View burn TX on Snowtrace
                   </a>
                 )}
-              </div>
 
-              {/* ═══ Verify Previous Burn (for already-burned tokens) ═══ */}
-              <div className="bg-gray-900/30 border border-gray-600/30 rounded-xl p-4 mb-4">
-                <h4 className="font-creepster text-sm text-gray-400 mb-2">Already burned tokens manually?</h4>
-                <p className="text-gray-500 text-[10px] mb-2">
-                  If you already transferred 11M $DOOMHOUND to the burn address outside this app, enter the tx hash below to verify and get your NFT.
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="0x... burn transaction hash"
-                    value={verifyBurnTxHash}
-                    onChange={(e) => setVerifyBurnTxHash(e.target.value)}
-                    className="flex-1 bg-black/40 border border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-300 placeholder-gray-600 focus:outline-none focus:border-red-500/50"
-                  />
-                  <button onClick={handleVerifyPreviousBurn}
-                    disabled={!verifyBurnTxHash || verifyLoading}
-                    className="bg-gray-700 hover:bg-gray-600 text-white font-bold px-4 py-2 rounded-lg text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                    {verifyLoading ? "Verifying..." : "Verify"}
-                  </button>
-                </div>
-                {verifyStatus && (
-                  <p className={`text-xs mt-2 ${verifyStatus.includes("Error") || verifyStatus.includes("fail") ? "text-red-400" : "text-green-400"}`}>
-                    {verifyStatus}
+                {/* Step 2: Verify */}
+                <div className="mt-4 pt-3 border-t border-red-500/20">
+                  <p className="text-orange-300 text-xs font-bold mb-2">Step 2: Verify & Get NFT</p>
+                  <p className="text-gray-500 text-[10px] mb-2">
+                    After burning, verify the transaction to receive your NFT. If you burned outside this app, paste the tx hash below.
                   </p>
-                )}
-                {verifyResult?.mintTxHash && (
-                  <a href={`https://snowtrace.io/tx/${verifyResult.mintTxHash}`} target="_blank"
-                    className="text-blue-400 text-xs underline mt-1 block">
-                    View mint TX on Snowtrace
-                  </a>
-                )}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="0x... burn transaction hash"
+                      value={verifyBurnTxHash}
+                      onChange={(e) => setVerifyBurnTxHash(e.target.value)}
+                      className="flex-1 bg-black/40 border border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-300 placeholder-gray-600 focus:outline-none focus:border-red-500/50"
+                    />
+                    <button onClick={handleVerifyPreviousBurn}
+                      disabled={!verifyBurnTxHash || verifyLoading}
+                      className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold px-4 py-2 rounded-lg text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                      {verifyLoading ? "Verifying..." : "Verify & Mint"}
+                    </button>
+                  </div>
+                  {verifyStatus && (
+                    <p className={`text-xs mt-2 ${verifyStatus.includes("Error") || verifyStatus.includes("fail") ? "text-red-400" : "text-green-400"}`}>
+                      {verifyStatus}
+                    </p>
+                  )}
+                  {verifyResult?.mintTxHash && (
+                    <a href={`https://snowtrace.io/tx/${verifyResult.mintTxHash}`} target="_blank"
+                      className="text-blue-400 text-xs underline mt-1 block">
+                      View mint TX on Snowtrace
+                    </a>
+                  )}
+                </div>
               </div>
 
               {/* ═══ SECTION 3: PAID MINT (0.69 AVAX) ═══ */}
