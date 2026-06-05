@@ -293,7 +293,7 @@ model LaunchpadApplication {
 
 // ===== HOTH NFT =====
 model NftWhitelist {
-  id               String   @id @default(cuid())
+  id               Int      @id @default(autoincrement())
   walletAddress    String   @unique    // Wallet address (case-insensitive)
   handle           String?              // Arena handle
   reason           String?              // Reason for whitelist (event_winner, old_holder, etc.)
