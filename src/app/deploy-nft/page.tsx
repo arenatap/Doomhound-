@@ -7,10 +7,13 @@ export default function DeployNFTPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<"deploy" | "airdrop" | "config" | "verify">("deploy");
+  const [activeTab, setActiveTab] = useState<"deploy" | "airdrop" | "config" | "verify" | "mint">("deploy");
   const [airdropStatus, setAirdropStatus] = useState<any>(null);
   const [configResult, setConfigResult] = useState<any>(null);
   const [verifyResult, setVerifyResult] = useState<any>(null);
+  const [mintTo, setMintTo] = useState("");
+  const [mintQty, setMintQty] = useState("1");
+  const [mintResult, setMintResult] = useState<any>(null);
 
   async function handleDeploy() {
     if (!password) {
@@ -274,6 +277,9 @@ export default function DeployNFTPage() {
         <button style={tabStyle(activeTab === "verify")} onClick={() => setActiveTab("verify")}>
           🔍 Verify
         </button>
+        <button style={tabStyle(activeTab === "mint")} onClick={() => setActiveTab("mint")}>
+          🪙 Mint
+        </button>
       </div>
 
       <div style={{
@@ -445,6 +451,91 @@ export default function DeployNFTPage() {
                 <pre style={{ color: "#aaa", fontSize: "11px", whiteSpace: "pre-wrap" }}>
                   {JSON.stringify(configResult, null, 2)}
                 </pre>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* MINT TAB */}
+        {activeTab === "mint" && (
+          <>
+            <div style={{ marginBottom: "16px", fontSize: "12px", color: "#777" }}>
+              <div style={{ color: "#fbbf24", fontWeight: "bold" }}>Admin Mint — Mint NFTs directly to any wallet</div>
+              <div style={{ marginTop: "4px", fontSize: "11px" }}>Uses adminMint(to, quantity) from the contract owner. Bypasses all limits.</div>
+              <div style={{ marginTop: "8px", borderTop: "1px solid #333", paddingTop: "8px" }}>
+                <div><b style={{ color: "#aaa" }}>Whitelisted users with unclaimed mints:</b></div>
+                <div style={{ fontSize: "10px", color: "#999", marginTop: "4px" }}>
+                  chartshaman (0xa327...edb9) — 0/1 claimed, 0 NFTs
+                </div>
+              </div>
+            </div>
+            <div style={{ marginBottom: "12px" }}>
+              <label style={{ color: "#999", fontSize: "11px", display: "block", marginBottom: "4px" }}>WALLET ADDRESS</label>
+              <input
+                type="text"
+                value={mintTo}
+                onChange={(e) => setMintTo(e.target.value)}
+                placeholder="0x..."
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  background: "#0a0a0a",
+                  border: "1px solid #444",
+                  borderRadius: "6px",
+                  color: "#fff",
+                  fontSize: "13px",
+                  fontFamily: "monospace",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: "12px" }}>
+              <label style={{ color: "#999", fontSize: "11px", display: "block", marginBottom: "4px" }}>QUANTITY</label>
+              <input
+                type="number"
+                value={mintQty}
+                onChange={(e) => setMintQty(e.target.value)}
+                min="1"
+                max="10"
+                style={{
+                  width: "100%",
+                  padding: "8px 10px",
+                  background: "#0a0a0a",
+                  border: "1px solid #444",
+                  borderRadius: "6px",
+                  color: "#fff",
+                  fontSize: "13px",
+                  fontFamily: "monospace",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+            <button onClick={async () => {
+              if (!password) { setError("Inserisci la password admin"); return; }
+              if (!mintTo) { setError("Inserisci l'indirizzo wallet"); return; }
+              if (!confirm(`Mint ${mintQty} NFT(s) to ${mintTo}?`)) return;
+              setLoading(true); setError(""); setMintResult(null);
+              try {
+                const res = await fetch("/api/deploy-nft", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ password, action: "admin_mint", to: mintTo, quantity: Number(mintQty) }),
+                });
+                const data = await res.json();
+                if (!res.ok) { setError(data.error || "Mint failed"); }
+                else { setMintResult(data); }
+              } catch (e: any) { setError(e.message || "Network error"); }
+              finally { setLoading(false); }
+            }} disabled={loading || !mintTo} style={buttonStyle("#059669")}>
+              {loading ? "⏳ MINTING..." : `🪙 ADMIN MINT ${mintQty} NFT`}
+            </button>
+            {mintResult && (
+              <div style={{
+                marginTop: "12px", padding: "12px", background: "#0a2a0a",
+                border: "1px solid #22c55e", borderRadius: "6px", fontSize: "12px", wordBreak: "break-all",
+              }}>
+                <div style={{ color: "#22c55e", fontWeight: "bold", marginBottom: "6px" }}>✅ MINTED!</div>
+                <div style={{ color: "#aaa" }}>TX: <a href={mintResult.snowtrace} target="_blank" style={{ color: "#60a5fa" }}>{mintResult.txHash}</a></div>
               </div>
             )}
           </>

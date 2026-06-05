@@ -62,6 +62,14 @@ export async function POST(request: NextRequest) {
       return await handleContractAction(provider, wallet, "reveal", [revealedURI_], "reveal");
     }
 
+    if (action === "admin_mint") {
+      const { to, quantity } = body;
+      if (!to || !quantity) {
+        return NextResponse.json({ error: "Missing 'to' (wallet address) or 'quantity'" }, { status: 400 });
+      }
+      return await handleContractAction(provider, wallet, "adminMint", [to, Number(quantity)], "admin_mint");
+    }
+
     if (action === "verify_contract") {
       return await handleVerifyContract();
     }
@@ -144,9 +152,15 @@ async function handleContractAction(
     return NextResponse.json({ error: "New contract not deployed yet. Deploy first, then set NFT_CONTRACT_ADDRESS env var." }, { status: 400 });
   }
 
+  const argTypes = args.map((a: any) => {
+    if (typeof a === 'boolean') return 'bool';
+    if (typeof a === 'number') return 'uint256';
+    if (typeof a === 'string' && a.startsWith('0x') && a.length === 42) return 'address';
+    return 'string';
+  });
   const nftAbi = [
     "function owner() view returns (address)",
-    `function ${functionName}(${args.map((a: any) => typeof a === 'boolean' ? 'bool' : 'string').join(',')}) external`,
+    `function ${functionName}(${argTypes.join(',')}) external`,
     "function baseURI() view returns (string)",
     "function freeMintActive() view returns (bool)",
     "function paidMintActive() view returns (bool)",
