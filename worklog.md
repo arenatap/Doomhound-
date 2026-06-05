@@ -159,25 +159,32 @@ Stage Summary:
 - Deploy triggered on Render via GitHub push
 
 ---
-Task ID: 1
+Task ID: nft-image-fix
 Agent: Main Agent
-Task: Fix burn-mint flow - tokens burned but NFT not minted
+Task: Diagnose and fix NFT images not displaying
 
 Work Log:
-- Read all critical project files (route.ts, page.tsx, schema.prisma, nft-abi.ts, web3 configs)
-- Identified root cause: Prisma schema `BurnMintRequest.id` was `String @id @default(cuid())` but production DB had integer IDs
-- This caused "Error converting field id of expected non-nullable type String, found incompatible value of 4" on every `burnMintRequest.findFirst()` call
-- Fixed Prisma schema: Changed `id` to `Int @id @default(autoincrement())` for BurnMintRequest
-- Added missing `burnAmount String?` field to BurnMintRequest schema
-- Made `txHash` `@unique` for Prisma upsert to work
-- Removed `@unique` from `walletAddress` to allow re-burns on new contract
-- Rewrote PUT handler: removed raw SQL fallbacks, added mintWithToken tx support, added Transfer event parsing, added gasLimit to adminMint
-- Removed raw SQL fallbacks in GET handler for burn mint status
-- Built and verified locally (next build succeeds)
-- Committed and pushed to GitHub (main branch)
+- Investigated NFT image display issue across entire codebase
+- Discovered the NFT contract (0x350661c692003cC9D8b350B88e5cc2Fd989E4DCb) uses IPFS for metadata
+- Called tokenURI(1) on-chain → returns ipfs://bafybeihejmqz3zoqsuqonrqnagksctw66m4jouqroo3iug5zqzxilgucs4/1.json
+- Fetched metadata from IPFS: found images point to ipfs://bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/{N}.png
+- ROOT CAUSE: IPFS metadata directory is poorly pinned - some files timeout (504) intermittently
+  - Token #1: OK, Token #2: 504 timeout, Token #4: timeout, Token #8: timeout
+  - When marketplace can't fetch metadata, images don't display
+- Images themselves ARE accessible when metadata loads successfully
+- Downloaded all 41 metadata JSON files from IPFS via pinata.cloud gateway
+- Downloaded all 41 referenced NFT images from IPFS
+- Updated metadata image URLs from ipfs:// to https://doomhound.onrender.com/nft/images/
+- Created API route /api/nft/metadata/[tokenId] to serve metadata with CORS headers
+- Added Next.js rewrite rule for .json URL extension (contract appends .json)
+- Added CORS middleware for /nft/ and /api/nft/ paths
+- Committed all changes locally (2 commits)
+- GitHub PAT token expired - CANNOT PUSH
 
 Stage Summary:
-- Root cause: Prisma type mismatch between String schema and Int DB data
-- Fix: Aligned schema with actual DB (Int id, added burnAmount, unique txHash)
-- Deploy: Pushed to GitHub, Render will auto-deploy with prisma db push
-- User's burn tx 0x4e317fc can be verified via "Verify Previous Burn" after deploy
+- All NFT metadata and images now hosted locally in /public/nft/
+- API route serves metadata at /api/nft/metadata/{tokenId}
+- User MUST push to GitHub manually (PAT expired)
+- User MUST call setBaseURI("https://doomhound.onrender.com/api/nft/metadata/") on contract
+- Contract address: 0x350661c692003cC9D8b350B88e5cc2Fd989E4DCb
+- Contract uses _baseTokenURI + tokenId + ".json" pattern
