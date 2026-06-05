@@ -27,3 +27,5 @@ services:
         value: 50e801a6-0f7d-4ca9-a855-462f834f2900
       - key: AVAX_RPC_URL
         value: https://api.avax.network/ext/bc/C/rpc
+      - key: NFT_CONTRACT_ADDRESS
+        value: "0x350661c692003cC9D8b350B88e5cc2Fd989E4DCb"

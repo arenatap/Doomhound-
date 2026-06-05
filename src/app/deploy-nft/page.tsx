@@ -405,6 +405,25 @@ export default function DeployNFTPage() {
             <button onClick={() => handleSetConfig("set_base_uri")} disabled={loading} style={buttonStyle("#0891b2")}>
               {loading ? "⏳ SETTING..." : "🔗 SET BASE URI (IPFS metadata)"}
             </button>
+            <button onClick={() => { if (confirm("⚠️ This will change the contract's baseURI from IPFS to HTTPS. This makes NFT images visible on Snowtrace and marketplaces. The change is reversible. Continue?")) handleSetConfig("set_https_base_uri"); }} disabled={loading} style={{
+              width: "100%",
+              padding: "14px",
+              background: loading ? "#555" : "#dc2626",
+              color: "#fff",
+              border: "2px solid #ff4444",
+              borderRadius: "6px",
+              fontSize: "15px",
+              fontWeight: "bold",
+              cursor: loading ? "not-allowed" : "pointer",
+              fontFamily: "monospace",
+              marginBottom: "8px",
+              textShadow: "0 0 10px rgba(255,0,0,0.5)",
+            }}>
+              {loading ? "⏳ SETTING..." : "🖼️ SET HTTPS BASE URI (Show images on Snowtrace!)"}
+            </button>
+            <div style={{ fontSize: "10px", color: "#fbbf24", marginBottom: "8px", padding: "4px 8px", background: "#1a1a0a", borderRadius: "4px", border: "1px solid #b45309" }}>
+              New: https://doomhound.onrender.com/api/nft/metadata/ — All 100 NFTs ready!
+            </div>
             <button onClick={() => handleSetConfig("set_unrevealed_uri")} disabled={loading} style={buttonStyle("#0891b2")}>
               {loading ? "⏳ SETTING..." : "👁️ SET UNREVEALED URI"}
             </button>

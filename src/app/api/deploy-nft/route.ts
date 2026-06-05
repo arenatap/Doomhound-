@@ -12,6 +12,7 @@ const NFT_CONTRACT_ADDRESS = process.env.NFT_CONTRACT_ADDRESS;
 // Constructor parameters for the NEW contract
 const INITIAL_SIGNER = "0xe0a3a19e6c83f3c1ff4c73f1e039397968f03bab";
 const INITIAL_BASE_URI = "ipfs://bafybeihejmqz3zoqsuqonrqnagksctw66m4jouqroo3iug5zqzxilgucs4/";
+const HTTPS_BASE_URI = "https://doomhound.onrender.com/api/nft/metadata/";
 const INITIAL_UNREVEALED_URI = "ipfs://bafybeibylnt6kixn3c2axd5sygvsoz6hpikcwc26at2taao75harkgt7ii/metadata/unrevealed.json";
 
 export async function POST(request: NextRequest) {
@@ -38,6 +39,10 @@ export async function POST(request: NextRequest) {
 
     if (action === "set_base_uri") {
       return await handleContractAction(provider, wallet, "setBaseURI", [INITIAL_BASE_URI], "set_base_uri");
+    }
+
+    if (action === "set_https_base_uri") {
+      return await handleContractAction(provider, wallet, "setBaseURI", [HTTPS_BASE_URI], "set_https_base_uri");
     }
 
     if (action === "set_unrevealed_uri") {
