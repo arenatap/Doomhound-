@@ -46,108 +46,28 @@ interface CachedToken {
 // This ensures images always show even if IPFS gateways are unreachable from server
 // The revealed metadata uses shuffled image filenames (reveal mechanic)
 // The cache refresh will still update owner data on-chain and fetch new tokens
-const HARDCODED_METADATA: Record<number, { name: string; image: string }> = {
-  1: { name: "Hounds of the Hell #1", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/95.png" },
-  2: { name: "Hounds of the Hell #2", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/58.png" },
-  3: { name: "Hounds of the Hell #3", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/66.png" },
-  4: { name: "Hounds of the Hell #4", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/60.png" },
-  5: { name: "Hounds of the Hell #5", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/96.png" },
-  6: { name: "Hounds of the Hell #6", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/54.png" },
-  7: { name: "Hounds of the Hell #7", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/16.png" },
-  8: { name: "Hounds of the Hell #8", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/72.png" },
-  9: { name: "Hounds of the Hell #9", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/82.png" },
-  10: { name: "Hounds of the Hell #10", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/25.png" },
-  11: { name: "Hounds of the Hell #11", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/67.png" },
-  12: { name: "Hounds of the Hell #12", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/36.png" },
-  13: { name: "Hounds of the Hell #13", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/28.png" },
-  14: { name: "Hounds of the Hell #14", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/6.png" },
-  15: { name: "Hounds of the Hell #15", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/69.png" },
-  16: { name: "Hounds of the Hell #16", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/45.png" },
-  17: { name: "Hounds of the Hell #17", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/1.png" },
-  18: { name: "Hounds of the Hell #18", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/93.png" },
-  19: { name: "Hounds of the Hell #19", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/79.png" },
-  20: { name: "Hounds of the Hell #20", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/53.png" },
-  21: { name: "Hounds of the Hell #21", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/7.png" },
-  22: { name: "Hounds of the Hell #22", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/35.png" },
-  23: { name: "Hounds of the Hell #23", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/75.png" },
-  24: { name: "Hounds of the Hell #24", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/78.png" },
-  25: { name: "Hounds of the Hell #25", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/4.png" },
-  26: { name: "Hounds of the Hell #26", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/55.png" },
-  27: { name: "Hounds of the Hell #27", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/15.png" },
-  28: { name: "Hounds of the Hell #28", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/34.png" },
-  29: { name: "Hounds of the Hell #29", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/40.png" },
-  30: { name: "Hounds of the Hell #30", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/62.png" },
-  31: { name: "Hounds of the Hell #31", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/42.png" },
-  32: { name: "Hounds of the Hell #32", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/19.png" },
-  33: { name: "Hounds of the Hell #33", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/14.png" },
-  34: { name: "Hounds of the Hell #34", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/73.png" },
-  35: { name: "Hounds of the Hell #35", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/89.png" },
-  36: { name: "Hounds of the Hell #36", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/9.png" },
-  37: { name: "Hounds of the Hell #37", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/38.png" },
-  38: { name: "Hounds of the Hell #38", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/43.png" },
-  39: { name: "Hounds of the Hell #39", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/51.png" },
-  40: { name: "Hounds of the Hell #40", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/23.png" },
-  41: { name: "Hounds of the Hell #41", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/24.png" },
-  42: { name: "Hounds of the Hell #42", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/86.png" },
-  43: { name: "Hounds of the Hell #43", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/12.png" },
-  44: { name: "Hounds of the Hell #44", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/46.png" },
-  45: { name: "Hounds of the Hell #45", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/52.png" },
-  46: { name: "Hounds of the Hell #46", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/29.png" },
-  47: { name: "Hounds of the Hell #47", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/84.png" },
-  48: { name: "Hounds of the Hell #48", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/81.png" },
-  49: { name: "Hounds of the Hell #49", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/99.png" },
-  50: { name: "Hounds of the Hell #50", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/80.png" },
-  51: { name: "Hounds of the Hell #51", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/59.png" },
-  52: { name: "Hounds of the Hell #52", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/85.png" },
-  53: { name: "Hounds of the Hell #53", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/87.png" },
-  54: { name: "Hounds of the Hell #54", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/22.png" },
-  55: { name: "Hounds of the Hell #55", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/2.png" },
-  56: { name: "Hounds of the Hell #56", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/48.png" },
-  57: { name: "Hounds of the Hell #57", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/10.png" },
-  58: { name: "Hounds of the Hell #58", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/98.png" },
-  59: { name: "Hounds of the Hell #59", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/20.png" },
-  60: { name: "Hounds of the Hell #60", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/88.png" },
-  61: { name: "Hounds of the Hell #61", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/71.png" },
-  62: { name: "Hounds of the Hell #62", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/41.png" },
-  63: { name: "Hounds of the Hell #63", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/97.png" },
-  64: { name: "Hounds of the Hell #64", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/32.png" },
-  65: { name: "Hounds of the Hell #65", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/27.png" },
-  66: { name: "Hounds of the Hell #66", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/61.png" },
-  67: { name: "Hounds of the Hell #67", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/11.png" },
-  68: { name: "Hounds of the Hell #68", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/3.png" },
-  69: { name: "Hounds of the Hell #69", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/21.png" },
-  70: { name: "Hounds of the Hell #70", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/44.png" },
-  71: { name: "Hounds of the Hell #71", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/83.png" },
-  72: { name: "Hounds of the Hell #72", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/33.png" },
-  73: { name: "Hounds of the Hell #73", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/26.png" },
-  74: { name: "Hounds of the Hell #74", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/49.png" },
-  75: { name: "Hounds of the Hell #75", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/94.png" },
-  76: { name: "Hounds of the Hell #76", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/68.png" },
-  77: { name: "Hounds of the Hell #77", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/92.png" },
-  78: { name: "Hounds of the Hell #78", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/91.png" },
-  79: { name: "Hounds of the Hell #79", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/37.png" },
-  80: { name: "Hounds of the Hell #80", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/77.png" },
-  81: { name: "Hounds of the Hell #81", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/74.png" },
-  82: { name: "Hounds of the Hell #82", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/70.png" },
-  83: { name: "Hounds of the Hell #83", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/13.png" },
-  84: { name: "Hounds of the Hell #84", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/90.png" },
-  85: { name: "Hounds of the Hell #85", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/39.png" },
-  86: { name: "Hounds of the Hell #86", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/5.png" },
-  87: { name: "Hounds of the Hell #87", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/18.png" },
-  88: { name: "Hounds of the Hell #88", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/31.png" },
-  89: { name: "Hounds of the Hell #89", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/65.png" },
-  90: { name: "Hounds of the Hell #90", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/76.png" },
-  91: { name: "Hounds of the Hell #91", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/57.png" },
-  92: { name: "Hounds of the Hell #92", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/56.png" },
-  93: { name: "Hounds of the Hell #93", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/30.png" },
-  94: { name: "Hounds of the Hell #94", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/63.png" },
-  95: { name: "Hounds of the Hell #95", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/8.png" },
-  96: { name: "Hounds of the Hell #96", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/100.png" },
-  97: { name: "Hounds of the Hell #97", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/50.png" },
-  98: { name: "Hounds of the Hell #98", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/64.png" },
-  99: { name: "Hounds of the Hell #99", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/17.png" },
-  100: { name: "Hounds of the Hell #100", image: "https://ipfs.io/ipfs/bafybeibs47dcz3or2vnjzsucdagkfamgh7zf4d463z4ld62yci5ewqrkje/47.png" },
+// Shuffled image mapping: tokenId -> image filename (reveal mechanic)
+// Token #1 shows image 95.png, Token #2 shows image 58.png, etc.
+const SHUFFLED_IMAGES: Record<number, number> = {
+  1: 95, 2: 58, 3: 66, 4: 60, 5: 96, 6: 54, 7: 16, 8: 72, 9: 82, 10: 25,
+  11: 67, 12: 36, 13: 28, 14: 6, 15: 69, 16: 45, 17: 1, 18: 93, 19: 79, 20: 53,
+  21: 7, 22: 35, 23: 75, 24: 78, 25: 4, 26: 55, 27: 15, 28: 34, 29: 40, 30: 62,
+  31: 42, 32: 19, 33: 14, 34: 73, 35: 89, 36: 9, 37: 38, 38: 43, 39: 51, 40: 23,
+  41: 24, 42: 86, 43: 12, 44: 46, 45: 52, 46: 29, 47: 84, 48: 81, 49: 99, 50: 80,
+  51: 59, 52: 85, 53: 87, 54: 22, 55: 2, 56: 48, 57: 10, 58: 98, 59: 20, 60: 88,
+  61: 71, 62: 41, 63: 97, 64: 32, 65: 27, 66: 61, 67: 11, 68: 3, 69: 21, 70: 44,
+  71: 83, 72: 33, 73: 26, 74: 49, 75: 94, 76: 68, 77: 92, 78: 91, 79: 37, 80: 77,
+  81: 74, 82: 70, 83: 13, 84: 90, 85: 39, 86: 5, 87: 18, 88: 31, 89: 65, 90: 76,
+  91: 57, 92: 56, 93: 30, 94: 63, 95: 8, 96: 100, 97: 50, 98: 64, 99: 17, 100: 47,
 };
+
+// Base URL for NFT images — served from /public/nft/images/
+const NFT_IMAGE_BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://doomhound.onrender.com";
+
+function getNFTImageUrl(tokenId: number): string {
+  const imageNum = SHUFFLED_IMAGES[tokenId] || tokenId;
+  return `${NFT_IMAGE_BASE}/nft/images/${imageNum}.png`;
+}
 
 // IPFS CID for revealed metadata (contract tokenURI returns ipfs://CID/{id}.json)
 const REVEALED_CID = "bafybeihejmqz3zoqsuqonrqnagksctw66m4jouqroo3iug5zqzxilgucs4";
@@ -206,12 +126,11 @@ async function refreshMetadataCache() {
       promises.push(
         nftContract.ownerOf(i)
           .then((o: string) => {
-            // Use hardcoded metadata if available, otherwise construct from CID
-            const hardcoded = HARDCODED_METADATA[i];
+            // Use local HTTPS images instead of IPFS gateways
             newCache[i] = {
               owner: o.toLowerCase(),
-              name: hardcoded?.name || `Hounds of the Hell #${i}`,
-              image: hardcoded?.image || `https://gateway.pinata.cloud/ipfs/${IMAGE_CID}/${i}.png`,
+              name: `Hounds of the Hell #${i}`,
+              image: getNFTImageUrl(i),
             };
           })
           .catch(() => {

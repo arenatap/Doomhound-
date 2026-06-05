@@ -9,13 +9,10 @@ import { NFT_CONTRACT, DOOMHOUND_TOKEN, BURN_ADDRESS, BURN_AMOUNT, NFT_ABI, DOOM
 
 const AVAX_CHAIN_ID = 43114;
 
-// IPFS gateway fallback: if ipfs.io fails, try Pinata
+// Image error fallback: show placeholder if NFT image fails to load
 function handleImageError(e: React.SyntheticEvent<HTMLImageElement>) {
   const img = e.currentTarget;
-  if (img.src.includes('ipfs.io/ipfs/')) {
-    img.src = img.src.replace('ipfs.io/ipfs/', 'gateway.pinata.cloud/ipfs/');
-  } else if (img.src.includes('gateway.pinata.cloud/ipfs/')) {
-    // Both gateways failed - show placeholder
+  if (!img.src.includes('doomhound-hero.png')) {
     img.src = '/images/doomhound-hero.png';
     img.style.objectFit = 'cover';
     img.style.opacity = '0.3';
