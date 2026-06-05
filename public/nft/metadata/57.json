@@ -1,0 +1,43 @@
+{
+  "name": "Hounds of the Hell #57",
+  "description": "100 unique hounds from the Hounds of the Hell collection on Avalanche. Holders gain exclusive perks in the DOOMHOUND ecosystem.",
+  "image": "https://doomhound.onrender.com/nft/images/10.png",
+  "external_url": "https://doomhound.onrender.com",
+  "edition": 57,
+  "date": 1748131200,
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Epic"
+    },
+    {
+      "trait_type": "Breed",
+      "value": "Dark Hound"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "Crimson Glow"
+    },
+    {
+      "trait_type": "Armor",
+      "value": "Demon Crown"
+    },
+    {
+      "trait_type": "Special",
+      "value": "Horned"
+    },
+    {
+      "trait_type": "Background",
+      "value": "Hellfire"
+    },
+    {
+      "trait_type": "Color",
+      "value": "Dark"
+    },
+    {
+      "display_type": "number",
+      "trait_type": "Generation",
+      "value": 1
+    }
+  ]
+}
