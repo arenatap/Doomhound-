@@ -188,3 +188,29 @@ Stage Summary:
 - User MUST call setBaseURI("https://doomhound.onrender.com/api/nft/metadata/") on contract
 - Contract address: 0x350661c692003cC9D8b350B88e5cc2Fd989E4DCb
 - Contract uses _baseTokenURI + tokenId + ".json" pattern
+---
+Task ID: 1
+Agent: main
+Task: Investigate and fix NFT minting not working for users
+
+Work Log:
+- Checked live API status: working correctly, Prisma fix deployed
+- Verified on-chain contract state: freeMintActive=true, paidMintActive=true, signer matches
+- Discovered critical issue: contract does NOT have mintWithToken/tokenMintActive/tokenMintClaimed functions
+- Used Snowtrace API to get full contract ABI — confirmed these functions don't exist
+- Free Mint (claimFreeMint) works: API returns valid signatures, on-chain flags are active
+- Paid Mint (mintPaid) works: on-chain flag is active, price 0.69 AVAX
+- Burn & Mint (mintWithToken) was BROKEN: calling non-existent contract function
+- Fixed by replacing mintWithToken flow with manual burn flow:
+  Step 1: Transfer $DOOMHOUND to 0xdead address
+  Step 2: Verify burn via API → adminMint NFT
+- Removed useReadContract calls for tokenMintActive, tokenMintClaimed (they revert)
+- Removed doomAllowance, approveDoom hooks (no longer needed)
+- Combined Burn section and Verify section into one cohesive UI
+- Build succeeded, pushed to GitHub
+
+Stage Summary:
+- Root cause: contract has no mintWithToken function — ABI in nft-abi.ts was wrong
+- Fixed: replaced broken one-click burn+mint with two-step manual flow
+- 10 users whitelisted, 2 claimed, 8 free mints remaining
+- Push commit 2e9c88e to GitHub main
